@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'custom_bottom_nav.dart';
 
 // ============================================================
@@ -21,21 +22,21 @@ class BottomNavRunner extends StatelessWidget {
     return CustomBottomNav(
       currentIndex: currentIndex,
       onTap: onTap,
-      items: const [
+      items: [
         NavItem(
-          icon: Icons.explore_rounded,
+          icon: HugeIcons.strokeRoundedCompass,
           title: 'Home',
         ),
         NavItem(
-          icon: Icons.work_rounded,
+          icon: HugeIcons.strokeRoundedBriefcase02,
           title: 'My Jobs',
         ),
         NavItem(
-          icon: Icons.chat_bubble_outline_rounded,
+          icon: HugeIcons.strokeRoundedBubbleChat,
           title: 'Chat',
         ),
         NavItem(
-          icon: Icons.person_rounded,
+          icon: HugeIcons.strokeRoundedUser,
           title: 'Profile',
         ),
       ],
