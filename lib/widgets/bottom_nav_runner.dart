@@ -22,21 +22,21 @@ class BottomNavRunner extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: onTap,
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.explore_rounded),
-          label: 'Home',
+        NavItem(
+          icon: Icons.explore_rounded,
+          title: 'Home',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.work_rounded),
-          label: 'My Jobs',
+        NavItem(
+          icon: Icons.work_rounded,
+          title: 'My Jobs',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.chat_bubble_outline_rounded),
-          label: 'Chat',
+        NavItem(
+          icon: Icons.chat_bubble_outline_rounded,
+          title: 'Chat',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_rounded),
-          label: 'Profile',
+        NavItem(
+          icon: Icons.person_rounded,
+          title: 'Profile',
         ),
       ],
     );

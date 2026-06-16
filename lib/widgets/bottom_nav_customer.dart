@@ -22,21 +22,21 @@ class BottomNavCustomer extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: onTap,
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_rounded),
-          label: 'Home',
+        NavItem(
+          icon: Icons.home_rounded,
+          title: 'Home',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.add_circle_outline),
-          label: 'Post',
+        NavItem(
+          icon: Icons.add_circle_outline,
+          title: 'Post',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.receipt_long_rounded),
-          label: 'My Tasks',
+        NavItem(
+          icon: Icons.receipt_long_rounded,
+          title: 'My Tasks',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_rounded),
-          label: 'Profile',
+        NavItem(
+          icon: Icons.person_rounded,
+          title: 'Profile',
         ),
       ],
     );

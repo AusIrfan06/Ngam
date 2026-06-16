@@ -1,53 +1,184 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
+class NavItem {
+  final String title;
+  final IconData icon;
+
+  const NavItem({
+    required this.title,
+    required this.icon,
+  });
+}
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final List<BottomNavigationBarItem> items;
+  final List<NavItem> items;
 
   const CustomBottomNav({
     super.key,
     required this.currentIndex,
     required this.onTap,
-    required this.items,
+    required this.items
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final double keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    final bool isKeyboardOpen = keyboardHeight > 100;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF252536) : Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+    // 🟢 1. GET THE DEVICE'S BOTTOM SAFE AREA
+    final double safeBottom = MediaQuery.paddingOf(context).bottom;
+
+    // 🟢 2. CALCULATE DYNAMIC PADDING
+    final double adjustedBottomPadding = safeBottom > 0 ? safeBottom + 0 : 20;
+
+    const Duration animDuration = Duration(milliseconds: 450);
+    const Curve animCurve = Curves.easeOutQuint;
+
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: isKeyboardOpen ? 0.0 : 1.0,
+      child: isKeyboardOpen
+          ? const SizedBox.shrink()
+          : Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Padding(
+                  padding: EdgeInsets.only(left: 14, right: 14, bottom: adjustedBottomPadding, top: 10),
+                  child: GlassContainer(
+                    useOwnLayer: true,
+                    quality: GlassQuality.standard,
+                    shape: LiquidRoundedSuperellipse(borderRadius: 50.0),
+                    settings: LiquidGlassSettings(
+                      thickness: 0.1,
+                      blur: 2.0, // Crystal clear look
+                      refractiveIndex: 1.0,
+                      glassColor: Colors.transparent,
+                      lightAngle: 45.0,
+                      lightIntensity: isDark ? 0.1 : 0.2,
+                      ambientStrength: 1.0,
+                      saturation: 1.0,
+                      chromaticAberration: 0.0,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                          width: 1.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final double totalWidth = constraints.maxWidth;
+                          const int inactiveFlex = 2;
+                          const int activeFlex = 5;
+
+                          final int totalFlex = ((items.length - 1) * inactiveFlex) + activeFlex;
+                          final double inactiveWidth = totalWidth * (inactiveFlex / totalFlex);
+                          final double activeWidth = totalWidth * (activeFlex / totalFlex);
+                          final double pillLeftOffset = currentIndex * inactiveWidth;
+
+                          return SizedBox(
+                            height: 48,
+                            child: Stack(
+                              children: [
+                                // 1. SLIDING PILL
+                                AnimatedPositioned(
+                                  duration: animDuration,
+                                  curve: animCurve,
+                                  left: pillLeftOffset,
+                                  width: activeWidth,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(32),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.4),
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                // 2. ICONS
+                                Row(
+                                  children: List.generate(items.length, (i) {
+                                    final isSelected = currentIndex == i;
+                                    final double targetWidth = isSelected ? activeWidth : inactiveWidth;
+                                    final Color itemColor = isDark
+                                        ? (isSelected ? Colors.white : Colors.white70)
+                                        : (isSelected ? Colors.grey.shade900 : Colors.grey.shade600);
+
+                                    return AnimatedContainer(
+                                      duration: animDuration,
+                                      curve: animCurve,
+                                      width: targetWidth,
+                                      height: 48,
+                                      child: GestureDetector(
+                                        onTap: () => onTap(i),
+                                        behavior: HitTestBehavior.opaque,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              items[i].icon,
+                                              color: itemColor,
+                                              size: 24,
+                                            ),
+                                            AnimatedSize(
+                                              duration: animDuration,
+                                              curve: animCurve,
+                                              alignment: Alignment.centerLeft,
+                                              child: isSelected
+                                                  ? AnimatedOpacity(
+                                                      duration: const Duration(milliseconds: 250),
+                                                      opacity: isSelected ? 1.0 : 0.0,
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.only(left: 6),
+                                                        child: Text(
+                                                          items[i].title,
+                                                          maxLines: 1,
+                                                          style: TextStyle(
+                                                            color: itemColor,
+                                                            fontWeight: FontWeight.w900,
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : const SizedBox.shrink(),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: BottomNavigationBar(
-            currentIndex: currentIndex,
-            onTap: onTap,
-            items: items,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: theme.colorScheme.primary,
-            unselectedItemColor: Colors.grey,
-            showSelectedLabels: true,
-            showUnselectedLabels: false,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-          ),
-        ),
-      ),
     );
   }
 }
