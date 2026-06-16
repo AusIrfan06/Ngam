@@ -17,8 +17,7 @@ import 'about_screens.dart';
 import 'payment_methods_screen.dart';
 import 'privacy_security_screen.dart';
 
-final ValueNotifier<String> appLanguageNotifier = ValueNotifier('ms');
-
+import 'package:easy_localization/easy_localization.dart';
 // ============================================================
 // Ngam App — Profile Screen (Shared)
 // User profile with role toggle, stats, and settings (Glassmorphic)
@@ -201,14 +200,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(width: 12),
                             _StatCardGlass(
                               isDark: isDark,
-                              label: 'Completed',
+                              label: 'profile.completed'.tr(),
                               value: '$_tasksCompleted',
                               icon: HugeIcons.strokeRoundedTick01,
                             ),
                             const SizedBox(width: 12),
                             _StatCardGlass(
                               isDark: isDark,
-                              label: 'Rating',
+                              label: 'profile.rating'.tr(),
                               value: _rating > 0 ? _rating.toStringAsFixed(1) : '-',
                               icon: HugeIcons.strokeRoundedStar,
                             ),
@@ -217,7 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 24),
 
                         // ─── Akaun ───────────────────────────────────────────
-                        _buildSectionHeader("AKAUN"),
+                        _buildSectionHeader("profile.account".tr()),
                         _buildGlassSection(
                           isDark,
                           Column(
@@ -225,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _buildSettingsTile(
                                 isDark,
                                 HugeIcons.strokeRoundedUserEdit01,
-                                "Butiran Akaun",
+                                "profile.account_details".tr(),
                                 trailing: _buildArrow(),
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountDetailsScreen())),
                               ),
@@ -233,7 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _buildSettingsTile(
                                 isDark,
                                 HugeIcons.strokeRoundedCreditCard,
-                                "Kaedah Pembayaran",
+                                "profile.payment_methods".tr(),
                                 trailing: _buildArrow(),
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentMethodsScreen())),
                               ),
@@ -241,49 +240,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _buildSettingsTile(
                                 isDark,
                                 HugeIcons.strokeRoundedShield01,
-                                "Privasi & Keselamatan",
+                                "profile.privacy_security".tr(),
                                 trailing: _buildArrow(),
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacySecurityScreen())),
                               ),
-                              _buildDivider(isDark),
-                              _buildSettingsTile(
-                                isDark,
-                                HugeIcons.strokeRoundedSmartPhone01,
-                                "No. Telefon",
-                                trailing: Text(user.phone, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-                              ),
+
                             ],
                           ),
                         ),
                         const SizedBox(height: 24),
 
                         // ─── Pilihan ──────────────────────────────────────────
-                        _buildSectionHeader("PILIHAN"),
+                        _buildSectionHeader("profile.preferences".tr()),
                         _buildGlassSection(
                           isDark,
                           Column(
                             children: [
                               _buildThemeToggleTile(isDark, themeProvider),
                               _buildDivider(isDark),
-                              ValueListenableBuilder<String>(
-                                valueListenable: appLanguageNotifier,
-                                builder: (context, lang, child) {
-                                  String displayLanguage = lang == 'ms' ? 'Bahasa Melayu' : 'English';
-                                  return _buildSettingsTile(
-                                    isDark, 
-                                    HugeIcons.strokeRoundedGlobe02, 
-                                    "Bahasa",
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min, 
-                                      children: [
-                                        Text(displayLanguage, style: const TextStyle(color: Colors.grey, fontSize: 14)), 
-                                        const SizedBox(width: 8), 
-                                        _buildArrow()
-                                      ]
-                                    ),
-                                    onTap: () => _showLanguageSelector(context),
-                                  );
-                                },
+                              _buildSettingsTile(
+                                isDark, 
+                                HugeIcons.strokeRoundedGlobe02, 
+                                "profile.language".tr(),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min, 
+                                  children: [
+                                    Text(context.locale.languageCode == 'ms' ? 'Bahasa Melayu' : 'English', style: const TextStyle(color: Colors.grey, fontSize: 14)), 
+                                    const SizedBox(width: 8), 
+                                    _buildArrow()
+                                  ]
+                                ),
+                                onTap: () => _showLanguageSelector(context),
                               ),
                             ],
                           ),
@@ -313,8 +300,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Jemput Rakan', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                    Text('Dapatkan RM5 untuk setiap rujukan!', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
+                                    Text('profile.invite_friends'.tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                    Text('profile.invite_friends_desc'.tr(), style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
                                   ],
                                 ),
                               ),
@@ -325,19 +312,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 24),
 
                         // ─── Sokongan ───────────────────────────────────────────
-                        _buildSectionHeader("SOKONGAN"),
+                        _buildSectionHeader("profile.support".tr()),
                         _buildGlassSection(
                           isDark,
                           Column(
                             children: [
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedCustomerService, 'Pusat Bantuan',
+                                isDark, HugeIcons.strokeRoundedCustomerService, 'profile.help_center'.tr(),
                                 trailing: _buildArrow(),
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpCenterScreen())),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedMessageQuestion, 'Hubungi Kami',
+                                isDark, HugeIcons.strokeRoundedMessageQuestion, 'profile.contact_us'.tr(),
                                 trailing: _buildArrow(),
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactUsScreen())),
                               ),
@@ -347,25 +334,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 24),
 
                         // ─── Tentang ───────────────────────────────────────────
-                        _buildSectionHeader("TENTANG"),
+                        _buildSectionHeader("profile.about".tr()),
                         _buildGlassSection(
                           isDark,
                           Column(
                             children: [
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedInformationCircle, 'Terma Perkhidmatan',
+                                isDark, HugeIcons.strokeRoundedInformationCircle, 'profile.terms'.tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LegalTextScreen(title: 'Terma Perkhidmatan', content: ngamTermsText))),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LegalTextScreen(title: 'profile.terms'.tr(), content: ngamTermsText))),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedShield01, 'Dasar Privasi',
+                                isDark, HugeIcons.strokeRoundedShield01, 'profile.privacy'.tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LegalTextScreen(title: 'Dasar Privasi', content: ngamPrivacyText))),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LegalTextScreen(title: 'profile.privacy'.tr(), content: ngamPrivacyText))),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedStar, 'Nilaikan Aplikasi',
+                                isDark, HugeIcons.strokeRoundedStar, 'profile.rate_app'.tr(),
                                 trailing: _buildArrow(),
                                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RateAppScreen(), fullscreenDialog: true)),
                               ),
@@ -380,17 +367,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               Text('Ngam v1.0.0', style: TextStyle(color: Colors.grey.withValues(alpha: 0.5), fontSize: 12, fontWeight: FontWeight.w600)),
                               const SizedBox(height: 4),
-                              Text('Dibuat dengan ❤️ di Malaysia', style: TextStyle(color: Colors.grey.withValues(alpha: 0.3), fontSize: 10)),
+                              Text('profile.made_with_love'.tr(), style: TextStyle(color: Colors.grey.withValues(alpha: 0.3), fontSize: 10)),
                             ],
                           ),
                         ),
                         const SizedBox(height: 32),
 
                         // ─── Logout ────────────────────────────────────────────
-                        _buildGlassButton(isDark, 'Log Keluar', AppTheme.error, () async {
+                        _buildGlassButton(isDark, 'profile.logout'.tr(), AppTheme.error, () async {
                           await authProvider.signOut();
                           if (context.mounted) {
-                            showGlassToast(context, 'Berjaya log keluar!');
+                            showGlassToast(context, 'profile.logout_success'.tr());
                             Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
                           }
                         }),
@@ -524,24 +511,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildLanguageOption(BuildContext context, String title, String code, dynamic icon, Color color) {
-    return ValueListenableBuilder<String>(
-      valueListenable: appLanguageNotifier,
-      builder: (context, currentLang, _) {
-        final isSelected = currentLang == code;
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: isSelected ? color : Colors.transparent, width: 1.5)),
-          tileColor: color.withValues(alpha: 0.05),
-          leading: HugeIcon(icon: icon, color: color, size: 22),
-          title: Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-          trailing: isSelected ? HugeIcon(icon: HugeIcons.strokeRoundedTick01, color: color, size: 20) : null,
-          onTap: () {
-            appLanguageNotifier.value = code;
-            Navigator.pop(context);
-            showGlassToast(context, 'Bahasa ditukar kepada $title');
-          },
-        );
-      }
+    final currentLang = context.locale.languageCode;
+    final isSelected = currentLang == code;
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: isSelected ? color : Colors.transparent, width: 1.5)),
+      tileColor: color.withValues(alpha: 0.05),
+      leading: HugeIcon(icon: icon, color: color, size: 22),
+      title: Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+      trailing: isSelected ? HugeIcon(icon: HugeIcons.strokeRoundedTick01, color: color, size: 20) : null,
+      onTap: () async {
+        await context.setLocale(Locale(code));
+        Navigator.pop(context);
+        showGlassToast(context, 'profile.language_changed'.tr(args: [title]));
+      },
     );
   }
 

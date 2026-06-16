@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'dart:ui' as ui;
 import 'package:hugeicons/hugeicons.dart';
 
 class NavItem {
@@ -48,34 +48,18 @@ class CustomBottomNav extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 600),
               child: Padding(
                 padding: EdgeInsets.only(left: 14, right: 14, bottom: adjustedBottomPadding, top: 10),
-                child: GlassContainer(
-                  useOwnLayer: true,
-                  quality: GlassQuality.standard,
-                  shape: LiquidRoundedSuperellipse(borderRadius: 50.0),
-                  settings: LiquidGlassSettings(
-                    thickness: 0.1,
-                    blur: 2.0, // Crystal clear look
-                    refractiveIndex: 1.0,
-                    glassColor: Colors.transparent,
-                    lightAngle: 45.0,
-                    lightIntensity: isDark ? 0.1 : 0.2,
-                    ambientStrength: 1.0,
-                    saturation: 1.0,
-                    chromaticAberration: 0.0,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
-                        width: 1.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(50.0),
+                  child: BackdropFilter(
+                    filter: ui.ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.black.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(50),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                          width: 1.0,
                         ),
                       ],
                     ),
@@ -107,7 +91,7 @@ class CustomBottomNav extends StatelessWidget {
                                     color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.6),
                                     borderRadius: BorderRadius.circular(32),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.8),
+                                      color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
                                       width: 1.0,
                                     ),
                                     boxShadow: [

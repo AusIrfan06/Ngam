@@ -1,0 +1,25 @@
+{
+  "profile": {
+    "completed": "Selesai",
+    "rating": "Penilaian",
+    "account": "AKAUN",
+    "account_details": "Butiran Akaun",
+    "payment_methods": "Kaedah Pembayaran",
+    "privacy_security": "Privasi & Keselamatan",
+    "preferences": "PILIHAN",
+    "language": "Bahasa",
+    "invite_friends": "Jemput Rakan",
+    "invite_friends_desc": "Dapatkan RM5 untuk setiap rujukan!",
+    "support": "SOKONGAN",
+    "help_center": "Pusat Bantuan",
+    "contact_us": "Hubungi Kami",
+    "about": "TENTANG",
+    "terms": "Terma Perkhidmatan",
+    "privacy": "Dasar Privasi",
+    "rate_app": "Nilaikan Aplikasi",
+    "logout": "Log Keluar",
+    "made_with_love": "Dibuat dengan ❤️ di Malaysia",
+    "logout_success": "Berjaya log keluar!",
+    "language_changed": "Bahasa ditukar kepada {}"
+  }
+}

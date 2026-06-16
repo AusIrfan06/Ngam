@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/gig_provider.dart';
@@ -30,11 +31,20 @@ import 'screens/shared/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
   // Initialize Supabase
   await SupabaseService.initialize();
 
-  runApp(const NgamApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('ms')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('ms'),
+      useOnlyLangCode: true,
+      child: const NgamApp(),
+    ),
+  );
 }
 
 class NgamApp extends StatelessWidget {
@@ -52,6 +62,9 @@ class NgamApp extends StatelessWidget {
         builder: (context, themeProvider, _) {
           return MaterialApp(
             title: 'Ngam',
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,

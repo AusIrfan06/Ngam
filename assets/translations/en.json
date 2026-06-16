@@ -1,0 +1,25 @@
+{
+  "profile": {
+    "completed": "Completed",
+    "rating": "Rating",
+    "account": "ACCOUNT",
+    "account_details": "Account Details",
+    "payment_methods": "Payment Methods",
+    "privacy_security": "Privacy & Security",
+    "preferences": "PREFERENCES",
+    "language": "Language",
+    "invite_friends": "Invite Friends",
+    "invite_friends_desc": "Get RM5 for every referral!",
+    "support": "SUPPORT",
+    "help_center": "Help Center",
+    "contact_us": "Contact Us",
+    "about": "ABOUT",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "rate_app": "Rate App",
+    "logout": "Log Out",
+    "made_with_love": "Made with ❤️ in Malaysia",
+    "logout_success": "Successfully logged out!",
+    "language_changed": "Language changed to {}"
+  }
+}
