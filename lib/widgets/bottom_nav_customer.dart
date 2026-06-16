@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'custom_bottom_nav.dart';
 
 // ============================================================
 // Ngam App — Customer Bottom Navigation
@@ -17,7 +18,7 @@ class BottomNavCustomer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
+    return CustomBottomNav(
       currentIndex: currentIndex,
       onTap: onTap,
       items: const [

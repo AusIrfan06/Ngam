@@ -44,6 +44,7 @@ class _RunnerHomeScreenState extends State<RunnerHomeScreen> {
     ];
 
     return Scaffold(
+      extendBody: true,
       body: pages[_currentIndex],
       bottomNavigationBar: BottomNavRunner(
         currentIndex: _currentIndex,
@@ -61,143 +62,188 @@ class _RunnerFeed extends StatelessWidget {
   Widget build(BuildContext context) {
     final gigProvider = context.watch<GigProvider>();
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-
-            // ─── Header ──────────────────────────────
-            Row(
-              children: [
-                Text(
-                  'Find Gigs',
-                  style: GoogleFonts.outfit(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2ECC71),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // ─── Filter Chips ────────────────────────
-            SizedBox(
-              height: 42,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+    return RefreshIndicator(
+      onRefresh: () => gigProvider.loadOpenGigs(),
+      child: CustomScrollView(
+        slivers: [
+          // ─── Hero Header ──────────────────────────────────────
+          SliverAppBar(
+            expandedHeight: 140,
+            floating: false,
+            pinned: true,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  CategoryChip(
-                    label: 'All',
-                    isSelected: gigProvider.selectedCategory == 'All',
-                    onTap: () => gigProvider.setCategory('All'),
-                    showIcon: false,
+                  Text(
+                    'Find Gigs',
+                    style: GoogleFonts.outfit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  ...TaskCategory.all.map((cat) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: CategoryChip(
-                          label: cat,
-                          isSelected: gigProvider.selectedCategory == cat,
-                          onTap: () => gigProvider.setCategory(cat),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2ECC71),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      Theme.of(context).scaffoldBackgroundColor,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // ─── Categories & List ────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+
+                  // ─── Filter Chips ────────────────────────
+                  SizedBox(
+                    height: 42,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        CategoryChip(
+                          label: 'All',
+                          isSelected: gigProvider.selectedCategory == 'All',
+                          onTap: () => gigProvider.setCategory('All'),
+                          showIcon: false,
                         ),
-                      )),
+                        const SizedBox(width: 8),
+                        ...TaskCategory.all.map((cat) => Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: CategoryChip(
+                                label: cat,
+                                isSelected: gigProvider.selectedCategory == cat,
+                                onTap: () => gigProvider.setCategory(cat),
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ─── Search Bar ──────────────────────────
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search tasks...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).cardTheme.color,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ─── Nearby Count ────────────────────────
+                  Text(
+                    'Nearby (${gigProvider.filteredGigs.length} tasks)',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+          ),
 
-            // ─── Search Bar ──────────────────────────
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search tasks...',
-                prefixIcon: const Icon(Icons.search_rounded),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+          // ─── Gig List ───────────────────────────
+          if (gigProvider.isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (gigProvider.filteredGigs.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off_rounded,
+                      size: 64,
+                      color: Colors.grey.shade300,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No gigs available',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Check back later for new tasks',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  ],
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100), // padding for bottom nav
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final gig = gigProvider.filteredGigs[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TaskCard(
+                        gig: gig,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/task-detail',
+                            arguments: gig,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  childCount: gigProvider.filteredGigs.length,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // ─── Nearby Count ────────────────────────
-            Text(
-              'Nearby (${gigProvider.filteredGigs.length} tasks)',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // ─── Gig List ───────────────────────────
-            Expanded(
-              child: gigProvider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : gigProvider.filteredGigs.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.search_off_rounded,
-                                size: 64,
-                                color: Colors.grey.shade300,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No gigs available',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey.shade400,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Check back later for new tasks',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : RefreshIndicator(
-                          onRefresh: () => gigProvider.loadOpenGigs(),
-                          child: ListView.builder(
-                            itemCount: gigProvider.filteredGigs.length,
-                            itemBuilder: (context, index) {
-                              final gig = gigProvider.filteredGigs[index];
-                              return TaskCard(
-                                gig: gig,
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/task-detail',
-                                    arguments: gig,
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

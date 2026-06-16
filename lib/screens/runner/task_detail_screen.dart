@@ -17,196 +17,229 @@ class TaskDetailScreen extends StatelessWidget {
     final gig = ModalRoute.of(context)?.settings.arguments as GigModel;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Task Detail',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ─── Task Title ──────────────────────────
-            Text(
-              gig.title,
-              style: GoogleFonts.outfit(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // ─── Category Tag ────────────────────────
-            CategoryChip(label: gig.category),
-            const SizedBox(height: 16),
-
-            // ─── Location ────────────────────────────
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  size: 18,
-                  color: AppTheme.primary,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              title: Text(
+                'Task Detail',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    gig.location,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      Theme.of(context).scaffoldBackgroundColor,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // ─── Posted Time ─────────────────────────
-            Row(
-              children: [
-                Icon(
-                  Icons.access_time,
-                  size: 18,
-                  color: Colors.grey.shade500,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Posted ${gig.timeAgo}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // ─── Description ─────────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Text(
-                gig.description,
-                style: const TextStyle(
-                  fontSize: 15,
-                  height: 1.6,
-                ),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // ─── Customer Info ───────────────────────
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.info.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
+          ),
+          SliverToBoxAdapter(
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ─── Task Title ──────────────────────────
+                    Text(
+                      gig.title,
+                      style: GoogleFonts.outfit(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      color: AppTheme.info,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 12),
+
+                    // ─── Category Tag ────────────────────────
+                    CategoryChip(label: gig.category),
+                    const SizedBox(height: 20),
+
+                    // ─── Location ────────────────────────────
+                    Row(
                       children: [
-                        Text(
-                          gig.customerName ?? 'Customer',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        const Icon(
+                          Icons.location_on,
+                          size: 20,
+                          color: AppTheme.primary,
                         ),
-                        const SizedBox(height: 2),
-                        const Row(
-                          children: [
-                            Icon(Icons.star, size: 14, color: Colors.amber),
-                            SizedBox(width: 4),
-                            Text(
-                              '4.8 (12 tasks)',
-                              style: TextStyle(fontSize: 13),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            gig.location,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
+                    const SizedBox(height: 12),
 
-            // ─── Bounty Amount ───────────────────────
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    gig.formattedBounty,
-                    style: GoogleFonts.outfit(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.primary,
+                    // ─── Posted Time ─────────────────────────
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 20,
+                          color: Colors.grey.shade500,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Posted ${gig.timeAgo}',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Bounty Offered',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
+                    const SizedBox(height: 28),
 
-            // ─── Accept Button ───────────────────────
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/confirm-acceptance',
-                    arguments: gig,
-                  );
-                },
-                icon: const Icon(Icons.check_circle_outline),
-                label: const Text('✓ Accept Gig'),
-                style: ElevatedButton.styleFrom(
-                  textStyle: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                    // ─── Description ─────────────────────────
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Text(
+                        gig.description,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // ─── Customer Info ───────────────────────
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: AppTheme.info.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              color: AppTheme.info,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  gig.customerName ?? 'Customer',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Row(
+                                  children: [
+                                    Icon(Icons.star, size: 16, color: Colors.amber),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      '4.8 (12 tasks)',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // ─── Bounty Amount ───────────────────────
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            gig.formattedBounty,
+                            style: GoogleFonts.outfit(
+                              fontSize: 42,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Bounty Offered',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // ─── Accept Button ───────────────────────
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/confirm-acceptance',
+                            arguments: gig,
+                          );
+                        },
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('✓ Accept Gig'),
+                        style: ElevatedButton.styleFrom(
+                          textStyle: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
