@@ -10,6 +10,7 @@ import '../../widgets/bottom_nav_customer.dart';
 import 'post_task_screen.dart';
 import 'my_tasks_screen.dart';
 import '../shared/profile_screen.dart';
+import '../shared/chat_screen.dart';
 
 // ============================================================
 // Ngam App — Customer Home Screen
@@ -49,12 +50,22 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
     return Scaffold(
       extendBody: true,
-      body: pages[_currentIndex],
-      bottomNavigationBar: BottomNavCustomer(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-        },
+      resizeToAvoidBottomInset: false,
+      body: Stack(
+        children: [
+          pages[_currentIndex],
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: BottomNavCustomer(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() => _currentIndex = index);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

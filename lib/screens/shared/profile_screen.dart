@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/gig_service.dart';
 import '../../services/review_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
+import '../../utils/glass_toast.dart';
+import 'account_details_screen.dart';
+import 'support_screens.dart';
+import 'about_screens.dart';
+import 'payment_methods_screen.dart';
+import 'privacy_security_screen.dart';
+
+final ValueNotifier<String> appLanguageNotifier = ValueNotifier('ms');
 
 // ============================================================
 // Ngam App — Profile Screen (Shared)
-// User profile with role toggle, stats, and settings
+// User profile with role toggle, stats, and settings (Glassmorphic)
 // ============================================================
 
 class ProfileScreen extends StatefulWidget {
@@ -57,229 +68,590 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authProvider = context.watch<AuthProvider>();
     final themeProvider = context.watch<ThemeProvider>();
     final user = authProvider.user;
+    final isDark = themeProvider.isDarkMode;
 
     if (user == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-
-            // ─── Avatar ──────────────────────────────
-            Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.accent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primary.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Center(
-                child: Text(
-                  user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+
+                        // ─── Profile Header ──────────────────────────
+                        Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppTheme.primary.withValues(alpha: 0.5),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedUser,
+                                    color: isDark ? Colors.white70 : Colors.black54,
+                                    size: 40,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                user.name.isNotEmpty ? user.name : 'User',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  user.role == UserRole.pemesan ? "PEMESAN" : "RUNNER",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                user.email,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white70 : Colors.grey,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // ─── Role Toggle ─────────────────────────
+                        _buildSectionHeader("Akses Peranan"),
+                        _buildGlassSection(
+                          isDark,
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                _RoleToggle(
+                                  label: 'Pemesan',
+                                  icon: HugeIcons.strokeRoundedUserGroup,
+                                  isSelected: user.role == UserRole.pemesan,
+                                  isDark: isDark,
+                                  onTap: () => authProvider.setRole(UserRole.pemesan),
+                                ),
+                                const SizedBox(width: 8),
+                                _RoleToggle(
+                                  label: 'Runner',
+                                  icon: HugeIcons.strokeRoundedDeliveryTruck01,
+                                  isSelected: user.role == UserRole.runner,
+                                  isDark: isDark,
+                                  onTap: () => authProvider.setRole(UserRole.runner),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ─── Stats Section ───────────────────────
+                        _buildSectionHeader("Statistik"),
+                        Row(
+                          children: [
+                            _StatCardGlass(
+                              isDark: isDark,
+                              label: 'Tasks Posted',
+                              value: '$_tasksPosted',
+                              icon: HugeIcons.strokeRoundedUpload01,
+                            ),
+                            const SizedBox(width: 12),
+                            _StatCardGlass(
+                              isDark: isDark,
+                              label: 'Completed',
+                              value: '$_tasksCompleted',
+                              icon: HugeIcons.strokeRoundedTick01,
+                            ),
+                            const SizedBox(width: 12),
+                            _StatCardGlass(
+                              isDark: isDark,
+                              label: 'Rating',
+                              value: _rating > 0 ? _rating.toStringAsFixed(1) : '-',
+                              icon: HugeIcons.strokeRoundedStar,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ─── Akaun ───────────────────────────────────────────
+                        _buildSectionHeader("AKAUN"),
+                        _buildGlassSection(
+                          isDark,
+                          Column(
+                            children: [
+                              _buildSettingsTile(
+                                isDark,
+                                HugeIcons.strokeRoundedUserEdit01,
+                                "Butiran Akaun",
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountDetailsScreen())),
+                              ),
+                              _buildDivider(isDark),
+                              _buildSettingsTile(
+                                isDark,
+                                HugeIcons.strokeRoundedCreditCard,
+                                "Kaedah Pembayaran",
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentMethodsScreen())),
+                              ),
+                              _buildDivider(isDark),
+                              _buildSettingsTile(
+                                isDark,
+                                HugeIcons.strokeRoundedShield01,
+                                "Privasi & Keselamatan",
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacySecurityScreen())),
+                              ),
+                              _buildDivider(isDark),
+                              _buildSettingsTile(
+                                isDark,
+                                HugeIcons.strokeRoundedSmartPhone01,
+                                "No. Telefon",
+                                trailing: Text(user.phone, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ─── Pilihan ──────────────────────────────────────────
+                        _buildSectionHeader("PILIHAN"),
+                        _buildGlassSection(
+                          isDark,
+                          Column(
+                            children: [
+                              _buildThemeToggleTile(isDark, themeProvider),
+                              _buildDivider(isDark),
+                              ValueListenableBuilder<String>(
+                                valueListenable: appLanguageNotifier,
+                                builder: (context, lang, child) {
+                                  String displayLanguage = lang == 'ms' ? 'Bahasa Melayu' : 'English';
+                                  return _buildSettingsTile(
+                                    isDark, 
+                                    HugeIcons.strokeRoundedGlobe02, 
+                                    "Bahasa",
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min, 
+                                      children: [
+                                        Text(displayLanguage, style: const TextStyle(color: Colors.grey, fontSize: 14)), 
+                                        const SizedBox(width: 8), 
+                                        _buildArrow()
+                                      ]
+                                    ),
+                                    onTap: () => _showLanguageSelector(context),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ─── Invite Banner ───────────────────────────────
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppTheme.primary, AppTheme.primaryDark],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6)),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const HugeIcon(icon: HugeIcons.strokeRoundedGift, color: Colors.white, size: 40),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Jemput Rakan', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                    Text('Dapatkan RM5 untuk setiap rujukan!', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ─── Sokongan ───────────────────────────────────────────
+                        _buildSectionHeader("SOKONGAN"),
+                        _buildGlassSection(
+                          isDark,
+                          Column(
+                            children: [
+                              _buildSettingsTile(
+                                isDark, HugeIcons.strokeRoundedCustomerService, 'Pusat Bantuan',
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpCenterScreen())),
+                              ),
+                              _buildDivider(isDark),
+                              _buildSettingsTile(
+                                isDark, HugeIcons.strokeRoundedMessageQuestion, 'Hubungi Kami',
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactUsScreen())),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ─── Tentang ───────────────────────────────────────────
+                        _buildSectionHeader("TENTANG"),
+                        _buildGlassSection(
+                          isDark,
+                          Column(
+                            children: [
+                              _buildSettingsTile(
+                                isDark, HugeIcons.strokeRoundedInformationCircle, 'Terma Perkhidmatan',
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LegalTextScreen(title: 'Terma Perkhidmatan', content: ngamTermsText))),
+                              ),
+                              _buildDivider(isDark),
+                              _buildSettingsTile(
+                                isDark, HugeIcons.strokeRoundedShield01, 'Dasar Privasi',
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LegalTextScreen(title: 'Dasar Privasi', content: ngamPrivacyText))),
+                              ),
+                              _buildDivider(isDark),
+                              _buildSettingsTile(
+                                isDark, HugeIcons.strokeRoundedStar, 'Nilaikan Aplikasi',
+                                trailing: _buildArrow(),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RateAppScreen(), fullscreenDialog: true)),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+                        // ─── Footer ────────────────────────────────────────────
+                        Center(
+                          child: Column(
+                            children: [
+                              Text('Ngam v1.0.0', style: TextStyle(color: Colors.grey.withValues(alpha: 0.5), fontSize: 12, fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 4),
+                              Text('Dibuat dengan ❤️ di Malaysia', style: TextStyle(color: Colors.grey.withValues(alpha: 0.3), fontSize: 10)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // ─── Logout ────────────────────────────────────────────
+                        _buildGlassButton(isDark, 'Log Keluar', AppTheme.error, () async {
+                          await authProvider.signOut();
+                          if (context.mounted) {
+                            showGlassToast(context, 'Berjaya log keluar!');
+                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                          }
+                        }),
+                        const SizedBox(height: 120),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // ─── Name & Email ────────────────────────
-            Text(
-              user.name,
-              style: GoogleFonts.outfit(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-              ),
+  // ─── UI Helper Widgets ───────────────────────────────────────
+
+  Widget _buildGlassButton(bool isDark, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassContainer(
+        useOwnLayer: true,
+        quality: GlassQuality.standard,
+        shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+        settings: _getGlassSettings(isDark),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: isDark ? 0.1 : 0.15),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: color.withValues(alpha: isDark ? 0.3 : 0.5),
+              width: 1.0,
             ),
-            const SizedBox(height: 4),
-            Text(
-              user.email,
+          ),
+          child: Center(
+            child: Text(
+              label,
               style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
+                color: color,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
+          ),
+        ),
+      ),
+    );
+  }
 
-            // ─── Role Toggle ─────────────────────────
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                children: [
-                  _RoleToggle(
-                    label: 'Pemesan',
-                    isSelected: user.role == UserRole.pemesan,
-                    onTap: () => authProvider.setRole(UserRole.pemesan),
-                  ),
-                  _RoleToggle(
-                    label: 'Runner',
-                    isSelected: user.role == UserRole.runner,
-                    onTap: () => authProvider.setRole(UserRole.runner),
-                  ),
-                ],
-              ),
+  Widget _buildGlassSection(bool isDark, Widget child) {
+    return GlassContainer(
+      useOwnLayer: true,
+      quality: GlassQuality.standard,
+      shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+      settings: _getGlassSettings(isDark),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(24.0),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.6),
+            width: 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            )
+          ],
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  LiquidGlassSettings _getGlassSettings(bool isDark) {
+    return LiquidGlassSettings(
+      thickness: 0.1,
+      blur: 15,
+      refractiveIndex: 1.0,
+      glassColor: Colors.transparent,
+      lightAngle: 45.0,
+      lightIntensity: isDark ? 0.1 : 0.2,
+      ambientStrength: 1.0,
+      saturation: 1.0,
+      chromaticAberration: 0.0,
+    );
+  }
+
+  Widget _buildSectionHeader(String title) => Padding(
+        padding: const EdgeInsets.only(left: 8, bottom: 12),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
             ),
+          ),
+        ),
+      );
+
+  void _showLanguageSelector(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context, backgroundColor: isDark ? const Color(0xFF262626) : Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Pilih Bahasa", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 24),
-
-            // ─── Stats Row ───────────────────────────
-            Row(
-              children: [
-                _StatCard(
-                  label: 'Tasks Posted',
-                  value: '$_tasksPosted',
-                  icon: Icons.upload_rounded,
-                ),
-                const SizedBox(width: 12),
-                _StatCard(
-                  label: 'Completed',
-                  value: '$_tasksCompleted',
-                  icon: Icons.check_circle_outline,
-                ),
-                const SizedBox(width: 12),
-                _StatCard(
-                  label: 'Rating',
-                  value: _rating > 0 ? _rating.toStringAsFixed(1) : '-',
-                  icon: Icons.star_rounded,
-                ),
-              ],
-            ),
-            const SizedBox(height: 28),
-
-            // ─── Settings ────────────────────────────
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Column(
-                children: [
-                  // Dark Mode Toggle
-                  ListTile(
-                    leading: Icon(
-                      themeProvider.isDarkMode
-                          ? Icons.dark_mode_rounded
-                          : Icons.light_mode_rounded,
-                      color: AppTheme.primary,
-                    ),
-                    title: const Text(
-                      'Dark Mode',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Switch(
-                      value: themeProvider.isDarkMode,
-                      activeColor: AppTheme.primary,
-                      onChanged: (_) => themeProvider.toggleTheme(),
-                    ),
-                  ),
-                  Divider(height: 1, color: Colors.grey.shade200),
-
-                  // Phone
-                  ListTile(
-                    leading: const Icon(Icons.phone_outlined,
-                        color: AppTheme.primary),
-                    title: const Text(
-                      'Phone',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Text(
-                      user.phone,
-                      style: TextStyle(color: Colors.grey.shade500),
-                    ),
-                  ),
-                  Divider(height: 1, color: Colors.grey.shade200),
-
-                  // About
-                  ListTile(
-                    leading: const Icon(Icons.info_outline,
-                        color: AppTheme.primary),
-                    title: const Text(
-                      'About Ngam',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey.shade400,
-                    ),
-                    onTap: () {
-                      showAboutDialog(
-                        context: context,
-                        applicationName: 'Ngam',
-                        applicationVersion: '1.0.0',
-                        applicationLegalese:
-                            'Local Errands, Powered by Community\nCSC264 Individual Project',
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ─── Logout Button ───────────────────────
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  await authProvider.signOut();
-                  if (context.mounted) {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/login',
-                      (route) => false,
-                    );
-                  }
-                },
-                icon: const Icon(Icons.logout_rounded),
-                label: const Text('Logout'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.error,
-                  side: const BorderSide(color: AppTheme.error),
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
+            _buildLanguageOption(context, "English", "en", HugeIcons.strokeRoundedTranslate, AppTheme.primary),
+            const SizedBox(height: 12),
+            _buildLanguageOption(context, "Bahasa Melayu", "ms", HugeIcons.strokeRoundedTranslate, AppTheme.primary),
+            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildLanguageOption(BuildContext context, String title, String code, dynamic icon, Color color) {
+    return ValueListenableBuilder<String>(
+      valueListenable: appLanguageNotifier,
+      builder: (context, currentLang, _) {
+        final isSelected = currentLang == code;
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: isSelected ? color : Colors.transparent, width: 1.5)),
+          tileColor: color.withValues(alpha: 0.05),
+          leading: HugeIcon(icon: icon, color: color, size: 22),
+          title: Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+          trailing: isSelected ? HugeIcon(icon: HugeIcons.strokeRoundedTick01, color: color, size: 20) : null,
+          onTap: () {
+            appLanguageNotifier.value = code;
+            Navigator.pop(context);
+            showGlassToast(context, 'Bahasa ditukar kepada $title');
+          },
+        );
+      }
+    );
+  }
+
+  Widget _buildSettingsTile(bool isDark, dynamic icon, String title,
+          {Widget? trailing, VoidCallback? onTap}) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: HugeIcon(
+                    icon: icon,
+                    color: isDark ? Colors.white : Colors.black87,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (trailing != null) ...[
+                  trailing,
+                  const SizedBox(width: 8),
+                ],
+                if (trailing == null)
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedArrowRight01,
+                    color: Colors.grey,
+                    size: 20,
+                  )
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget _buildThemeToggleTile(bool isDark, ThemeProvider themeProvider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: HugeIcon(
+              icon: isDark ? HugeIcons.strokeRoundedMoon02 : HugeIcons.strokeRoundedSun01,
+              color: AppTheme.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Text(
+              "Mod Gelap",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ),
+          Switch.adaptive(
+            value: isDark,
+            activeColor: AppTheme.primary,
+            onChanged: (_) => themeProvider.toggleTheme(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider(bool isDark) => Padding(
+        padding: const EdgeInsets.only(left: 60, right: 16),
+        child: Divider(
+          height: 1,
+          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+        ),
+      );
+
+  Widget _buildArrow() => const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Colors.grey, size: 20);
 }
 
-// ─── Role Toggle Button ──────────────────────────────────────
+// ─── Role Toggle Glass Button ────────────────────────────────
 class _RoleToggle extends StatelessWidget {
   final String label;
+  final dynamic icon;
   final bool isSelected;
+  final bool isDark;
   final VoidCallback onTap;
 
   const _RoleToggle({
     required this.label,
+    required this.icon,
     required this.isSelected,
+    required this.isDark,
     required this.onTap,
   });
 
@@ -293,17 +665,25 @@ class _RoleToggle extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? AppTheme.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.grey.shade500,
+          child: Column(
+            children: [
+              HugeIcon(
+                icon: icon,
+                color: isSelected ? Colors.white : (isDark ? Colors.white54 : Colors.black54),
+                size: 20,
               ),
-            ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : (isDark ? Colors.white54 : Colors.black54),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -311,48 +691,77 @@ class _RoleToggle extends StatelessWidget {
   }
 }
 
-// ─── Stats Card ──────────────────────────────────────────────
-class _StatCard extends StatelessWidget {
+// ─── Stats Glass Card ────────────────────────────────────────
+class _StatCardGlass extends StatelessWidget {
   final String label;
   final String value;
-  final IconData icon;
+  final dynamic icon;
+  final bool isDark;
 
-  const _StatCard({
+  const _StatCardGlass({
     required this.label,
     required this.value,
     required this.icon,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
+      child: GlassContainer(
+        useOwnLayer: true,
+        quality: GlassQuality.standard,
+        shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+        settings: LiquidGlassSettings(
+          thickness: 0.1,
+          blur: 15,
+          refractiveIndex: 1.0,
+          glassColor: Colors.transparent,
+          lightAngle: 45.0,
+          lightIntensity: isDark ? 0.1 : 0.2,
+          ambientStrength: 1.0,
+          saturation: 1.0,
+          chromaticAberration: 0.0,
         ),
-        child: Column(
-          children: [
-            Icon(icon, size: 22, color: AppTheme.primary),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: GoogleFonts.outfit(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-              ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(24.0),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.6),
+              width: 1.0,
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey.shade500,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              )
+            ],
+          ),
+          child: Column(
+            children: [
+              HugeIcon(icon: icon, size: 22, color: AppTheme.primary),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.white54 : Colors.black54,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

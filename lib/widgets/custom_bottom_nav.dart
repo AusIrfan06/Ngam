@@ -104,12 +104,19 @@ class CustomBottomNav extends StatelessWidget {
                                 bottom: 0,
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.12),
+                                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.6),
                                     borderRadius: BorderRadius.circular(32),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.4),
+                                      color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.8),
                                       width: 1.0,
                                     ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

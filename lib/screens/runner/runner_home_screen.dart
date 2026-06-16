@@ -8,6 +8,7 @@ import '../../widgets/task_card.dart';
 import '../../widgets/bottom_nav_runner.dart';
 import 'my_jobs_screen.dart';
 import '../shared/profile_screen.dart';
+import '../shared/chat_screen.dart';
 
 // ============================================================
 // Ngam App — Runner Home Screen
@@ -39,18 +40,28 @@ class _RunnerHomeScreenState extends State<RunnerHomeScreen> {
     final pages = [
       _RunnerFeed(),
       const MyJobsScreen(),
-      _ChatPlaceholder(),
+      const ChatScreen(),
       const ProfileScreen(),
     ];
 
     return Scaffold(
       extendBody: true,
-      body: pages[_currentIndex],
-      bottomNavigationBar: BottomNavRunner(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-        },
+      resizeToAvoidBottomInset: false,
+      body: Stack(
+        children: [
+          pages[_currentIndex],
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: BottomNavRunner(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() => _currentIndex = index);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
