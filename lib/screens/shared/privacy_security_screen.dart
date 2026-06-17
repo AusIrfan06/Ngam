@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import '../../utils/glass_toast.dart';
 
 class SecurityData {
@@ -33,6 +35,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool _isTimeoutExpanded = false;
   String _cacheSize = "0.0 MB";
   final String _deviceName = "Samsung Device";
+  final LocalAuthentication _auth = LocalAuthentication();
+  
   @override
   void initState() {
     super.initState();
@@ -47,12 +51,52 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   }
 
   Future<void> _toggleScreenSecurity(bool enable) async {
-    await SecurityData.toggleSecuritySetting('hideContentEnabled', enable);
+    if (enable) {
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      await SecurityData.toggleSecuritySetting('hideContentEnabled', true);
+      if (mounted) showGlassToast(context, "Screen Security Enabled");
+    } else {
+      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
+      await SecurityData.toggleSecuritySetting('hideContentEnabled', false);
+      if (mounted) showGlassToast(context, "Screen Security Disabled");
+    }
     HapticFeedback.mediumImpact();
   }
 
   Future<void> _toggleAppLock(bool enable) async {
-    await SecurityData.toggleSecuritySetting('appLockEnabled', enable);
+    if (enable) {
+      try {
+        final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+        final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+
+        if (canAuthenticate) {
+          final bool didAuthenticate = await _auth.authenticate(
+            localizedReason: 'Authenticate to enable App Lock',
+            options: const AuthenticationOptions(
+              biometricOnly: false,
+              stickyAuth: true,
+            ),
+          );
+
+          if (didAuthenticate) {
+            await SecurityData.toggleSecuritySetting('appLockEnabled', true);
+            if (mounted) showGlassToast(context, "App Lock Enabled");
+          } else {
+            if (mounted) showGlassToast(context, "Authentication cancelled");
+            return;
+          }
+        } else {
+          await SecurityData.toggleSecuritySetting('appLockEnabled', true);
+          if (mounted) showGlassToast(context, "App Lock Enabled (No biometrics found)");
+        }
+      } catch (e) {
+        if (mounted) showGlassToast(context, "Authentication error");
+        return;
+      }
+    } else {
+      await SecurityData.toggleSecuritySetting('appLockEnabled', false);
+      if (mounted) showGlassToast(context, "App Lock Disabled");
+    }
     HapticFeedback.mediumImpact();
   }
 
@@ -412,12 +456,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: appLockEnabled ? Colors.blue.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
+                              color: appLockEnabled ? Colors.blue.withValues(alpha: 0.1) : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04)),
                               shape: BoxShape.circle,
                             ),
                             child: HugeIcon(
                                 icon: HugeIcons.strokeRoundedLockKey,
-                                color: appLockEnabled ? Colors.blue : Colors.white,
+                                color: appLockEnabled ? Colors.blue : (isDark ? Colors.white : Colors.black87),
                                 size: 20
                             ),
                           ),

@@ -23,6 +23,10 @@ import 'screens/runner/confirm_acceptance_screen.dart';
 import 'screens/runner/active_job_screen.dart';
 import 'screens/runner/my_jobs_screen.dart';
 import 'screens/shared/profile_screen.dart';
+import 'screens/shared/privacy_security_screen.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+
+import 'widgets/app_lock_wrapper.dart';
 
 // ============================================================
 // Ngam — Local Errands, Powered by Community
@@ -35,6 +39,11 @@ void main() async {
 
   // Initialize Supabase
   await SupabaseService.initialize();
+
+  // Apply Screen Security if enabled
+  if (SecurityData.hideContentEnabled.value) {
+    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+  }
 
   runApp(
     EasyLocalization(
@@ -62,6 +71,9 @@ class NgamApp extends StatelessWidget {
         builder: (context, themeProvider, _) {
           return MaterialApp(
             title: 'Ngam',
+            builder: (context, child) {
+              return AppLockWrapper(child: child!);
+            },
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
             locale: context.locale,

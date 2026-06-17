@@ -44,6 +44,8 @@ dependencies:
   easy_localization: ^3.0.8
   image_picker: ^1.2.1
   cached_network_image: ^3.4.1
+  local_auth: ^2.3.0
+  flutter_windowmanager: ^0.2.0
 
 dev_dependencies:
   flutter_test:
