@@ -31,9 +31,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final gigProvider = context.read<GigProvider>();
-      gigProvider.loadOpenGigs();
       gigProvider.loadServices();
-      gigProvider.subscribeToOpenGigs();
     });
   }
 
@@ -71,14 +69,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 }
 
 // ─── Home Feed Page ──────────────────────────────────────────
-class _CustomerHomeFeed extends StatefulWidget {
-  @override
-  State<_CustomerHomeFeed> createState() => _CustomerHomeFeedState();
-}
-
-class _CustomerHomeFeedState extends State<_CustomerHomeFeed> {
-  bool _showServices = false;
-
+class _CustomerHomeFeed extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -86,13 +77,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> {
     final userName = authProvider.user?.name ?? 'User';
 
     return RefreshIndicator(
-      onRefresh: () async {
-        if (_showServices) {
-          await gigProvider.loadServices();
-        } else {
-          await gigProvider.loadOpenGigs();
-        }
-      },
+      onRefresh: () => gigProvider.loadServices(),
       child: CustomScrollView(
         slivers: [
           // ─── Hero Header ──────────────────────────────────────
@@ -159,80 +144,14 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // ─── Toggle Tasks / Services ──────────────
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _showServices = false),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                color: !_showServices ? Theme.of(context).cardColor : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: !_showServices ? [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ] : null,
-                              ),
-                              child: Center(
-                                child: Text('Open Tasks', style: TextStyle(
-                                  fontWeight: !_showServices ? FontWeight.w700 : FontWeight.w500,
-                                  color: !_showServices ? Theme.of(context).colorScheme.primary : Colors.grey.shade600,
-                                )),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _showServices = true),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              decoration: BoxDecoration(
-                                color: _showServices ? Theme.of(context).cardColor : Colors.transparent,
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: _showServices ? [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ] : null,
-                              ),
-                              child: Center(
-                                child: Text('Runner Services', style: TextStyle(
-                                  fontWeight: _showServices ? FontWeight.w700 : FontWeight.w500,
-                                  color: _showServices ? Theme.of(context).colorScheme.primary : Colors.grey.shade600,
-                                )),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 24),
-                  
+
                   // ─── List Header ──────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _showServices 
-                          ? 'Available Services (${gigProvider.filteredServices.length})'
-                          : 'Available Tasks (${gigProvider.filteredGigs.length})',
+                        'Available Services (${gigProvider.filteredServices.length})',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -247,25 +166,25 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> {
             ),
           ),
 
-          // ─── Task List ────────────────────────────────────────
+          // ─── Services List ────────────────────────────────────
           if (gigProvider.isLoading)
             const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),
             )
-          else if (_showServices ? gigProvider.filteredServices.isEmpty : gigProvider.filteredGigs.isEmpty)
+          else if (gigProvider.filteredServices.isEmpty)
             SliverFillRemaining(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      _showServices ? Icons.design_services_outlined : Icons.inbox_rounded,
+                      Icons.storefront_outlined,
                       size: 64,
                       color: Colors.grey.shade300,
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      _showServices ? 'No services available' : 'No tasks available',
+                      'No services available yet',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey.shade400,
@@ -273,7 +192,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _showServices ? 'Check back later!' : 'Post a new task to get started!',
+                      'Runners will post their services here',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade400,
@@ -289,50 +208,39 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final gigs = _showServices ? gigProvider.filteredServices : gigProvider.filteredGigs;
-                    final gig = gigs[index];
+                    final gig = gigProvider.filteredServices[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: TaskCard(
                         gig: gig,
-                        onTap: () {
-                          if (!_showServices) {
-                            Navigator.pushNamed(
-                              context,
-                              '/order-status',
-                              arguments: gig,
+                        onTap: () {},
+                        actionWidget: ElevatedButton(
+                          onPressed: () async {
+                            final auth = context.read<AuthProvider>();
+                            if (auth.user == null) return;
+                            final newGig = await gigProvider.orderService(
+                              customerId: auth.user!.id,
+                              serviceListing: gig,
                             );
-                          }
-                        },
-                        actionWidget: _showServices 
-                            ? ElevatedButton(
-                                onPressed: () async {
-                                  final auth = context.read<AuthProvider>();
-                                  if (auth.user == null) return;
-                                  final newGig = await gigProvider.orderService(
-                                    customerId: auth.user!.id,
-                                    serviceListing: gig,
-                                  );
-                                  if (newGig != null && context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Service Ordered!')),
-                                    );
-                                    Navigator.pushNamed(context, '/order-status', arguments: newGig);
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(double.infinity, 36),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Text('Order Service'),
-                              )
-                            : null,
+                            if (newGig != null && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Service Ordered!')),
+                              );
+                              Navigator.pushNamed(context, '/order-status', arguments: newGig);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 36),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Order Service'),
+                        ),
                       ),
                     );
                   },
-                  childCount: _showServices ? gigProvider.filteredServices.length : gigProvider.filteredGigs.length,
+                  childCount: gigProvider.filteredServices.length,
                 ),
               ),
             ),
@@ -341,3 +249,4 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> {
     );
   }
 }
+
