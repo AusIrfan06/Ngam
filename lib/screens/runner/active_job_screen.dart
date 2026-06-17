@@ -3,8 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../models/gig_model.dart';
 import '../../providers/gig_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/chat_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
+import 'package:hugeicons/hugeicons.dart';
+import '../shared/chat_screen.dart';
 
 // ============================================================
 // Ngam App — Active Job Screen (Runner)
@@ -224,7 +228,65 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                 hintText: 'Any message for the customer...',
               ),
             ),
-            const SizedBox(height: 32),
+            // ─── Chat with Customer Button ─────────────
+            Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                return SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      if (auth.user == null) return;
+                      // Show loading indicator
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(child: CircularProgressIndicator()),
+                      );
+                      
+                      try {
+                        // Import ChatService at the top!
+                        final conversation = await ChatService.createOrGetConversation(
+                          auth.user!.id,
+                          gig.customerId, // The other person is the customer
+                          gigId: gig.id,
+                        );
+                        if (context.mounted) {
+                          Navigator.pop(context); // Close loading dialog
+                          // Navigate to ChatThreadScreen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatThreadScreen(conversation: conversation),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening chat: $e')));
+                        }
+                      }
+                    },
+                    icon: const HugeIcon(
+                      icon: HugeIcons.strokeRoundedChatting01,
+                      color: AppTheme.primary,
+                      size: 20,
+                    ),
+                    label: const Text('Chat with Customer'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primary,
+                      side: const BorderSide(color: AppTheme.primary, width: 2),
+                      textStyle: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            ),
+            const SizedBox(height: 16),
 
             // ─── Mark Complete Button ────────────────
             Consumer<GigProvider>(

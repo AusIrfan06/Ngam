@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. USERS TABLE
 -- This stores the extended profile for users who signed up via Supabase Auth.
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE public.users (
 
 -- 2. GIGS TABLE
 -- This stores the task/errand broadcasts.
-CREATE TABLE public.gigs (
+CREATE TABLE IF NOT EXISTS public.gigs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   customer_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   gig_worker_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
@@ -34,7 +34,7 @@ CREATE TABLE public.gigs (
 
 -- 3. STATUS LOGS TABLE
 -- This stores the history of status changes for a gig.
-CREATE TABLE public.status_logs (
+CREATE TABLE IF NOT EXISTS public.status_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   gig_id UUID NOT NULL REFERENCES public.gigs(id) ON DELETE CASCADE,
   status VARCHAR(50) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE public.status_logs (
 
 -- 4. REVIEWS TABLE
 -- This stores the ratings/comments given by customers to runners.
-CREATE TABLE public.reviews (
+CREATE TABLE IF NOT EXISTS public.reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   gig_id UUID NOT NULL REFERENCES public.gigs(id) ON DELETE CASCADE,
   reviewer_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -63,23 +63,32 @@ ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 -- Disable RLS constraints (allow all operations for this project since auth rules are handled app-side)
 -- Note: In a real production app, you would want strict RLS rules.
+DROP POLICY IF EXISTS "Allow public select on users" ON public.users;
 CREATE POLICY "Allow public select on users" ON public.users FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow public insert on users" ON public.users;
 CREATE POLICY "Allow public insert on users" ON public.users FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public update on users" ON public.users;
 CREATE POLICY "Allow public update on users" ON public.users FOR UPDATE USING (true);
 
+DROP POLICY IF EXISTS "Allow public all on gigs" ON public.gigs;
 CREATE POLICY "Allow public all on gigs" ON public.gigs FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public all on status_logs" ON public.status_logs;
 CREATE POLICY "Allow public all on status_logs" ON public.status_logs FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public all on reviews" ON public.reviews;
 CREATE POLICY "Allow public all on reviews" ON public.reviews FOR ALL USING (true) WITH CHECK (true);
 
--- Enable Realtime for the gigs table (for the live feed and task-state locker)
-ALTER PUBLICATION supabase_realtime ADD TABLE public.gigs;
+-- Realtime for the gigs table is configured safely at the end of the file
 
 -- =========================================================================================
 -- Chat System (Conversations and Messages)
 -- =========================================================================================
 
 -- 5. CONVERSATIONS TABLE
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user1_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   user2_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -90,7 +99,7 @@ CREATE TABLE public.conversations (
 );
 
 -- 6. MESSAGES TABLE
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -104,10 +113,37 @@ ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- Disable RLS constraints for now (allowing all for simplicity in development)
+DROP POLICY IF EXISTS "Allow public all on conversations" ON public.conversations;
 CREATE POLICY "Allow public all on conversations" ON public.conversations FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public all on messages" ON public.messages;
 CREATE POLICY "Allow public all on messages" ON public.messages FOR ALL USING (true) WITH CHECK (true);
 
--- Enable Realtime for conversations and messages
-ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+-- Enable Realtime for conversations and messages (PostgreSQL syntax safe wrap)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'conversations'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'messages'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+  END IF;
+  
+  -- Also wrap gigs for realtime safety
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'gigs'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.gigs;
+  END IF;
+END
+$$;
+
 

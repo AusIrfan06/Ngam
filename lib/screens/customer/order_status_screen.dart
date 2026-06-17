@@ -8,6 +8,10 @@ import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/sla_countdown.dart';
 import '../../widgets/status_timeline.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/chat_service.dart';
+import '../shared/chat_screen.dart';
 
 // ============================================================
 // Ngam App — Order Status Screen (Customer)
@@ -220,12 +224,35 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Chat feature coming soon!'),
-                            ),
+                        onPressed: () async {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => const Center(child: CircularProgressIndicator()),
                           );
+                          try {
+                            final auth = context.read<AuthProvider>();
+                            if (auth.user == null) return;
+                            final conversation = await ChatService.createOrGetConversation(
+                              auth.user!.id,
+                              gig.gigWorkerId!,
+                              gigId: gig.id,
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context); // Close loading dialog
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatThreadScreen(conversation: conversation),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening chat: $e')));
+                            }
+                          }
                         },
                         icon: const Icon(
                           Icons.chat_bubble_outline,
