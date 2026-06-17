@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import '../../utils/glass_toast.dart';
 
 class SecurityData {
@@ -50,15 +49,21 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     showGlassToast(context, "Cache cleared successfully");
   }
 
+  static const _securityChannel = MethodChannel('com.example.ngam/security');
+
   Future<void> _toggleScreenSecurity(bool enable) async {
-    if (enable) {
-      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      await SecurityData.toggleSecuritySetting('hideContentEnabled', true);
-      if (mounted) showGlassToast(context, "Screen Security Enabled");
-    } else {
-      await FlutterWindowManager.clearFlags(FlutterWindowManager.FLAG_SECURE);
-      await SecurityData.toggleSecuritySetting('hideContentEnabled', false);
-      if (mounted) showGlassToast(context, "Screen Security Disabled");
+    try {
+      if (enable) {
+        await _securityChannel.invokeMethod('enableSecureMode');
+        await SecurityData.toggleSecuritySetting('hideContentEnabled', true);
+        if (mounted) showGlassToast(context, "Screen Security Enabled");
+      } else {
+        await _securityChannel.invokeMethod('disableSecureMode');
+        await SecurityData.toggleSecuritySetting('hideContentEnabled', false);
+        if (mounted) showGlassToast(context, "Screen Security Disabled");
+      }
+    } catch (e) {
+      if (mounted) showGlassToast(context, "Sila Restart (Stop & Play) untuk aktifkan perlindungan!");
     }
     HapticFeedback.mediumImpact();
   }
@@ -494,7 +499,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                             value: appLockEnabled,
                             activeColor: Colors.blue,
                             inactiveThumbColor: Colors.white,
-                            inactiveTrackColor: isDark ? Colors.white30 : Colors.grey.shade300,
+                            inactiveTrackColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
                             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
                             thumbIcon: WidgetStateProperty.all(const Icon(Icons.circle, color: Colors.transparent)),
                             onChanged: (val) {
@@ -579,7 +584,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           ),
           const SizedBox(width: 16),
           Expanded(child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, fontFamily: 'Inter'))),
-          Switch.adaptive(value: value, activeColor: Colors.blue, inactiveThumbColor: Colors.white, inactiveTrackColor: isDark ? Colors.white30 : Colors.grey.shade300, trackOutlineColor: WidgetStateProperty.all(Colors.transparent), thumbIcon: WidgetStateProperty.all(const Icon(Icons.circle, color: Colors.transparent)), onChanged: onChanged),
+          Switch.adaptive(value: value, activeColor: Colors.blue, inactiveThumbColor: Colors.white, inactiveTrackColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300, trackOutlineColor: WidgetStateProperty.all(Colors.transparent), thumbIcon: WidgetStateProperty.all(const Icon(Icons.circle, color: Colors.transparent)), onChanged: onChanged),
         ],
       ),
     );

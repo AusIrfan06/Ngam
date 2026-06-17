@@ -24,7 +24,7 @@ import 'screens/runner/active_job_screen.dart';
 import 'screens/runner/my_jobs_screen.dart';
 import 'screens/shared/profile_screen.dart';
 import 'screens/shared/privacy_security_screen.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:flutter/services.dart';
 
 import 'widgets/app_lock_wrapper.dart';
 
@@ -41,8 +41,13 @@ void main() async {
   await SupabaseService.initialize();
 
   // Apply Screen Security if enabled
-  if (SecurityData.hideContentEnabled.value) {
-    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+  try {
+    if (SecurityData.hideContentEnabled.value) {
+      const securityChannel = MethodChannel('com.example.ngam/security');
+      await securityChannel.invokeMethod('enableSecureMode');
+    }
+  } catch (e) {
+    // Plugin might be missing if hot reloaded
   }
 
   runApp(

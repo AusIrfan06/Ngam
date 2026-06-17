@@ -775,7 +775,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             value: isDark,
             activeColor: AppTheme.primary,
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: isDark ? Colors.white30 : Colors.grey.shade300,
+            inactiveTrackColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
             thumbIcon: WidgetStateProperty.all(const Icon(Icons.circle, color: Colors.transparent)),
             onChanged: (_) => themeProvider.toggleTheme(),
