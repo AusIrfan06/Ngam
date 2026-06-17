@@ -42,6 +42,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   easy_localization: ^3.0.8
+  image_picker: ^1.2.1
 
 dev_dependencies:
   flutter_test:
@@ -95,9 +96,9 @@ flutter:
 
 flutter_native_splash:
   color: "#ffffff"
-  image: "assets/app_padded.png"
+  image: "assets/app_splash.png"
   android_12:
-    image: "assets/app_padded.png"
+    image: "assets/app_splash.png"
     color: "#ffffff"
 
 flutter_launcher_icons:
@@ -105,6 +106,6 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/app.png"
   adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/app_padded.png"
+  adaptive_icon_foreground: "assets/app.png"
 
 

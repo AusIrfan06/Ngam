@@ -1,0 +1,6 @@
+import 'dart:io';
+import 'package:image/image.dart' as img;
+void main() {
+  print('app.png: ' + img.decodeImage(File('assets/app.png').readAsBytesSync())!.width.toString());
+  print('app_splash.png: ' + img.decodeImage(File('assets/app_splash.png').readAsBytesSync())!.width.toString());
+}

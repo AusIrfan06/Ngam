@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 // Dummy state for Payment Methods
 class PaymentData {
@@ -192,6 +196,11 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedCreditCard, title: "Credit / Debit Card", subtitle: "Visa, Mastercard, Amex", color: Colors.blue, onTap: () { Navigator.pop(dialogContext); _showAddCardSheet(context, isDark); }),
                 const SizedBox(height: 8),
                 _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedBank, title: "Link Bank Account", subtitle: "For quick payments & refunds", color: Colors.green, onTap: () { Navigator.pop(dialogContext); _showAddBankSheet(context, isDark); }),
+                // DuitNow QR — Runner only
+                if (context.read<AuthProvider>().isRunner) ...[  
+                  const SizedBox(height: 8),
+                  _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedQrCode, title: "DuitNow QR", subtitle: "Upload your QR code for customers to pay", color: const Color(0xFF00A86B), onTap: () { Navigator.pop(dialogContext); _showAddDuitNowSheet(context, isDark); }),
+                ],
 
                 const SizedBox(height: 16),
                 SizedBox(
@@ -438,6 +447,178 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
+  // ─── DuitNow QR Sheet (Runner only) ──────────────────────────
+  void _showAddDuitNowSheet(BuildContext context, bool isDark) {
+    File? pickedQr;
+    final nameController = TextEditingController();
+    final picker = ImagePicker();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E242B).withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
+                      border: Border(top: BorderSide(color: Colors.white.withValues(alpha: isDark ? 0.1 : 0.4), width: 1.5)),
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(10)))),
+                          const SizedBox(height: 16),
+
+                          // Header
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: const Color(0xFF00A86B).withValues(alpha: 0.15), shape: BoxShape.circle),
+                                child: const HugeIcon(icon: HugeIcons.strokeRoundedQrCode, color: Color(0xFF00A86B), size: 22),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("DuitNow QR", style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
+                                  Text("Customers will scan your QR to pay you", style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Name label
+                          _buildPremiumInput(
+                            isDark: isDark,
+                            label: "Display Name",
+                            hint: "e.g., My DuitNow QR",
+                            icon: HugeIcons.strokeRoundedUser,
+                            controller: nameController,
+                            keyboardType: TextInputType.text,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // QR Upload area
+                          Text("YOUR QR CODE".toUpperCase(), style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () async {
+                              final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 90);
+                              if (picked != null) {
+                                setSheetState(() => pickedQr = File(picked.path));
+                              }
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              width: double.infinity,
+                              height: 180,
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: pickedQr != null ? const Color(0xFF00A86B).withValues(alpha: 0.6) : Colors.grey.withValues(alpha: 0.3),
+                                  width: pickedQr != null ? 2 : 1.5,
+                                  style: pickedQr != null ? BorderStyle.solid : BorderStyle.solid,
+                                ),
+                              ),
+                              child: pickedQr != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: Image.file(pickedQr!, fit: BoxFit.contain),
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.upload_rounded, size: 36, color: Colors.grey.shade400),
+                                      const SizedBox(height: 8),
+                                      Text("Tap to upload your QR code", style: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500)),
+                                      const SizedBox(height: 4),
+                                      Text("From any bank's DuitNow app", style: TextStyle(color: Colors.grey.shade400, fontSize: 11)),
+                                    ],
+                                  ),
+                            ),
+                          ),
+
+                          // Info box
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00A86B).withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFF00A86B).withValues(alpha: 0.2)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.auto_fix_high_rounded, color: Color(0xFF00A86B), size: 16),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    "Your QR will be displayed in a clean, standardized format. Bank branding will be removed.",
+                                    style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 11),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Save button
+                          _AnimatedPressable(
+                            onTap: () {
+                              if (pickedQr == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Please upload your QR code first")),
+                                );
+                                return;
+                              }
+                              PaymentData.addPaymentMethod({
+                                "id": DateTime.now().millisecondsSinceEpoch.toString(),
+                                "type": "duitnow_qr",
+                                "name": nameController.text.trim().isEmpty ? "DuitNow QR" : nameController.text.trim(),
+                                "qrPath": pickedQr!.path,
+                                "isPrimary": false,
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF00A86B),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [BoxShadow(color: const Color(0xFF00A86B).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))],
+                              ),
+                              child: const Center(child: Text("Save DuitNow QR", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildPremiumInput({required bool isDark, required String label, required String hint, required dynamic icon, required TextEditingController controller, TextInputType? keyboardType, List<TextInputFormatter>? formatters, TextCapitalization? textCapitalization, String? Function(String?)? validator}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -497,8 +678,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             valueListenable: PaymentData.savedPaymentMethods,
             builder: (context, methods, child) {
 
-              final cardMethods = methods.where((m) => m["type"] != "bank").toList();
+              final cardMethods = methods.where((m) => m["type"] == "card").toList();
               final bankMethods = methods.where((m) => m["type"] == "bank").toList();
+              final duitnowMethods = methods.where((m) => m["type"] == "duitnow_qr").toList();
 
               // ðŸŸ¢ ADD THE DYNAMIC HEIGHT HERE:
               double extraHeight = 10; // Padding for 1 card
@@ -532,6 +714,20 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                             _buildBankEmptyState(isDark: isDark, height: cardHeight, onTap: () => _showAddBankSheet(context, isDark))
                           else
                             Column(children: bankMethods.map((bank) => _buildBankTile(bank, isDark)).toList()),
+
+                          // ─── DuitNow QR Section ─────────────────────────────
+                          if (duitnowMethods.isNotEmpty) ...[  
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                const HugeIcon(icon: HugeIcons.strokeRoundedQrCode, color: Color(0xFF00A86B), size: 18),
+                                const SizedBox(width: 8),
+                                Text("DuitNow QR", style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 15, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Column(children: duitnowMethods.map((qr) => _buildDuitNowTile(qr, isDark)).toList()),
+                          ],
                         ],
                       ),
                     ),
@@ -832,6 +1028,126 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(bank["name"], style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), const SizedBox(height: 2), Text(bank["number"], style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54, letterSpacing: 1.5))])),
           IconButton(icon: Icon(Icons.delete_outline_rounded, color: Colors.redAccent.withValues(alpha: 0.8), size: 22), onPressed: () => PaymentData.removePaymentMethod(bank["id"]))
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDuitNowTile(Map<String, dynamic> qr, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF00A86B).withValues(alpha: 0.3), width: 1.5),
+        boxShadow: [BoxShadow(color: const Color(0xFF00A86B).withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        children: [
+          // ─── Standardized DuitNow Header (clean, no bank branding)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00A86B), Color(0xFF009B5E)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            ),
+            child: Row(
+              children: [
+                // DuitNow logo mark
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                  child: const HugeIcon(icon: HugeIcons.strokeRoundedQrCode, color: Colors.white, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("DuitNow QR", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                      Text(qr["name"] ?? "", style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11)),
+                    ],
+                  ),
+                ),
+                if (qr["isPrimary"] == true)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
+                    child: const Text("PRIMARY", style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  ),
+              ],
+            ),
+          ),
+
+          // ─── Clean QR code display (standardized, no bank branding)
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Clean white QR container — strips all bank-specific styling
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(qr["qrPath"]),
+                      width: 160,
+                      height: 160,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const SizedBox(
+                        width: 160, height: 160,
+                        child: Center(child: Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Scan with any banking app to pay",
+                  style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+
+          // ─── Action row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => PaymentData.setPrimaryPaymentMethod(qr["id"]),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF00A86B),
+                      side: const BorderSide(color: Color(0xFF00A86B), width: 1.0),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    child: const Text("Set Primary", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(Icons.delete_outline_rounded, color: Colors.redAccent.withValues(alpha: 0.8), size: 20),
+                  onPressed: () => PaymentData.removePaymentMethod(qr["id"]),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.redAccent.withValues(alpha: 0.08),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
