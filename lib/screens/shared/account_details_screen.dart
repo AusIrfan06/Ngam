@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -216,32 +217,39 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
       child: Stack(
         children: [
           Container(
-            width: 100,
-            height: 100,
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-              image: user?.avatarUrl != null
-                  ? DecorationImage(
-                      image: NetworkImage(user!.avatarUrl!),
-                      fit: BoxFit.cover,
+              border: Border.all(
+                color: AppTheme.primary.withValues(alpha: 0.5),
+                width: 2,
+              ),
+            ),
+            child: CircleAvatar(
+              radius: 50,
+              backgroundColor: isDark ? Colors.white10 : Colors.black12,
+              backgroundImage: user?.avatarUrl != null
+                  ? CachedNetworkImageProvider(user!.avatarUrl!)
+                  : null,
+              child: user?.avatarUrl == null
+                  ? HugeIcon(
+                      icon: HugeIcons.strokeRoundedUser,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      size: 40,
                     )
                   : null,
             ),
-            child: user?.avatarUrl == null
-                ? const HugeIcon(icon: HugeIcons.strokeRoundedUser, color: Colors.grey, size: 40)
-                : null,
           ),
           if (_isUploadingAvatar)
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black.withValues(alpha: 0.5),
-              ),
-              child: const Center(
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.5),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                ),
               ),
             ),
           Positioned(

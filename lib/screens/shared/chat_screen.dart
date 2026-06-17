@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -207,6 +208,7 @@ class _ConversationTile extends StatelessWidget {
         final String time = c.formattedTime;
         
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: onTap,
           child: GlassContainer(
             useOwnLayer: true,
@@ -259,7 +261,7 @@ class _ConversationTile extends StatelessWidget {
                           ),
                           image: avatarUrl != null
                               ? DecorationImage(
-                                  image: NetworkImage(avatarUrl),
+                                  image: CachedNetworkImageProvider(avatarUrl),
                                   fit: BoxFit.cover,
                                 )
                               : null,
@@ -390,6 +392,7 @@ class _GlassIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: GlassContainer(
         useOwnLayer: true,
@@ -512,7 +515,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     border: Border.all(color: avatarColor.withValues(alpha: 0.4), width: 1.5),
                     image: avatarUrl != null
                         ? DecorationImage(
-                            image: NetworkImage(avatarUrl),
+                            image: CachedNetworkImageProvider(avatarUrl),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -640,6 +643,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: _sendMessage,
                       child: Container(
                         width: 38,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -111,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ? Colors.white10
                                       : Colors.black12,
                                   backgroundImage: user.avatarUrl != null 
-                                      ? NetworkImage(user.avatarUrl!) 
+                                      ? CachedNetworkImageProvider(user.avatarUrl!) 
                                       : null,
                                   child: user.avatarUrl == null 
                                       ? HugeIcon(
@@ -773,6 +774,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Switch.adaptive(
             value: isDark,
             activeColor: AppTheme.primary,
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: isDark ? Colors.white30 : Colors.grey.shade300,
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+            thumbIcon: WidgetStateProperty.all(const Icon(Icons.circle, color: Colors.transparent)),
             onChanged: (_) => themeProvider.toggleTheme(),
           ),
         ],

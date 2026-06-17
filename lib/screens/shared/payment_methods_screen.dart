@@ -671,9 +671,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       ),
       body: Stack(
         children: [
-          Positioned(top: -50, right: -100, child: Container(width: 350, height: 350, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.blueAccent.withValues(alpha: isDark ? 0.08 : 0.15)))),
-          Positioned(bottom: 100, left: -100, child: Container(width: 300, height: 300, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.purpleAccent.withValues(alpha: isDark ? 0.06 : 0.12)))),
-
           ValueListenableBuilder<List<Map<String, dynamic>>>(
             valueListenable: PaymentData.savedPaymentMethods,
             builder: (context, methods, child) {

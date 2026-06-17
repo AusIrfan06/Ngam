@@ -449,6 +449,10 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           Switch.adaptive(
                             value: appLockEnabled,
                             activeColor: Colors.blue,
+                            inactiveThumbColor: Colors.white,
+                            inactiveTrackColor: isDark ? Colors.white30 : Colors.grey.shade300,
+                            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                            thumbIcon: WidgetStateProperty.all(const Icon(Icons.circle, color: Colors.transparent)),
                             onChanged: (val) {
                               _toggleAppLock(val);
                               if (!val) setState(() => _isTimeoutExpanded = false);
@@ -531,7 +535,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           ),
           const SizedBox(width: 16),
           Expanded(child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, fontFamily: 'Inter'))),
-          Switch.adaptive(value: value, activeColor: Colors.blue, onChanged: onChanged),
+          Switch.adaptive(value: value, activeColor: Colors.blue, inactiveThumbColor: Colors.white, inactiveTrackColor: isDark ? Colors.white30 : Colors.grey.shade300, trackOutlineColor: WidgetStateProperty.all(Colors.transparent), thumbIcon: WidgetStateProperty.all(const Icon(Icons.circle, color: Colors.transparent)), onChanged: onChanged),
         ],
       ),
     );
