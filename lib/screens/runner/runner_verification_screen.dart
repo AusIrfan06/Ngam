@@ -316,11 +316,13 @@ class _RunnerVerificationScreenState extends State<RunnerVerificationScreen> {
               filled: false,
               prefixIcon: Padding(
                 padding: const EdgeInsets.only(right: 14),
-                child: HugeIcon(
-                  icon: icon,
-                  color: Colors.grey,
-                  size: 20,
-                ),
+                child: icon is IconData
+                    ? Icon(icon, color: Colors.grey, size: 20)
+                    : HugeIcon(
+                        icon: icon,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
               ),
               prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               border: InputBorder.none,
