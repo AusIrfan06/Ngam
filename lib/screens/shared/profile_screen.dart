@@ -16,6 +16,7 @@ import 'support_screens.dart';
 import 'about_screens.dart';
 import 'payment_methods_screen.dart';
 import 'privacy_security_screen.dart';
+import '../runner/runner_verification_screen.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 // ============================================================
@@ -98,16 +99,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppTheme.primary.withValues(alpha: 0.5),
+                                    color: AppTheme.primary.withValues(
+                                      alpha: 0.5,
+                                    ),
                                     width: 2,
                                   ),
                                 ),
                                 child: CircleAvatar(
                                   radius: 50,
-                                  backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                                  backgroundColor: isDark
+                                      ? Colors.white10
+                                      : Colors.black12,
                                   child: HugeIcon(
                                     icon: HugeIcons.strokeRoundedUser,
-                                    color: isDark ? Colors.white70 : Colors.black54,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black54,
                                     size: 40,
                                   ),
                                 ),
@@ -126,13 +133,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               const SizedBox(height: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppTheme.primary,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  user.role == UserRole.pemesan ? "PEMESAN" : "RUNNER",
+                                  user.role == UserRole.pemesan
+                                      ? "PEMESAN"
+                                      : "RUNNER",
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -173,9 +185,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   isDark: isDark,
                                   onTap: () async {
                                     if (user.role == UserRole.pemesan) return;
-                                    await authProvider.setRole(UserRole.pemesan);
+                                    await authProvider.setRole(
+                                      UserRole.pemesan,
+                                    );
                                     if (context.mounted) {
-                                      Navigator.pushNamedAndRemoveUntil(context, '/customer-home', (route) => false);
+                                      Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        '/customer-home',
+                                        (route) => false,
+                                      );
                                     }
                                   },
                                 ),
@@ -187,15 +205,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   isDark: isDark,
                                   onTap: () async {
                                     if (user.role == UserRole.runner) return;
-                                    
+
                                     if (!user.isVerifiedRunner) {
-                                      _showVerificationDialog(context, authProvider);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const RunnerVerificationScreen(),
+                                        ),
+                                      );
                                       return;
                                     }
 
                                     await authProvider.setRole(UserRole.runner);
                                     if (context.mounted) {
-                                      Navigator.pushNamedAndRemoveUntil(context, '/runner-home', (route) => false);
+                                      Navigator.pushNamedAndRemoveUntil(
+                                        context,
+                                        '/runner-home',
+                                        (route) => false,
+                                      );
                                     }
                                   },
                                 ),
@@ -226,7 +254,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _StatCardGlass(
                               isDark: isDark,
                               label: 'profile.rating'.tr(),
-                              value: _rating > 0 ? _rating.toStringAsFixed(1) : '-',
+                              value: _rating > 0
+                                  ? _rating.toStringAsFixed(1)
+                                  : '-',
                               icon: HugeIcons.strokeRoundedStar,
                             ),
                           ],
@@ -244,7 +274,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 HugeIcons.strokeRoundedUserEdit01,
                                 "profile.account_details".tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountDetailsScreen())),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const AccountDetailsScreen(),
+                                  ),
+                                ),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
@@ -252,7 +288,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 HugeIcons.strokeRoundedCreditCard,
                                 "profile.payment_methods".tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentMethodsScreen())),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const PaymentMethodsScreen(),
+                                  ),
+                                ),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
@@ -260,9 +302,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 HugeIcons.strokeRoundedShield01,
                                 "profile.privacy_security".tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacySecurityScreen())),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const PrivacySecurityScreen(),
+                                  ),
+                                ),
                               ),
-
                             ],
                           ),
                         ),
@@ -277,16 +324,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _buildThemeToggleTile(isDark, themeProvider),
                               _buildDivider(isDark),
                               _buildSettingsTile(
-                                isDark, 
-                                HugeIcons.strokeRoundedGlobe02, 
+                                isDark,
+                                HugeIcons.strokeRoundedGlobe02,
                                 "profile.language".tr(),
                                 trailing: Row(
-                                  mainAxisSize: MainAxisSize.min, 
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(context.locale.languageCode == 'ms' ? 'Bahasa Melayu' : 'English', style: const TextStyle(color: Colors.grey, fontSize: 14)), 
-                                    const SizedBox(width: 8), 
-                                    _buildArrow()
-                                  ]
+                                    Text(
+                                      context.locale.languageCode == 'ms'
+                                          ? 'Bahasa Melayu'
+                                          : 'English',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _buildArrow(),
+                                  ],
                                 ),
                                 onTap: () => _showLanguageSelector(context),
                               ),
@@ -307,23 +362,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
-                              BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 6)),
+                              BoxShadow(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
                             ],
                           ),
                           child: Row(
                             children: [
-                              const HugeIcon(icon: HugeIcons.strokeRoundedGift, color: Colors.white, size: 40),
+                              const HugeIcon(
+                                icon: HugeIcons.strokeRoundedGift,
+                                color: Colors.white,
+                                size: 40,
+                              ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('profile.invite_friends'.tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                    Text('profile.invite_friends_desc'.tr(), style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
+                                    Text(
+                                      'profile.invite_friends'.tr(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'profile.invite_friends_desc'.tr(),
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                        fontSize: 12,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ],
                           ),
                         ),
@@ -336,15 +418,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Column(
                             children: [
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedCustomerService, 'profile.help_center'.tr(),
+                                isDark,
+                                HugeIcons.strokeRoundedCustomerService,
+                                'profile.help_center'.tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpCenterScreen())),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const HelpCenterScreen(),
+                                  ),
+                                ),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedMessageQuestion, 'profile.contact_us'.tr(),
+                                isDark,
+                                HugeIcons.strokeRoundedMessageQuestion,
+                                'profile.contact_us'.tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactUsScreen())),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ContactUsScreen(),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -358,21 +454,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Column(
                             children: [
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedInformationCircle, 'profile.terms'.tr(),
+                                isDark,
+                                HugeIcons.strokeRoundedInformationCircle,
+                                'profile.terms'.tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LegalTextScreen(title: 'profile.terms'.tr(), content: ngamTermsText))),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => LegalTextScreen(
+                                      title: 'profile.terms'.tr(),
+                                      content: ngamTermsText,
+                                    ),
+                                  ),
+                                ),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedShield01, 'profile.privacy'.tr(),
+                                isDark,
+                                HugeIcons.strokeRoundedShield01,
+                                'profile.privacy'.tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => LegalTextScreen(title: 'profile.privacy'.tr(), content: ngamPrivacyText))),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => LegalTextScreen(
+                                      title: 'profile.privacy'.tr(),
+                                      content: ngamPrivacyText,
+                                    ),
+                                  ),
+                                ),
                               ),
                               _buildDivider(isDark),
                               _buildSettingsTile(
-                                isDark, HugeIcons.strokeRoundedStar, 'profile.rate_app'.tr(),
+                                isDark,
+                                HugeIcons.strokeRoundedStar,
+                                'profile.rate_app'.tr(),
                                 trailing: _buildArrow(),
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RateAppScreen(), fullscreenDialog: true)),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const RateAppScreen(),
+                                    fullscreenDialog: true,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -383,22 +507,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Center(
                           child: Column(
                             children: [
-                              Text('Ngam v1.0.0', style: TextStyle(color: Colors.grey.withValues(alpha: 0.5), fontSize: 12, fontWeight: FontWeight.w600)),
+                              Text(
+                                'Ngam v1.0.0',
+                                style: TextStyle(
+                                  color: Colors.grey.withValues(alpha: 0.5),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text('profile.made_with_love'.tr(), style: TextStyle(color: Colors.grey.withValues(alpha: 0.3), fontSize: 10)),
+                              Text(
+                                'profile.made_with_love'.tr(),
+                                style: TextStyle(
+                                  color: Colors.grey.withValues(alpha: 0.3),
+                                  fontSize: 10,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                         const SizedBox(height: 32),
 
                         // ─── Logout ────────────────────────────────────────────
-                        _buildGlassButton(isDark, 'profile.logout'.tr(), AppTheme.error, () async {
-                          await authProvider.signOut();
-                          if (context.mounted) {
-                            showGlassToast(context, 'profile.logout_success'.tr());
-                            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                          }
-                        }),
+                        _buildGlassButton(
+                          isDark,
+                          'profile.logout'.tr(),
+                          AppTheme.error,
+                          () async {
+                            await authProvider.signOut();
+                            if (context.mounted) {
+                              showGlassToast(
+                                context,
+                                'profile.logout_success'.tr(),
+                              );
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/login',
+                                (route) => false,
+                              );
+                            }
+                          },
+                        ),
                         const SizedBox(height: 120),
                       ],
                     ),
@@ -414,7 +563,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ─── UI Helper Widgets ───────────────────────────────────────
 
-  Widget _buildGlassButton(bool isDark, String label, Color color, VoidCallback onTap) {
+  Widget _buildGlassButton(
+    bool isDark,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: GlassContainer(
@@ -456,7 +610,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       settings: _getGlassSettings(isDark),
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(24.0),
           border: Border.all(
             color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.6),
@@ -467,7 +623,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
               blurRadius: 16,
               offset: const Offset(0, 6),
-            )
+            ),
           ],
         ),
         child: child,
@@ -490,22 +646,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSectionHeader(String title) => Padding(
-        padding: const EdgeInsets.only(left: 8, bottom: 12),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
-          ),
+    padding: const EdgeInsets.only(left: 8, bottom: 12),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.grey,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
         ),
-      );
+      ),
+    ),
+  );
 
-  void _showVerificationDialog(BuildContext context, AuthProvider authProvider) {
+  void _showVerificationDialog(
+    BuildContext context,
+    AuthProvider authProvider,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -513,9 +672,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const HugeIcon(icon: HugeIcons.strokeRoundedShield01, color: AppTheme.primary, size: 28),
+            const HugeIcon(
+              icon: HugeIcons.strokeRoundedShield01,
+              color: AppTheme.primary,
+              size: 28,
+            ),
             const SizedBox(width: 12),
-            const Text('Verification Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Verification Required',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         content: const Text(
@@ -530,17 +696,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () async {
               // Mock verification process for testing
-              await authProvider.mockVerifyRunner();
+              await // authProvider.mockVerifyRunner();
               if (context.mounted) {
                 Navigator.pop(context);
-                showGlassToast(context, 'Application approved! You are now a Verified Runner.');
+                showGlassToast(
+                  context,
+                  'Application approved! You are now a Verified Runner.',
+                );
               }
             },
-            child: const Text('Apply Now', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Apply Now',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -551,18 +728,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
-      context: context, backgroundColor: isDark ? const Color(0xFF262626) : Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF262626) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Pilih Bahasa", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+            const Text(
+              "Pilih Bahasa",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            ),
             const SizedBox(height: 24),
-            _buildLanguageOption(context, "English", "en", HugeIcons.strokeRoundedTranslate, AppTheme.primary),
+            _buildLanguageOption(
+              context,
+              "English",
+              "en",
+              HugeIcons.strokeRoundedTranslate,
+              AppTheme.primary,
+            ),
             const SizedBox(height: 12),
-            _buildLanguageOption(context, "Bahasa Melayu", "ms", HugeIcons.strokeRoundedTranslate, AppTheme.primary),
+            _buildLanguageOption(
+              context,
+              "Bahasa Melayu",
+              "ms",
+              HugeIcons.strokeRoundedTranslate,
+              AppTheme.primary,
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -570,16 +765,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildLanguageOption(BuildContext context, String title, String code, dynamic icon, Color color) {
+  Widget _buildLanguageOption(
+    BuildContext context,
+    String title,
+    String code,
+    dynamic icon,
+    Color color,
+  ) {
     final currentLang = context.locale.languageCode;
     final isSelected = currentLang == code;
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: isSelected ? color : Colors.transparent, width: 1.5)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isSelected ? color : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
       tileColor: color.withValues(alpha: 0.05),
       leading: HugeIcon(icon: icon, color: color, size: 22),
-      title: Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-      trailing: isSelected ? HugeIcon(icon: HugeIcons.strokeRoundedTick01, color: color, size: 20) : null,
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: isSelected
+          ? HugeIcon(
+              icon: HugeIcons.strokeRoundedTick01,
+              color: color,
+              size: 20,
+            )
+          : null,
       onTap: () async {
         await context.setLocale(Locale(code));
         if (context.mounted) {
@@ -590,54 +808,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSettingsTile(bool isDark, dynamic icon, String title,
-          {Widget? trailing, VoidCallback? onTap}) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: HugeIcon(
-                    icon: icon,
-                    color: isDark ? Colors.white : Colors.black87,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                if (trailing != null) ...[
-                  trailing,
-                  const SizedBox(width: 8),
-                ],
-                if (trailing == null)
-                  const HugeIcon(
-                    icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: Colors.grey,
-                    size: 20,
-                  )
-              ],
+  Widget _buildSettingsTile(
+    bool isDark,
+    dynamic icon,
+    String title, {
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: HugeIcon(
+                icon: icon,
+                color: isDark ? Colors.white : Colors.black87,
+                size: 20,
+              ),
             ),
-          ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (trailing != null) ...[trailing, const SizedBox(width: 8)],
+            if (trailing == null)
+              const HugeIcon(
+                icon: HugeIcons.strokeRoundedArrowRight01,
+                color: Colors.grey,
+                size: 20,
+              ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _buildThemeToggleTile(bool isDark, ThemeProvider themeProvider) {
     return Padding(
@@ -647,11 +868,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.04),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(12),
             ),
             child: HugeIcon(
-              icon: isDark ? HugeIcons.strokeRoundedMoon02 : HugeIcons.strokeRoundedSun01,
+              icon: isDark
+                  ? HugeIcons.strokeRoundedMoon02
+                  : HugeIcons.strokeRoundedSun01,
               color: AppTheme.primary,
               size: 20,
             ),
@@ -674,14 +899,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildDivider(bool isDark) => Padding(
-        padding: const EdgeInsets.only(left: 60, right: 16),
-        child: Divider(
-          height: 1,
-          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-        ),
-      );
+    padding: const EdgeInsets.only(left: 60, right: 16),
+    child: Divider(
+      height: 1,
+      color: isDark
+          ? Colors.white.withValues(alpha: 0.1)
+          : Colors.black.withValues(alpha: 0.05),
+    ),
+  );
 
-  Widget _buildArrow() => const HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Colors.grey, size: 20);
+  Widget _buildArrow() => const HugeIcon(
+    icon: HugeIcons.strokeRoundedArrowRight01,
+    color: Colors.grey,
+    size: 20,
+  );
 }
 
 // ─── Role Toggle Glass Button ────────────────────────────────
@@ -716,7 +947,9 @@ class _RoleToggle extends StatelessWidget {
             children: [
               HugeIcon(
                 icon: icon,
-                color: isSelected ? Colors.white : (isDark ? Colors.white54 : Colors.black54),
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white54 : Colors.black54),
                 size: 20,
               ),
               const SizedBox(height: 4),
@@ -725,7 +958,9 @@ class _RoleToggle extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : (isDark ? Colors.white54 : Colors.black54),
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.white54 : Colors.black54),
                 ),
               ),
             ],
@@ -771,7 +1006,9 @@ class _StatCardGlass extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.white.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(24.0),
             border: Border.all(
               color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.6),
@@ -782,7 +1019,7 @@ class _StatCardGlass extends StatelessWidget {
                 color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
-              )
+              ),
             ],
           ),
           child: Column(

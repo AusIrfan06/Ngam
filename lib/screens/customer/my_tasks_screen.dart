@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'My Tasks',
+                      'nav.my_tasks'.tr(),
                       style: GoogleFonts.outfit(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,

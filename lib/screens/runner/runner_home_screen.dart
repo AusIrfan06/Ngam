@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/gig_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/task_card.dart';
@@ -72,6 +74,8 @@ class _RunnerFeed extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gigProvider = context.watch<GigProvider>();
+    final currentUser = context.watch<AuthProvider>().user;
+    final availableGigs = gigProvider.filteredGigs.where((g) => g.customerId != currentUser?.id).toList();
 
     return RefreshIndicator(
       onRefresh: () => gigProvider.loadOpenGigs(),
@@ -90,7 +94,7 @@ class _RunnerFeed extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Find Gigs',
+                    'runner.find_gigs'.tr(),
                     style: GoogleFonts.outfit(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
@@ -161,7 +165,7 @@ class _RunnerFeed extends StatelessWidget {
                   // ─── Search Bar ──────────────────────────
                   TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search tasks...',
+                      hintText: 'customer.search_hint'.tr(),
                       prefixIcon: const Icon(Icons.search_rounded),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -180,7 +184,7 @@ class _RunnerFeed extends StatelessWidget {
 
                   // ─── Nearby Count ────────────────────────
                   Text(
-                    'Nearby (${gigProvider.filteredGigs.length} tasks)',
+                    'Nearby (${availableGigs.length} tasks)',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -198,7 +202,7 @@ class _RunnerFeed extends StatelessWidget {
             const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),
             )
-          else if (gigProvider.filteredGigs.isEmpty)
+          else if (availableGigs.isEmpty)
             SliverFillRemaining(
               child: Center(
                 child: Column(
@@ -211,7 +215,7 @@ class _RunnerFeed extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No gigs available',
+                      'runner.no_gigs'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey.shade400,
@@ -219,7 +223,7 @@ class _RunnerFeed extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Check back later for new tasks',
+                      'runner.check_back'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade400,
@@ -235,7 +239,7 @@ class _RunnerFeed extends StatelessWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final gig = gigProvider.filteredGigs[index];
+                    final gig = availableGigs[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: TaskCard(
@@ -250,7 +254,7 @@ class _RunnerFeed extends StatelessWidget {
                       ),
                     );
                   },
-                  childCount: gigProvider.filteredGigs.length,
+                  childCount: availableGigs.length,
                 ),
               ),
             ),

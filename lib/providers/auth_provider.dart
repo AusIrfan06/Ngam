@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/supabase_service.dart';
 
 // ============================================================
 // Ngam App — Auth Provider
@@ -129,16 +130,47 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Mock verification
-  Future<void> mockVerifyRunner() async {
+  /// Submit runner verification
+  Future<void> submitRunnerVerification({
+    required String fullName,
+    required String icNumber,
+    required String vehicleType,
+    String? plateNumber,
+  }) async {
     if (_user == null) return;
     try {
-      await AuthService.verifyRunner(_user!.id);
+      await AuthService.submitRunnerVerification(
+        userId: _user!.id,
+        fullName: fullName,
+        icNumber: icNumber,
+        vehicleType: vehicleType,
+        plateNumber: plateNumber,
+      );
       _user = _user!.copyWith(isVerifiedRunner: true);
       notifyListeners();
     } catch (e) {
       _error = 'Failed to verify runner';
       notifyListeners();
+      throw e;
+    }
+  }
+
+  /// Update profile details
+  Future<String?> updateProfile(String name, String phone) async {
+    if (_user == null) return 'User not logged in';
+    try {
+      final error = await SupabaseService.updateProfile(
+        userId: _user!.id,
+        name: name,
+        phone: phone,
+      );
+      if (error == null) {
+        _user = _user!.copyWith(name: name, phone: phone);
+        notifyListeners();
+      }
+      return error;
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
     }
   }
 

@@ -102,8 +102,24 @@ class AuthService {
         .eq('id', userId);
   }
 
-  /// Mock verification for testing
-  static Future<void> verifyRunner(String userId) async {
+  /// Submit runner verification details
+  static Future<void> submitRunnerVerification({
+    required String userId,
+    required String fullName,
+    required String icNumber,
+    required String vehicleType,
+    String? plateNumber,
+  }) async {
+    // 1. Insert into runner_verifications
+    await _client.from('runner_verifications').insert({
+      'user_id': userId,
+      'full_name': fullName,
+      'ic_number': icNumber,
+      'vehicle_type': vehicleType,
+      if (plateNumber != null && plateNumber.isNotEmpty) 'plate_number': plateNumber,
+    });
+
+    // 2. Update users table to set is_verified_runner = true
     await _client
         .from(DbTable.users)
         .update({'is_verified_runner': true})

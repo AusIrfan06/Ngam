@@ -60,11 +60,9 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     try {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
-        // Update name & phone in profiles table
-        final profileError = await SupabaseService.updateProfile(
-          userId: user.id,
-          name: _nameController.text.trim(),
-          phone: _phoneController.text.trim(),
+        final profileError = await context.read<AuthProvider>().updateProfile(
+          _nameController.text.trim(),
+          _phoneController.text.trim(),
         );
         if (profileError != null && mounted) {
           showGlassToast(context, profileError, isError: true);

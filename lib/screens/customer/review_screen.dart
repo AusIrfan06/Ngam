@@ -156,7 +156,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             TextFormField(
               controller: _commentController,
               maxLines: 4,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Leave a comment (optional)',
                 hintText: 'Tell us about your experience...',
                 alignLabelWithHint: true,

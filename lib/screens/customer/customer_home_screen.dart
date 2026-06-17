@@ -10,6 +10,8 @@ import '../../widgets/bottom_nav_customer.dart';
 import 'my_tasks_screen.dart';
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 // ============================================================
 // Ngam App — Customer Home Screen
 // Dashboard with category filters and available tasks feed
@@ -127,7 +129,7 @@ class _CustomerHomeFeed extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       children: [
                         CategoryChip(
-                          label: 'All',
+                          label: 'customer.view_all'.tr(),
                           isSelected: gigProvider.selectedCategory == 'All',
                           onTap: () => gigProvider.setCategory('All'),
                           showIcon: false,
@@ -151,7 +153,7 @@ class _CustomerHomeFeed extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Available Services (${gigProvider.filteredServices.length})',
+                        'customer.available_services'.tr(args: ['${gigProvider.filteredServices.length}']),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -184,7 +186,7 @@ class _CustomerHomeFeed extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'No services available yet',
+                      'customer.no_services'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey.shade400,
@@ -192,7 +194,7 @@ class _CustomerHomeFeed extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Runners will post their services here',
+                      'customer.runners_will_post'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade400,
@@ -224,7 +226,7 @@ class _CustomerHomeFeed extends StatelessWidget {
                             );
                             if (newGig != null && context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Service Ordered!')),
+                                SnackBar(content: Text('customer.service_ordered'.tr())),
                               );
                               Navigator.pushNamed(context, '/order-status', arguments: newGig);
                             }
@@ -234,7 +236,7 @@ class _CustomerHomeFeed extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('Order Service'),
+                          child: Text('customer.order_service'.tr()),
                         ),
                       ),
                     );

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -224,7 +225,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             TextFormField(
               controller: _notesController,
               maxLines: 3,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Any message for the customer...',
               ),
             ),
@@ -273,7 +274,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                       color: AppTheme.primary,
                       size: 20,
                     ),
-                    label: const Text('Chat with Customer'),
+                    label: Text($1),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.primary,
                       side: const BorderSide(color: AppTheme.primary, width: 2),

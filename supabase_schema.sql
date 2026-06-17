@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   email VARCHAR(255) NOT NULL,
   phone VARCHAR(50) NOT NULL,
   role VARCHAR(50) NOT NULL, -- 'pemesan' or 'runner'
+  is_verified_runner BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -61,6 +62,18 @@ ALTER TABLE public.gigs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.status_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
+-- 5. RUNNER VERIFICATIONS TABLE
+-- Stores KYC verification data for runners
+CREATE TABLE IF NOT EXISTS public.runner_verifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
+  full_name VARCHAR(255) NOT NULL,
+  ic_number VARCHAR(50) NOT NULL,
+  vehicle_type VARCHAR(50) NOT NULL,
+  plate_number VARCHAR(50),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Disable RLS constraints (allow all operations for this project since auth rules are handled app-side)
 -- Note: In a real production app, you would want strict RLS rules.
 DROP POLICY IF EXISTS "Allow public select on users" ON public.users;
@@ -80,6 +93,9 @@ CREATE POLICY "Allow public all on status_logs" ON public.status_logs FOR ALL US
 
 DROP POLICY IF EXISTS "Allow public all on reviews" ON public.reviews;
 CREATE POLICY "Allow public all on reviews" ON public.reviews FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public all on verifications" ON public.runner_verifications;
+CREATE POLICY "Allow public all on verifications" ON public.runner_verifications FOR ALL USING (true) WITH CHECK (true);
 
 -- Realtime for the gigs table is configured safely at the end of the file
 

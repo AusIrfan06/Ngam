@@ -1,4 +1,53 @@
 {
+  "auth": {
+    "welcome_back": "Welcome Back!",
+    "welcome_subtitle": "Sign in to continue using Ngam",
+    "email": "Email Address",
+    "password": "Password",
+    "login": "Sign In",
+    "no_account": "Don't have an account? ",
+    "register_here": "Register here",
+    "create_account": "Create Account",
+    "register_subtitle": "Join Ngam community today",
+    "full_name": "Full Legal Name",
+    "phone": "Phone Number",
+    "role_select": "I want to:",
+    "role_customer": "Post Tasks",
+    "role_runner": "Earn as Runner",
+    "register": "Sign Up",
+    "have_account": "Already have an account? ",
+    "login_here": "Sign in here"
+  },
+  "nav": {
+    "home": "Home",
+    "my_tasks": "My Tasks",
+    "chat": "Chat",
+    "profile": "Profile"
+  },
+  "customer": {
+    "greeting": "Hi, {}",
+    "what_do_you_need": "What do you need done today?",
+    "search_hint": "Search for tasks or services...",
+    "quick_categories": "Quick Categories",
+    "nearby_runners": "Nearby Runners Ready",
+    "recent_tasks": "Your Recent Tasks",
+    "view_all": "View All",
+    "post_new_task": "Post a New Task",
+    "task_title": "Task Title",
+    "task_desc": "Describe what you need done...",
+    "bounty": "Bounty Amount (RM)",
+    "location": "Location",
+    "post_task": "Post Task Now"
+  },
+  "runner": {
+    "find_gigs": "Find Gigs",
+    "nearby_tasks": "Nearby ({} tasks)",
+    "no_gigs": "No gigs available",
+    "check_back": "Check back later for new tasks",
+    "accept_task": "Accept Task",
+    "chat_customer": "Chat with Customer",
+    "mark_complete": "Mark as Complete"
+  },
   "profile": {
     "completed": "Completed",
     "rating": "Rating",

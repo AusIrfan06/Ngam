@@ -44,7 +44,7 @@ class SupabaseService {
       if (phone != null) updates['phone'] = phone;
       if (updates.isEmpty) return null;
 
-      await client.from('profiles').update(updates).eq('id', userId);
+      await client.from('users').update(updates).eq('id', userId);
       return null;
     } catch (e) {
       return e.toString().replaceAll('Exception: ', '');

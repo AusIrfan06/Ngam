@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -128,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen>
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Email',
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
@@ -149,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: 'auth.password'.tr(),
                             prefixIcon: const Icon(Icons.lock_outlined),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -244,8 +245,8 @@ class _LoginScreenState extends State<LoginScreen>
                               onTap: () {
                                 Navigator.pushNamed(context, '/register');
                               },
-                              child: const Text(
-                                'Sign Up',
+                              child: Text(
+                                'auth.register'.tr(),
                                 style: TextStyle(
                                   color: AppTheme.primary,
                                   fontWeight: FontWeight.w600,

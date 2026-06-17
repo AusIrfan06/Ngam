@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -127,7 +128,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       TextFormField(
                         controller: _titleController,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'Service Title' : 'Task Title',
+                          labelText: isRunner ? 'Service Title' : 'customer.task_title'.tr(),
                           hintText: isRunner ? 'e.g., I will print 10 pages' : 'e.g., Print assignment 10 pages',
                           prefixIcon: Icon(Icons.title_rounded),
                         ),
@@ -146,7 +147,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         maxLines: 4,
                         decoration: InputDecoration(
                           labelText: isRunner ? 'Service Description' : 'Task Description',
-                          hintText: isRunner ? 'Describe what you can do...' : 'Describe what you need done...',
+                          hintText: isRunner ? 'Describe what you can do...' : 'customer.task_desc'.tr(),
                           alignLabelWithHint: true,
                           prefixIcon: Padding(
                             padding: EdgeInsets.only(bottom: 60),
@@ -165,7 +166,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       // ─── Category Dropdown ───────────────────
                       DropdownButtonFormField<String>(
                         value: _selectedCategory,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Category',
                           prefixIcon: Icon(Icons.category_outlined),
                         ),
@@ -193,7 +194,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       // ─── Location ────────────────────────────
                       TextFormField(
                         controller: _locationController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Location / Drop-off',
                           hintText: 'e.g., Block C, Campus Library',
                           prefixIcon: Icon(Icons.location_on_outlined),
@@ -212,7 +213,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         controller: _bountyController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'Price (RM)' : 'Bounty Amount (RM)',
+                          labelText: isRunner ? 'Price (RM)' : 'customer.bounty'.tr(),
                           hintText:
                               'Min: RM ${BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)}',
                           prefixIcon: const Icon(Icons.payments_outlined),

@@ -1,0 +1,28 @@
+Analyzing Ngam...                                               
+
+   info - Use 'rethrow' to rethrow a caught exception - lib\providers\auth_provider.dart:154:7 - use_rethrow_when_possible
+  error - Methods can't be invoked in constant expressions - lib\screens\auth\login_screen.dart:249:33 - const_eval_method_invocation
+  error - Methods can't be invoked in constant expressions - lib\screens\auth\register_screen.dart:131:32 - const_eval_method_invocation
+  error - Methods can't be invoked in constant expressions - lib\screens\auth\register_screen.dart:290:42 - const_eval_method_invocation
+  error - Methods can't be invoked in constant expressions - lib\screens\runner\active_job_screen.dart:277:39 - const_eval_method_invocation
+  error - The getter 'strokeRoundedIdCard' isn't defined for the type 'HugeIcons' - lib\screens\runner\runner_verification_screen.dart:167:43 - undefined_getter
+warning - Unused import: '../../models/user_model.dart' - lib\screens\shared\chat_screen.dart:9:8 - unused_import
+warning - Dead code - lib\screens\shared\chat_screen.dart:272:25 - dead_code
+   info - Constructors for public widgets should have a named 'key' parameter - lib\screens\shared\chat_screen.dart:427:9 - use_key_in_widget_constructors
+warning - The declaration '_showVerificationDialog' isn't referenced - lib\screens\shared\profile_screen.dart:664:8 - unused_element
+  error - The method 'mockVerifyRunner' isn't defined for the type 'AuthProvider' - lib\screens\shared\profile_screen.dart:705:34 - undefined_method
+   info - The imported package 'image' isn't a dependency of the importing package - tool\check_sizes.dart:2:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - tool\check_sizes.dart:4:3 - avoid_print
+   info - Don't invoke 'print' in production code - tool\check_sizes.dart:5:3 - avoid_print
+   info - The imported package 'image' isn't a dependency of the importing package - tool\downscale_splash.dart:2:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - tool\downscale_splash.dart:10:3 - avoid_print
+   info - The imported package 'image' isn't a dependency of the importing package - tool\pad_image.dart:2:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - tool\pad_image.dart:7:5 - avoid_print
+   info - Don't invoke 'print' in production code - tool\pad_image.dart:15:5 - avoid_print
+   info - Don't invoke 'print' in production code - tool\pad_image.dart:43:3 - avoid_print
+   info - The imported package 'image' isn't a dependency of the importing package - tool\pad_splash.dart:2:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - tool\pad_splash.dart:7:5 - avoid_print
+   info - Don't invoke 'print' in production code - tool\pad_splash.dart:15:5 - avoid_print
+   info - Don't invoke 'print' in production code - tool\pad_splash.dart:42:3 - avoid_print
+
+24 issues found. (ran in 49.2s)

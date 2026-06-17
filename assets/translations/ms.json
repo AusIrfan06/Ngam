@@ -1,4 +1,53 @@
 {
+  "auth": {
+    "welcome_back": "Selamat Kembali!",
+    "welcome_subtitle": "Log masuk untuk meneruskan",
+    "email": "Alamat E-mel",
+    "password": "Kata Laluan",
+    "login": "Log Masuk",
+    "no_account": "Tiada akaun? ",
+    "register_here": "Daftar di sini",
+    "create_account": "Cipta Akaun",
+    "register_subtitle": "Sertai komuniti Ngam hari ini",
+    "full_name": "Nama Penuh",
+    "phone": "Nombor Telefon",
+    "role_select": "Saya mahu:",
+    "role_customer": "Upah Orang",
+    "role_runner": "Cari Duit (Runner)",
+    "register": "Daftar Akaun",
+    "have_account": "Sudah mempunyai akaun? ",
+    "login_here": "Log masuk di sini"
+  },
+  "nav": {
+    "home": "Laman Utama",
+    "my_tasks": "Tugasan",
+    "chat": "Mesej",
+    "profile": "Profil"
+  },
+  "customer": {
+    "greeting": "Hai, {}",
+    "what_do_you_need": "Apa yang anda perlukan hari ini?",
+    "search_hint": "Cari tugasan atau servis...",
+    "quick_categories": "Kategori Pantas",
+    "nearby_runners": "Runner Berhampiran Anda",
+    "recent_tasks": "Tugasan Terkini",
+    "view_all": "Lihat Semua",
+    "post_new_task": "Minta Bantuan Baru",
+    "task_title": "Tajuk Tugasan",
+    "task_desc": "Terangkan apa yang anda perlukan...",
+    "bounty": "Upah (RM)",
+    "location": "Lokasi",
+    "post_task": "Terbitkan Tugasan"
+  },
+  "runner": {
+    "find_gigs": "Cari Kerja",
+    "nearby_tasks": "Berhampiran ({} tugas)",
+    "no_gigs": "Tiada kerja buat masa ini",
+    "check_back": "Sila semak semula nanti",
+    "accept_task": "Terima Tugas",
+    "chat_customer": "Mesej Pemesan",
+    "mark_complete": "Tandakan Selesai"
+  },
   "profile": {
     "completed": "Selesai",
     "rating": "Penilaian",
