@@ -9,6 +9,7 @@ class UserModel {
   final String phone;
   final String role; // 'pemesan' or 'runner'
   final bool isVerifiedRunner;
+  final String? avatarUrl;
   final DateTime createdAt;
 
   UserModel({
@@ -18,6 +19,7 @@ class UserModel {
     required this.phone,
     required this.role,
     this.isVerifiedRunner = false,
+    this.avatarUrl,
     required this.createdAt,
   });
 
@@ -30,6 +32,7 @@ class UserModel {
       phone: json['phone'] as String? ?? '',
       role: json['role'] as String? ?? 'pemesan',
       isVerifiedRunner: json['is_verified_runner'] as bool? ?? false,
+      avatarUrl: json['avatar_url'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -43,6 +46,7 @@ class UserModel {
       'phone': phone,
       'role': role,
       'is_verified_runner': isVerifiedRunner,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -55,6 +59,7 @@ class UserModel {
     String? phone,
     String? role,
     bool? isVerifiedRunner,
+    String? avatarUrl,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -64,6 +69,7 @@ class UserModel {
       phone: phone ?? this.phone,
       role: role ?? this.role,
       isVerifiedRunner: isVerifiedRunner ?? this.isVerifiedRunner,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       createdAt: createdAt ?? this.createdAt,
     );
   }

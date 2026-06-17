@@ -3,6 +3,9 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../services/supabase_service.dart';
 
+import 'dart:io';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 // ============================================================
 // Ngam App — Auth Provider
 // Manages authentication state and role switching
@@ -166,6 +169,34 @@ class AuthProvider extends ChangeNotifier {
       );
       if (error == null) {
         _user = _user!.copyWith(name: name, phone: phone);
+        notifyListeners();
+      }
+      return error;
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
+  /// Upload user avatar
+  Future<String?> uploadAvatar(File imageFile) async {
+    if (_user == null) return 'User not logged in';
+    try {
+      final String path = '${_user!.id}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storageResponse = await Supabase.instance.client.storage
+          .from('avatars')
+          .upload(path, imageFile, fileOptions: const FileOptions(cacheControl: '3600', upsert: true));
+
+      final String publicUrl = Supabase.instance.client.storage
+          .from('avatars')
+          .getPublicUrl(path);
+
+      final error = await SupabaseService.updateProfile(
+        userId: _user!.id,
+        avatarUrl: publicUrl,
+      );
+
+      if (error == null) {
+        _user = _user!.copyWith(avatarUrl: publicUrl);
         notifyListeners();
       }
       return error;

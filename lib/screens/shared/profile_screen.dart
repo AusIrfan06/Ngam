@@ -110,13 +110,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   backgroundColor: isDark
                                       ? Colors.white10
                                       : Colors.black12,
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedUser,
-                                    color: isDark
-                                        ? Colors.white70
-                                        : Colors.black54,
-                                    size: 40,
-                                  ),
+                                  backgroundImage: user.avatarUrl != null 
+                                      ? NetworkImage(user.avatarUrl!) 
+                                      : null,
+                                  child: user.avatarUrl == null 
+                                      ? HugeIcon(
+                                          icon: HugeIcons.strokeRoundedUser,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : Colors.black54,
+                                          size: 40,
+                                        ) 
+                                      : null,
                                 ),
                               ),
                               const SizedBox(height: 16),

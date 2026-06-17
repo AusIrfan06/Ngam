@@ -198,6 +198,7 @@ class _ConversationTile extends StatelessWidget {
       future: ChatService.getUserProfile(otherUserId),
       builder: (context, snapshot) {
         final String name = snapshot.data?['name'] ?? 'Loading...';
+        final String? avatarUrl = snapshot.data?['avatar_url'];
         final String avatar = name.isNotEmpty ? name[0].toUpperCase() : '?';
         final Color avatarColor = AppTheme.primary; // Or generate based on name
         final String lastMsg = c.lastMessage ?? 'Started a conversation';
@@ -256,17 +257,25 @@ class _ConversationTile extends StatelessWidget {
                             color: avatarColor.withValues(alpha: 0.3),
                             width: 1.5,
                           ),
+                          image: avatarUrl != null
+                              ? DecorationImage(
+                                  image: NetworkImage(avatarUrl),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
                         ),
-                        child: Center(
-                          child: Text(
-                            avatar,
-                            style: GoogleFonts.outfit(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: avatarColor,
-                            ),
-                          ),
-                        ),
+                        child: avatarUrl == null
+                            ? Center(
+                                child: Text(
+                                  avatar,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: avatarColor,
+                                  ),
+                                ),
+                              )
+                            : null,
                       ),
                       if (isOnline)
                         Positioned(
@@ -489,6 +498,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           future: ChatService.getUserProfile(otherUserId),
           builder: (context, snapshot) {
             final name = snapshot.data?['name'] ?? '...';
+            final avatarUrl = snapshot.data?['avatar_url'];
             final avatar = name.isNotEmpty ? name[0] : '?';
             final avatarColor = AppTheme.primary;
             return Row(
@@ -500,17 +510,25 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     color: avatarColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(color: avatarColor.withValues(alpha: 0.4), width: 1.5),
+                    image: avatarUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(avatarUrl),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  child: Center(
-                    child: Text(
-                      avatar,
-                      style: GoogleFonts.outfit(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: avatarColor,
-                      ),
-                    ),
-                  ),
+                  child: avatarUrl == null
+                      ? Center(
+                          child: Text(
+                            avatar,
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: avatarColor,
+                            ),
+                          ),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 10),
                 Column(

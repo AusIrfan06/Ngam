@@ -34,6 +34,10 @@ class ChatService {
 
   /// Create or get a conversation between two users
   static Future<ConversationModel> createOrGetConversation(String currentUserId, String otherUserId, {String? gigId}) async {
+    if (currentUserId == otherUserId) {
+      throw Exception('You cannot chat with yourself.');
+    }
+
     // Check if conversation exists
     final existing = await _supabase
         .from('conversations')

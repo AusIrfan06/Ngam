@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -31,6 +33,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   bool _isLoading = false;
   bool _obscureCurrentPass = true;
   bool _obscureNewPass = true;
+  bool _isUploadingAvatar = false;
 
   @override
   void initState() {
@@ -146,6 +149,8 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(child: _buildAvatarSection(context)),
+                const SizedBox(height: 32),
                 _sectionLabel('PROFIL AWAM'),
                 const SizedBox(height: 12),
                 _glassCard(isDark, Column(children: [
@@ -200,6 +205,82 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildAvatarSection(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: _isUploadingAvatar ? null : () => _pickAndUploadAvatar(context),
+      child: Stack(
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+              image: user?.avatarUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(user!.avatarUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: user?.avatarUrl == null
+                ? const HugeIcon(icon: HugeIcons.strokeRoundedUser, color: Colors.grey, size: 40)
+                : null,
+          ),
+          if (_isUploadingAvatar)
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withValues(alpha: 0.5),
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              ),
+            ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: AppTheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const HugeIcon(
+                icon: HugeIcons.strokeRoundedCamera01,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAndUploadAvatar(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    
+    if (image != null && context.mounted) {
+      setState(() => _isUploadingAvatar = true);
+      final error = await context.read<AuthProvider>().uploadAvatar(File(image.path));
+      if (context.mounted) {
+        setState(() => _isUploadingAvatar = false);
+        if (error != null) {
+          showGlassToast(context, 'Gagal memuat naik avatar: $error');
+        } else {
+          showGlassToast(context, 'Avatar berjaya dikemas kini!');
+        }
+      }
+    }
   }
 
   Widget _sectionLabel(String text) => Text(text, style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2));

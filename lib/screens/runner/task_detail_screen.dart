@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/gig_model.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 // ============================================================
 // Ngam App — Task Detail Screen (Runner)
@@ -14,6 +16,7 @@ class TaskDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = context.read<AuthProvider>().user?.id;
     final gig = ModalRoute.of(context)?.settings.arguments as GigModel;
 
     return Scaffold(
@@ -213,27 +216,28 @@ class TaskDetailScreen extends StatelessWidget {
                     const SizedBox(height: 40),
 
                     // ─── Accept Button ───────────────────────
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/confirm-acceptance',
-                            arguments: gig,
-                          );
-                        },
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: const Text('✓ Accept Gig'),
-                        style: ElevatedButton.styleFrom(
-                          textStyle: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                    if (gig.customerId != currentUserId)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/confirm-acceptance',
+                              arguments: gig,
+                            );
+                          },
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: const Text('✓ Accept Gig'),
+                          style: ElevatedButton.styleFrom(
+                            textStyle: GoogleFonts.outfit(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

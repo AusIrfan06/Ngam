@@ -218,11 +218,12 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       ),
                     ),
                     // Chat button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    if (gig.gigWorkerId != null && gig.gigWorkerId != context.read<AuthProvider>().user?.id)
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       child: IconButton(
                         onPressed: () async {
                           showDialog(

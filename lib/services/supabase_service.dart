@@ -37,11 +37,13 @@ class SupabaseService {
     required String userId,
     String? name,
     String? phone,
+    String? avatarUrl,
   }) async {
     try {
       final updates = <String, dynamic>{};
       if (name != null) updates['name'] = name;
       if (phone != null) updates['phone'] = phone;
+      if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
       if (updates.isEmpty) return null;
 
       await client.from('users').update(updates).eq('id', userId);

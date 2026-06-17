@@ -232,6 +232,9 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             // ─── Chat with Customer Button ─────────────
             Consumer<AuthProvider>(
               builder: (context, auth, _) {
+                if (auth.user?.id == gig.customerId) {
+                  return const SizedBox.shrink();
+                }
                 return SizedBox(
                   width: double.infinity,
                   height: 56,
