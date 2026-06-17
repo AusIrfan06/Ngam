@@ -274,7 +274,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                       color: AppTheme.primary,
                       size: 20,
                     ),
-                    label: Text($1),
+                    label: Text('runner.chat_customer'.tr()),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.primary,
                       side: const BorderSide(color: AppTheme.primary, width: 2),

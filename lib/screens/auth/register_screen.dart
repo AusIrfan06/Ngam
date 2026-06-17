@@ -287,7 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : Text($1),
+                            : Text('auth.create_account'.tr()),
                       ),
                     );
                   },
