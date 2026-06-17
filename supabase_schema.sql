@@ -73,3 +73,41 @@ CREATE POLICY "Allow public all on reviews" ON public.reviews FOR ALL USING (tru
 
 -- Enable Realtime for the gigs table (for the live feed and task-state locker)
 ALTER PUBLICATION supabase_realtime ADD TABLE public.gigs;
+
+-- =========================================================================================
+-- Chat System (Conversations and Messages)
+-- =========================================================================================
+
+-- 5. CONVERSATIONS TABLE
+CREATE TABLE public.conversations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user1_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  user2_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  gig_id UUID REFERENCES public.gigs(id) ON DELETE SET NULL,
+  last_message TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(user1_id, user2_id)
+);
+
+-- 6. MESSAGES TABLE
+CREATE TABLE public.messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
+  sender_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS for Chat System
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+
+-- Disable RLS constraints for now (allowing all for simplicity in development)
+CREATE POLICY "Allow public all on conversations" ON public.conversations FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public all on messages" ON public.messages FOR ALL USING (true) WITH CHECK (true);
+
+-- Enable Realtime for conversations and messages
+ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+

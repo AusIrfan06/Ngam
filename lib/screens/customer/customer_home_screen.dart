@@ -230,7 +230,6 @@ class _CustomerHomeFeed extends StatelessWidget {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 36),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),

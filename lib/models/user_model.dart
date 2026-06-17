@@ -8,6 +8,7 @@ class UserModel {
   final String email;
   final String phone;
   final String role; // 'pemesan' or 'runner'
+  final bool isVerifiedRunner;
   final DateTime createdAt;
 
   UserModel({
@@ -16,6 +17,7 @@ class UserModel {
     required this.email,
     required this.phone,
     required this.role,
+    this.isVerifiedRunner = false,
     required this.createdAt,
   });
 
@@ -27,6 +29,7 @@ class UserModel {
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       role: json['role'] as String? ?? 'pemesan',
+      isVerifiedRunner: json['is_verified_runner'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -39,6 +42,7 @@ class UserModel {
       'email': email,
       'phone': phone,
       'role': role,
+      'is_verified_runner': isVerifiedRunner,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -50,6 +54,7 @@ class UserModel {
     String? email,
     String? phone,
     String? role,
+    bool? isVerifiedRunner,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -58,6 +63,7 @@ class UserModel {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       role: role ?? this.role,
+      isVerifiedRunner: isVerifiedRunner ?? this.isVerifiedRunner,
       createdAt: createdAt ?? this.createdAt,
     );
   }

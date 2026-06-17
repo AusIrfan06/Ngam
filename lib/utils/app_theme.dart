@@ -8,10 +8,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // ─── Brand Colors ──────────────────────────────────────────
-  static const Color primary = Color(0xFFFF8C00);       // Vibrant Orange
-  static const Color primaryDark = Color(0xFFE07B00);
-  static const Color secondary = Color(0xFF1E1E2C);     // Deep navy
-  static const Color accent = Color(0xFFFFB347);         // Light orange
+  static const Color primary = Color(0xFF2196F3);       // Colors.blue from Rezrv
+  static const Color primaryDark = Color(0xFF1976D2);   // Rezrv Dark Blue
+  static const Color secondary = Color(0xFF1E293B);     // Deep Slate/Navy
+  static const Color accent = Color(0xFF42A5F5);         // Rezrv Light Blue
   static const Color success = Color(0xFF2ECC71);
   static const Color warning = Color(0xFFF39C12);
   static const Color error = Color(0xFFE74C3C);

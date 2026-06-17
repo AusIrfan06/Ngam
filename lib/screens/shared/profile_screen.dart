@@ -187,6 +187,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   isDark: isDark,
                                   onTap: () async {
                                     if (user.role == UserRole.runner) return;
+                                    
+                                    if (!user.isVerifiedRunner) {
+                                      _showVerificationDialog(context, authProvider);
+                                      return;
+                                    }
+
                                     await authProvider.setRole(UserRole.runner);
                                     if (context.mounted) {
                                       Navigator.pushNamedAndRemoveUntil(context, '/runner-home', (route) => false);
@@ -498,6 +504,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       );
+
+  void _showVerificationDialog(BuildContext context, AuthProvider authProvider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const HugeIcon(icon: HugeIcons.strokeRoundedShield01, color: AppTheme.primary, size: 28),
+            const SizedBox(width: 12),
+            const Text('Verification Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: const Text(
+          'To ensure the safety and quality of our platform, you must be verified to become a Runner. Would you like to apply now?',
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () async {
+              // Mock verification process for testing
+              await authProvider.mockVerifyRunner();
+              if (context.mounted) {
+                Navigator.pop(context);
+                showGlassToast(context, 'Application approved! You are now a Verified Runner.');
+              }
+            },
+            child: const Text('Apply Now', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showLanguageSelector(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

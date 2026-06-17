@@ -129,6 +129,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Mock verification
+  Future<void> mockVerifyRunner() async {
+    if (_user == null) return;
+    try {
+      await AuthService.verifyRunner(_user!.id);
+      _user = _user!.copyWith(isVerifiedRunner: true);
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to verify runner';
+      notifyListeners();
+    }
+  }
+
   /// Clear error
   void clearError() {
     _error = null;

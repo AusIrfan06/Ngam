@@ -38,8 +38,9 @@ void showGlassToast(
       ? _cleanErrorMessage(message)
       : message;
 
-  ScaffoldMessenger.of(context).removeCurrentSnackBar();
-  ScaffoldMessenger.of(context).showSnackBar(
+  final scaffoldMessenger = ScaffoldMessenger.of(context);
+  scaffoldMessenger.removeCurrentSnackBar();
+  scaffoldMessenger.showSnackBar(
     SnackBar(
       elevation: 0,
       behavior: SnackBarBehavior.floating,
@@ -69,33 +70,27 @@ void showGlassToast(
                 ),
               ],
             ),
-            child: Row(
-              children: [
-                // Icon — supports both HugeIcon and regular Icon
-                _ToastIcon(icon: resolvedIcon, color: resolvedColor),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    displayMessage,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      height: 1.4,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => scaffoldMessenger.hideCurrentSnackBar(),
+              child: Row(
+                children: [
+                  // Icon — supports both HugeIcon and regular Icon
+                  _ToastIcon(icon: resolvedIcon, color: resolvedColor),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      displayMessage,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Dismiss tap
-                GestureDetector(
-                  onTap: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-                  child: Icon(
-                    Icons.close_rounded,
-                    color: resolvedColor.withValues(alpha: 0.7),
-                    size: 18,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

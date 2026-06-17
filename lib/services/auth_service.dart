@@ -37,6 +37,7 @@ class AuthService {
       'email': email,
       'phone': phone,
       'role': role,
+      'is_verified_runner': false,
       'created_at': DateTime.now().toIso8601String(),
     };
 
@@ -98,6 +99,14 @@ class AuthService {
     await _client
         .from(DbTable.users)
         .update({'role': newRole})
+        .eq('id', userId);
+  }
+
+  /// Mock verification for testing
+  static Future<void> verifyRunner(String userId) async {
+    await _client
+        .from(DbTable.users)
+        .update({'is_verified_runner': true})
         .eq('id', userId);
   }
 
