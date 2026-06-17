@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/gig_provider.dart';
+import '../../models/gig_model.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/bounty_calculator.dart';
 import '../../utils/constants.dart';
@@ -43,26 +44,43 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     final gigProvider = context.read<GigProvider>();
     final userId = authProvider.user!.id;
 
-    final gig = await gigProvider.createGig(
-      customerId: userId,
-      title: _titleController.text.trim(),
-      description: _descriptionController.text.trim(),
-      category: _selectedCategory,
-      bountyAmount: double.parse(_bountyController.text),
-      location: _locationController.text.trim(),
-    );
+    GigModel? gig;
+    if (authProvider.isRunner) {
+      gig = await gigProvider.createServiceListing(
+        runnerId: userId,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: _selectedCategory,
+        price: double.parse(_bountyController.text),
+        location: _locationController.text.trim(),
+      );
+    } else {
+      gig = await gigProvider.createGig(
+        customerId: userId,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: _selectedCategory,
+        bountyAmount: double.parse(_bountyController.text),
+        location: _locationController.text.trim(),
+      );
+    }
 
     if (gig != null && mounted) {
-      Navigator.pushNamed(
-        context,
-        '/task-posted',
-        arguments: gig,
-      );
+      if (authProvider.isRunner) {
+        Navigator.pop(context);
+      } else {
+        Navigator.pushNamed(
+          context,
+          '/task-posted',
+          arguments: gig,
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isRunner = context.watch<AuthProvider>().isRunner;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -75,7 +93,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               title: Text(
-                'Post New Task',
+                isRunner ? 'Post a Service' : 'Post New Task',
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -108,9 +126,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       // ─── Task Title ──────────────────────────
                       TextFormField(
                         controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Task Title',
-                          hintText: 'e.g., Print assignment 10 pages',
+                        decoration: InputDecoration(
+                          labelText: isRunner ? 'Service Title' : 'Task Title',
+                          hintText: isRunner ? 'e.g., I will print 10 pages' : 'e.g., Print assignment 10 pages',
                           prefixIcon: Icon(Icons.title_rounded),
                         ),
                         validator: (value) {
@@ -126,9 +144,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       TextFormField(
                         controller: _descriptionController,
                         maxLines: 4,
-                        decoration: const InputDecoration(
-                          labelText: 'Task Description',
-                          hintText: 'Describe what you need done...',
+                        decoration: InputDecoration(
+                          labelText: isRunner ? 'Service Description' : 'Task Description',
+                          hintText: isRunner ? 'Describe what you can do...' : 'Describe what you need done...',
                           alignLabelWithHint: true,
                           prefixIcon: Padding(
                             padding: EdgeInsets.only(bottom: 60),
@@ -194,7 +212,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         controller: _bountyController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Bounty Amount (RM)',
+                          labelText: isRunner ? 'Price (RM)' : 'Bounty Amount (RM)',
                           hintText:
                               'Min: RM ${BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)}',
                           prefixIcon: const Icon(Icons.payments_outlined),
@@ -263,7 +281,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                                     )
                                   : const Icon(Icons.send_rounded),
                               label: Text(
-                                gig.isLoading ? 'Posting...' : 'Submit Task →',
+                                gig.isLoading ? 'Posting...' : (isRunner ? 'Submit Service →' : 'Submit Task →'),
                               ),
                             ),
                           );
@@ -272,7 +290,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       const SizedBox(height: 12),
                       Center(
                         child: Text(
-                          'Task will appear in the live feed once submitted',
+                          isRunner ? 'Service will be visible to customers' : 'Task will appear in the live feed once submitted',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade400,

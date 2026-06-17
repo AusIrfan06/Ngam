@@ -11,12 +11,14 @@ class TaskCard extends StatefulWidget {
   final GigModel gig;
   final VoidCallback? onTap;
   final bool showStatus;
+  final Widget? actionWidget;
 
   const TaskCard({
     super.key,
     required this.gig,
     this.onTap,
     this.showStatus = false,
+    this.actionWidget,
   });
 
   @override
@@ -173,25 +175,32 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                   ),
                 ),
 
-                // Bounty amount
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
+                Column(
+                  children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          widget.gig.formattedBounty,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      if (widget.actionWidget != null) ...[
+                        const SizedBox(height: 8),
+                        widget.actionWidget!,
+                      ],
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    widget.gig.formattedBounty,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

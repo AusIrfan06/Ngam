@@ -3,7 +3,6 @@
 // ============================================================
 
 // ─── Supabase Credentials ────────────────────────────────────
-// TODO: Replace these with your actual Supabase project credentials
 const String supabaseUrl = 'https://aexpbrnxfsknbyqtzgne.supabase.co';
 const String supabaseAnonKey = 'sb_publishable_YDFJBfEWOjf0Pk9iaoCaqw_75sLs1nC';
 
@@ -43,6 +42,7 @@ class GigStatus {
   static const String inProgress = 'IN-PROGRESS';
   static const String completed = 'COMPLETED';
   static const String cancelled = 'CANCELLED';
+  static const String service = 'SERVICE';
 }
 
 // ─── User Roles ──────────────────────────────────────────────

@@ -28,12 +28,12 @@ class BottomNavCustomer extends StatelessWidget {
           title: 'Home',
         ),
         NavItem(
-          icon: HugeIcons.strokeRoundedAddSquare,
-          title: 'Post',
+          icon: HugeIcons.strokeRoundedNote01,
+          title: 'Tasks',
         ),
         NavItem(
-          icon: HugeIcons.strokeRoundedNote01,
-          title: 'My Tasks',
+          icon: HugeIcons.strokeRoundedBubbleChat,
+          title: 'Chat',
         ),
         NavItem(
           icon: HugeIcons.strokeRoundedUser,

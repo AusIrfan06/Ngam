@@ -477,8 +477,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     final cardWidth = screenWidth - 64;
     final cardHeight = cardWidth / 1.586;
 
-    // ðŸŸ¢ DYNAMIC HEIGHT: Matches your exact 0, 35, and 65 top offsets!
-    double extraHeight = 0;
     // We wrap this inside the ValueListenableBuilder since cardMethods isn't defined up here.
 
     return Scaffold(
@@ -640,9 +638,13 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
                 // Premium Dark Wallet Gradients
                 List<Color> cardColors;
-                if (method["name"] == "MASTERCARD") cardColors = [const Color(0xFF141E30), const Color(0xFF243B55)];
-                else if (method["name"] == "AMEX") cardColors = [const Color(0xFF004D40), const Color(0xFF00838F)];
-                else cardColors = [const Color(0xFF1A1F3B), const Color(0xFF2B3A67)]; // Visa Default
+                if (method["name"] == "MASTERCARD") {
+                  cardColors = [const Color(0xFF141E30), const Color(0xFF243B55)];
+                } else if (method["name"] == "AMEX") {
+                  cardColors = [const Color(0xFF004D40), const Color(0xFF00838F)];
+                } else {
+                  cardColors = [const Color(0xFF1A1F3B), const Color(0xFF2B3A67)]; // Visa Default
+                }
 
                 return AnimatedPositioned(
                   key: ValueKey(method["id"]),

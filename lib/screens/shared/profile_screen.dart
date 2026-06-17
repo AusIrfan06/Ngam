@@ -171,7 +171,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   icon: HugeIcons.strokeRoundedUserGroup,
                                   isSelected: user.role == UserRole.pemesan,
                                   isDark: isDark,
-                                  onTap: () => authProvider.setRole(UserRole.pemesan),
+                                  onTap: () async {
+                                    if (user.role == UserRole.pemesan) return;
+                                    await authProvider.setRole(UserRole.pemesan);
+                                    if (context.mounted) {
+                                      Navigator.pushNamedAndRemoveUntil(context, '/customer-home', (route) => false);
+                                    }
+                                  },
                                 ),
                                 const SizedBox(width: 8),
                                 _RoleToggle(
@@ -179,7 +185,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   icon: HugeIcons.strokeRoundedDeliveryTruck01,
                                   isSelected: user.role == UserRole.runner,
                                   isDark: isDark,
-                                  onTap: () => authProvider.setRole(UserRole.runner),
+                                  onTap: () async {
+                                    if (user.role == UserRole.runner) return;
+                                    await authProvider.setRole(UserRole.runner);
+                                    if (context.mounted) {
+                                      Navigator.pushNamedAndRemoveUntil(context, '/runner-home', (route) => false);
+                                    }
+                                  },
                                 ),
                               ],
                             ),
@@ -522,8 +534,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       trailing: isSelected ? HugeIcon(icon: HugeIcons.strokeRoundedTick01, color: color, size: 20) : null,
       onTap: () async {
         await context.setLocale(Locale(code));
-        Navigator.pop(context);
-        showGlassToast(context, 'profile.language_changed'.tr(args: [title]));
+        if (context.mounted) {
+          Navigator.pop(context);
+          showGlassToast(context, 'profile.language_changed'.tr(args: [title]));
+        }
       },
     );
   }

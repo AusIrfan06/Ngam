@@ -32,19 +32,13 @@ class PrivacySecurityScreen extends StatefulWidget {
 class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool _isTimeoutExpanded = false;
   String _cacheSize = "0.0 MB";
-  String _deviceName = "Samsung Device";
-  String _currentCountry = "Malaysia";
-  String _currentCity = "Kuala Lumpur";
-  
+  final String _deviceName = "Samsung Device";
   @override
   void initState() {
     super.initState();
   }
 
   // Mocks
-  Future<void> _calculateCacheSize() async {
-    setState(() => _cacheSize = "12.4 MB");
-  }
 
   Future<void> _clearCache() async {
     setState(() => _cacheSize = "0.0 MB");

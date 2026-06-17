@@ -11,6 +11,7 @@ import '../services/gig_service.dart';
 class GigProvider extends ChangeNotifier {
   List<GigModel> _openGigs = [];
   List<GigModel> _myGigs = [];
+  List<GigModel> _services = [];
   GigModel? _activeJob;
   String _selectedCategory = 'All';
   bool _isLoading = false;
@@ -19,6 +20,7 @@ class GigProvider extends ChangeNotifier {
 
   List<GigModel> get openGigs => _openGigs;
   List<GigModel> get myGigs => _myGigs;
+  List<GigModel> get services => _services;
   GigModel? get activeJob => _activeJob;
   String get selectedCategory => _selectedCategory;
   bool get isLoading => _isLoading;
@@ -28,6 +30,14 @@ class GigProvider extends ChangeNotifier {
   List<GigModel> get filteredGigs {
     if (_selectedCategory == 'All') return _openGigs;
     return _openGigs
+        .where((g) => g.category == _selectedCategory)
+        .toList();
+  }
+
+  /// Filtered services based on selected category
+  List<GigModel> get filteredServices {
+    if (_selectedCategory == 'All') return _services;
+    return _services
         .where((g) => g.category == _selectedCategory)
         .toList();
   }
@@ -99,6 +109,22 @@ class GigProvider extends ChangeNotifier {
     }
   }
 
+  /// Load all runner service postings
+  Future<void> loadServices() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _services = await GigService.fetchServices();
+      _error = null;
+    } catch (e) {
+      _error = 'Failed to load services';
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
   // ─── Task Actions ─────────────────────────────────────────
 
   /// Customer creates a new task
@@ -130,6 +156,88 @@ class GigProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return null;
+    }
+  }
+
+  /// Runner creates a service listing
+  Future<GigModel?> createServiceListing({
+    required String runnerId,
+    required String title,
+    required String description,
+    required String category,
+    required double price,
+    required String location,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final gig = await GigService.createGig(
+        customerId: runnerId,
+        gigWorkerId: runnerId,
+        title: title,
+        description: description,
+        category: category,
+        bountyAmount: price,
+        location: location,
+        status: 'SERVICE',
+      );
+      _services.insert(0, gig);
+      _myGigs.insert(0, gig);
+      _isLoading = false;
+      notifyListeners();
+      return gig;
+    } catch (e) {
+      _error = 'Failed to post service';
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Customer orders a runner's service
+  Future<GigModel?> orderService({
+    required String customerId,
+    required GigModel serviceListing,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final gig = await GigService.createGig(
+        customerId: customerId,
+        gigWorkerId: serviceListing.gigWorkerId,
+        title: serviceListing.title,
+        description: serviceListing.description,
+        category: serviceListing.category,
+        bountyAmount: serviceListing.bountyAmount,
+        location: serviceListing.location,
+        status: 'LOCKED',
+      );
+      _myGigs.insert(0, gig);
+      _isLoading = false;
+      notifyListeners();
+      return gig;
+    } catch (e) {
+      _error = 'Failed to order service';
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Runner takes down their service post
+  Future<bool> takeDownService(String gigId) async {
+    try {
+      await GigService.cancelGig(gigId);
+      _services.removeWhere((g) => g.id == gigId);
+      _myGigs.removeWhere((g) => g.id == gigId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to take down service';
+      notifyListeners();
+      return false;
     }
   }
 

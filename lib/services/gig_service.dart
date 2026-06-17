@@ -23,6 +23,8 @@ class GigService {
     required String category,
     required double bountyAmount,
     required String location,
+    String? gigWorkerId,
+    String? status,
   }) async {
     final gigId = _uuid.v4();
     final now = DateTime.now();
@@ -30,12 +32,12 @@ class GigService {
     final gigData = {
       'id': gigId,
       'customer_id': customerId,
-      'gig_worker_id': null,
+      'gig_worker_id': gigWorkerId,
       'title': title,
       'description': description,
       'category': category,
       'bounty_amount': bountyAmount,
-      'status': GigStatus.open,
+      'status': status ?? GigStatus.open,
       'location': location,
       'created_at': now.toIso8601String(),
     };
@@ -43,7 +45,7 @@ class GigService {
     await _client.from(DbTable.gigs).insert(gigData);
 
     // Log the initial status
-    await _logStatus(gigId, GigStatus.open);
+    await _logStatus(gigId, status ?? GigStatus.open);
 
     return GigModel.fromJson(gigData);
   }
@@ -56,6 +58,24 @@ class GigService {
         .from(DbTable.gigs)
         .select()
         .eq('status', GigStatus.open);
+
+    if (category != null && category.isNotEmpty && category != 'All') {
+      query = query.eq('category', category);
+    }
+
+    final response = await query.order('created_at', ascending: false);
+
+    return (response as List)
+        .map((json) => GigModel.fromJson(json))
+        .toList();
+  }
+
+  /// Fetch all runner service postings
+  static Future<List<GigModel>> fetchServices({String? category}) async {
+    var query = _client
+        .from(DbTable.gigs)
+        .select()
+        .eq('status', GigStatus.service);
 
     if (category != null && category.isNotEmpty && category != 'All') {
       query = query.eq('category', category);
@@ -81,12 +101,11 @@ class GigService {
         .toList();
   }
 
-  /// Fetch gigs accepted by a specific runner
   static Future<List<GigModel>> fetchRunnerGigs(String runnerId) async {
     final response = await _client
         .from(DbTable.gigs)
         .select()
-        .eq('gig_worker_id', runnerId)
+        .or('gig_worker_id.eq.$runnerId,customer_id.eq.$runnerId')
         .order('created_at', ascending: false);
 
     return (response as List)

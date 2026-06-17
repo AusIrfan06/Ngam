@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/gig_provider.dart';
 import '../../widgets/task_card.dart';
+import '../customer/post_task_screen.dart';
 
 // ============================================================
 // Ngam App — My Jobs Screen (Runner)
@@ -40,20 +41,43 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            Text(
-              'My Jobs',
-              style: GoogleFonts.outfit(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${gigProvider.myGigs.length} jobs',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Jobs',
+                      style: GoogleFonts.outfit(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${gigProvider.myGigs.length} jobs',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PostTaskScreen()));
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Post Job'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
 
@@ -105,14 +129,43 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                                 gig: gig,
                                 showStatus: true,
                                 onTap: () {
-                                  if (gig.isActive) {
+                                  if (gig.status == 'SERVICE') return; // Don't navigate for service listings
+                                  final currentUserId = context.read<AuthProvider>().user?.id;
+                                  if (gig.customerId == currentUserId) {
                                     Navigator.pushNamed(
                                       context,
-                                      '/active-job',
+                                      '/order-status',
                                       arguments: gig,
                                     );
+                                  } else {
+                                    if (gig.isActive) {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/active-job',
+                                        arguments: gig,
+                                      );
+                                    }
                                   }
                                 },
+                                actionWidget: gig.status == 'SERVICE'
+                                    ? TextButton(
+                                        onPressed: () async {
+                                          final success = await context.read<GigProvider>().takeDownService(gig.id);
+                                          if (success && context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Service taken down')),
+                                            );
+                                          }
+                                        },
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.red,
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: const Text('Take Down', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                      )
+                                    : null,
                               );
                             },
                           ),

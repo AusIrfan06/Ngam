@@ -29,7 +29,7 @@ class BottomNavRunner extends StatelessWidget {
         ),
         NavItem(
           icon: HugeIcons.strokeRoundedBriefcase02,
-          title: 'My Jobs',
+          title: 'Jobs',
         ),
         NavItem(
           icon: HugeIcons.strokeRoundedBubbleChat,

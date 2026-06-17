@@ -88,11 +88,6 @@ class _LoginScreenState extends State<LoginScreen>
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppTheme.primary, AppTheme.accent],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
@@ -102,15 +97,9 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                             ],
                           ),
-                          child: const Center(
-                            child: Text(
-                              'N',
-                              style: TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset('assets/app.png', fit: BoxFit.cover),
                           ),
                         ),
                         const SizedBox(height: 16),

@@ -127,11 +127,6 @@ class _SplashScreen extends StatelessWidget {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primary, AppTheme.accent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
@@ -141,15 +136,9 @@ class _SplashScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Center(
-                child: Text(
-                  'N',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset('assets/app.png', fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 24),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 class NavItem {
@@ -12,7 +12,7 @@ class NavItem {
   });
 }
 
-class CustomBottomNav extends StatelessWidget {
+class CustomBottomNav extends StatefulWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final List<NavItem> items;
@@ -23,6 +23,22 @@ class CustomBottomNav extends StatelessWidget {
     required this.onTap,
     required this.items
   });
+
+  @override
+  State<CustomBottomNav> createState() => _CustomBottomNavState();
+}
+
+class _CustomBottomNavState extends State<CustomBottomNav> {
+  @override
+  void initState() {
+    super.initState();
+    // Force a rebuild after the first frame to fix the GlassContainer shader glitch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,18 +64,34 @@ class CustomBottomNav extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 600),
               child: Padding(
                 padding: EdgeInsets.only(left: 14, right: 14, bottom: adjustedBottomPadding, top: 10),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(50.0),
-                  child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.black.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(50),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
-                          width: 1.0,
+                child: GlassContainer(
+                  useOwnLayer: true,
+                  quality: GlassQuality.standard,
+                  shape: LiquidRoundedSuperellipse(borderRadius: 50.0),
+                  settings: LiquidGlassSettings(
+                    thickness: 0.1,
+                    blur: 2.0, // Crystal clear look
+                    refractiveIndex: 1.0,
+                    glassColor: Colors.transparent,
+                    lightAngle: 45.0,
+                    lightIntensity: isDark ? 0.1 : 0.2,
+                    ambientStrength: 1.0,
+                    saturation: 1.0,
+                    chromaticAberration: 0.0,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                        width: 1.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -69,10 +101,10 @@ class CustomBottomNav extends StatelessWidget {
                         const int inactiveFlex = 2;
                         const int activeFlex = 5;
 
-                        final int totalFlex = ((items.length - 1) * inactiveFlex) + activeFlex;
+                        final int totalFlex = ((widget.items.length - 1) * inactiveFlex) + activeFlex;
                         final double inactiveWidth = totalWidth * (inactiveFlex / totalFlex);
                         final double activeWidth = totalWidth * (activeFlex / totalFlex);
-                        final double pillLeftOffset = currentIndex * inactiveWidth;
+                        final double pillLeftOffset = widget.currentIndex * inactiveWidth;
 
                         return SizedBox(
                           height: 48,
@@ -91,7 +123,7 @@ class CustomBottomNav extends StatelessWidget {
                                     color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.6),
                                     borderRadius: BorderRadius.circular(32),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                                      color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.8),
                                       width: 1.0,
                                     ),
                                     boxShadow: [
@@ -107,15 +139,15 @@ class CustomBottomNav extends StatelessWidget {
 
                               // 2. ICONS
                               Row(
-                                children: List.generate(items.length, (i) {
-                                  final isSelected = currentIndex == i;
+                                children: List.generate(widget.items.length, (i) {
+                                  final isSelected = widget.currentIndex == i;
                                   final double targetWidth = isSelected ? activeWidth : inactiveWidth;
                                   final Color itemColor = isDark
                                       ? (isSelected ? Colors.white : Colors.white70)
                                       : (isSelected ? Colors.grey.shade900 : Colors.grey.shade600);
 
                                   return GestureDetector(
-                                    onTap: () => onTap(i),
+                                    onTap: () => widget.onTap(i),
                                     behavior: HitTestBehavior.opaque,
                                     child: AnimatedContainer(
                                       duration: animDuration,
@@ -126,7 +158,7 @@ class CustomBottomNav extends StatelessWidget {
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           HugeIcon(
-                                            icon: items[i].icon,
+                                            icon: widget.items[i].icon,
                                             color: itemColor,
                                             size: 24,
                                             strokeWidth: 2.1,
@@ -142,7 +174,7 @@ class CustomBottomNav extends StatelessWidget {
                                                     child: Padding(
                                                       padding: const EdgeInsets.only(left: 6),
                                                       child: Text(
-                                                        items[i].title,
+                                                        widget.items[i].title,
                                                         maxLines: 1,
                                                         style: TextStyle(
                                                           color: itemColor,
