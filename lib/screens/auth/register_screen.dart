@@ -86,17 +86,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     const SizedBox(height: 20),
 
-                // ─── Full Name ───────────────────────────
                 TextFormField(
                   controller: _nameController,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person_outlined),
+                    labelText: 'auth.full_name'.tr(),
+                    prefixIcon: const Icon(Icons.person_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                      return 'auth.please_enter_name'.tr();
                     }
                     return null;
                   },
@@ -108,15 +107,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    labelText: 'auth.email'.tr(),
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'auth.please_enter_email'.tr();
                     }
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return 'auth.valid_email'.tr();
                     }
                     return null;
                   },
@@ -129,11 +128,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     labelText: 'auth.phone'.tr(),
-                    prefixIcon: Icon(Icons.phone_outlined),
+                    prefixIcon: const Icon(Icons.phone_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
+                      return 'auth.please_enter_phone'.tr();
                     }
                     return null;
                   },
@@ -160,10 +159,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
+                      return 'auth.please_enter_password'.tr();
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                      return 'auth.password_min_length'.tr();
                     }
                     return null;
                   },
@@ -175,7 +174,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
-                    labelText: 'Confirm Password',
+                    labelText: 'auth.confirm_password'.tr(),
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -191,7 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value != _passwordController.text) {
-                      return 'Passwords do not match';
+                      return 'auth.passwords_do_not_match'.tr();
                     }
                     return null;
                   },
@@ -200,7 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // ─── Role Selection ──────────────────────
                 Text(
-                  'I am a...',
+                  'auth.role_select'.tr(),
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -212,7 +211,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Expanded(
                       child: _RoleButton(
-                        label: 'Pemesan',
+                        label: 'auth.role_customer'.tr(),
                         icon: Icons.shopping_bag_outlined,
                         isSelected: _selectedRole == UserRole.pemesan,
                         onTap: () {
@@ -223,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _RoleButton(
-                        label: 'Runner',
+                        label: 'auth.role_runner'.tr(),
                         icon: Icons.directions_run,
                         isSelected: _selectedRole == UserRole.runner,
                         onTap: () {
@@ -299,16 +298,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Already have account? ',
+                      'auth.have_account'.tr(),
                       style: TextStyle(color: Colors.grey.shade500),
                     ),
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context);
                       },
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
+                      child: Text(
+                        'auth.login_here'.tr(),
+                        style: const TextStyle(
                           color: AppTheme.primary,
                           fontWeight: FontWeight.w600,
                         ),

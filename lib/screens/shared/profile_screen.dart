@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 32),
 
                         // ─── Role Toggle ─────────────────────────
-                        _buildSectionHeader("Akses Peranan"),
+                        _buildSectionHeader('profile.role_access'.tr()),
                         _buildGlassSection(
                           isDark,
                           Padding(
@@ -240,12 +240,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 24),
 
                         // ─── Stats Section ───────────────────────
-                        _buildSectionHeader("Statistik"),
+                        _buildSectionHeader('profile.statistics'.tr()),
                         Row(
                           children: [
                             _StatCardGlass(
                               isDark: isDark,
-                              label: 'Tasks Posted',
+                              label: 'profile.tasks_posted'.tr(),
                               value: '$_tasksPosted',
                               icon: HugeIcons.strokeRoundedUpload01,
                             ),
@@ -621,9 +621,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              "Pilih Bahasa",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            Text(
+              'profile.choose_language'.tr(),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 24),
             _buildLanguageOption(
@@ -765,10 +765,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Text(
-              "Mod Gelap",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              'profile.dark_mode'.tr(),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
           Switch.adaptive(

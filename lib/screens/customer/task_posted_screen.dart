@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/gig_model.dart';
@@ -75,7 +76,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
 
               // ─── Title ─────────────────────────────
               Text(
-                'Task Submitted!',
+                'post_task.submitted_title'.tr(),
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
@@ -83,8 +84,8 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
               ),
               const SizedBox(height: 8),
               Text(
-                'Task is now LIVE!',
-                style: TextStyle(
+                'post_task.task_live'.tr(),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.primary,
@@ -92,7 +93,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
               ),
               const SizedBox(height: 4),
               Text(
-                'Runners nearby can see your task in the feed',
+                'post_task.runners_can_see'.tr(),
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade500,
@@ -148,9 +149,9 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
                           color: AppTheme.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
-                          'Status: OPEN',
-                          style: TextStyle(
+                        child: Text(
+                          'post_task.status_open'.tr(),
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.success,
@@ -178,7 +179,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
                     }
                   },
                   icon: const Icon(Icons.track_changes_rounded),
-                  label: const Text('Track Status →'),
+                  label: Text('post_task.track_status'.tr()),
                 ),
               ),
               const SizedBox(height: 12),
@@ -193,7 +194,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
                       (route) => false,
                     );
                   },
-                  child: const Text('Back to Home'),
+                  child: Text('post_task.back_home'.tr()),
                 ),
               ),
               const SizedBox(height: 20),

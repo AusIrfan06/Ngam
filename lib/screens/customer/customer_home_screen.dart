@@ -94,7 +94,7 @@ class _CustomerHomeFeed extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               title: Text(
-                '👋 Hi, $userName',
+                '👋 ${'customer.greeting'.tr(args: [userName])}',
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,

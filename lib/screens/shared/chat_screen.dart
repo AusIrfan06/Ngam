@@ -23,6 +23,19 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  late Stream<List<ConversationModel>> _conversationsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentUser = context.read<AuthProvider>().user;
+    if (currentUser != null) {
+      _conversationsStream = ChatService.getConversationsStream(currentUser.id);
+    } else {
+      _conversationsStream = const Stream.empty();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -121,9 +134,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 // ─── Conversation List ───────────────────────────
                 Expanded(
                   child: StreamBuilder<List<ConversationModel>>(
-                    stream: ChatService.getConversationsStream(currentUser.id),
+                    stream: _conversationsStream,
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                      if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
                          return const Center(child: CircularProgressIndicator());
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -464,12 +477,14 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   late String currentUserId;
   late String otherUserId;
   final List<MessageModel> _pendingMessages = [];
+  late Stream<List<MessageModel>> _messagesStream;
 
   @override
   void initState() {
     super.initState();
     currentUserId = context.read<AuthProvider>().user!.id;
     otherUserId = widget.conversation.user1Id == currentUserId ? widget.conversation.user2Id : widget.conversation.user1Id;
+    _messagesStream = ChatService.getMessagesStream(widget.conversation.id);
     
     // Mark as read when entering the screen
     ChatService.markMessagesAsRead(widget.conversation.id, otherUserId);
@@ -604,9 +619,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           // ─── Messages ────────────────────────────────────────
           Expanded(
             child: StreamBuilder<List<MessageModel>>(
-              stream: ChatService.getMessagesStream(c.id),
+              stream: _messagesStream,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final messages = snapshot.data ?? [];

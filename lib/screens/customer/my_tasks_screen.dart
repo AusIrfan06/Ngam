@@ -57,7 +57,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${gigProvider.myGigs.length} tasks posted',
+                      'my_tasks.tasks_posted'.tr(args: [gigProvider.myGigs.length.toString()]),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade500,
@@ -70,7 +70,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const PostTaskScreen()));
                   },
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Post Task'),
+                  label: Text('my_tasks.post_task'.tr()),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -97,7 +97,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No tasks yet',
+                                'my_tasks.no_tasks'.tr(),
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey.shade400,
@@ -105,7 +105,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Post your first task to get started!',
+                                'my_tasks.post_first_task'.tr(),
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey.shade400,

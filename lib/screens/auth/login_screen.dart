@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Local Errands, Powered by Community',
+                          'auth.welcome_subtitle'.tr(),
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey.shade500,
@@ -134,15 +134,15 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
+                            labelText: 'auth.email'.tr(),
+                            prefixIcon: const Icon(Icons.email_outlined),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
+                              return 'auth.please_enter_email'.tr();
                             }
                             if (!value.contains('@')) {
-                              return 'Please enter a valid email';
+                              return 'auth.valid_email'.tr();
                             }
                             return null;
                           },
@@ -171,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
+                              return 'auth.please_enter_password'.tr();
                             }
                             return null;
                           },
@@ -230,7 +230,7 @@ class _LoginScreenState extends State<LoginScreen>
                                           color: Colors.white,
                                         ),
                                       )
-                                    : const Text('Login'),
+                                    : Text('auth.login'.tr()),
                               ),
                             );
                           },
@@ -242,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "Don't have an account? ",
+                              'auth.no_account'.tr(),
                               style: TextStyle(color: Colors.grey.shade500),
                             ),
                             GestureDetector(

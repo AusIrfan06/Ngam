@@ -1,4 +1,4 @@
-package com.example.ngam
+package com.ngam
 
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity

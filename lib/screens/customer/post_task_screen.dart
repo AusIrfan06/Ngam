@@ -105,7 +105,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               title: Text(
-                isRunner ? 'Post a Service' : 'Post New Task',
+                isRunner ? 'post_task.title_runner'.tr() : 'post_task.title_customer'.tr(),
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -139,13 +139,13 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       TextFormField(
                         controller: _titleController,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'Service Title' : 'customer.task_title'.tr(),
-                          hintText: isRunner ? 'e.g., I will print 10 pages' : 'e.g., Print assignment 10 pages',
-                          prefixIcon: Icon(Icons.title_rounded),
+                          labelText: isRunner ? 'post_task.service_title_label'.tr() : 'customer.task_title'.tr(),
+                          hintText: isRunner ? 'post_task.service_title_hint'.tr() : 'post_task.task_title_hint'.tr(),
+                          prefixIcon: const Icon(Icons.title_rounded),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a task title';
+                            return 'post_task.err_title'.tr();
                           }
                           return null;
                         },
@@ -157,17 +157,17 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         controller: _descriptionController,
                         maxLines: 4,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'Service Description' : 'Task Description',
-                          hintText: isRunner ? 'Describe what you can do...' : 'customer.task_desc'.tr(),
+                          labelText: isRunner ? 'post_task.service_desc_label'.tr() : 'post_task.task_desc_label'.tr(),
+                          hintText: isRunner ? 'post_task.service_desc_hint'.tr() : 'customer.task_desc'.tr(),
                           alignLabelWithHint: true,
-                          prefixIcon: Padding(
+                          prefixIcon: const Padding(
                             padding: EdgeInsets.only(bottom: 60),
                             child: Icon(Icons.description_outlined),
                           ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a description';
+                            return 'post_task.err_desc'.tr();
                           }
                           return null;
                         },
@@ -178,8 +178,8 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       DropdownButtonFormField<String>(
                         value: _selectedCategory,
                         decoration: InputDecoration(
-                          labelText: 'Category',
-                          prefixIcon: Icon(Icons.category_outlined),
+                          labelText: 'post_task.category'.tr(),
+                          prefixIcon: const Icon(Icons.category_outlined),
                         ),
                         items: TaskCategory.all.map((cat) {
                           return DropdownMenuItem(
@@ -206,21 +206,21 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       TextFormField(
                         controller: _locationController,
                         decoration: InputDecoration(
-                          labelText: 'Location / Drop-off Name',
-                          hintText: 'e.g., Block C, Campus Library',
-                          prefixIcon: Icon(Icons.location_on_outlined),
+                          labelText: 'post_task.location_label'.tr(),
+                          hintText: 'post_task.location_hint'.tr(),
+                          prefixIcon: const Icon(Icons.location_on_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a location name';
+                            return 'post_task.err_location'.tr();
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Pin Exact Location',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        'post_task.pin_location'.tr(),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       const SizedBox(height: 8),
                       MapPicker(
@@ -234,10 +234,13 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       if (_selectedLocation != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            'Location pinned: ${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}',
-                            style: const TextStyle(color: AppTheme.primary, fontSize: 12),
-                          ),
+                            child: Text(
+                              'post_task.location_pinned'.tr(args: [
+                                _selectedLocation!.latitude.toStringAsFixed(4),
+                                _selectedLocation!.longitude.toStringAsFixed(4),
+                              ]),
+                              style: const TextStyle(color: AppTheme.primary, fontSize: 12),
+                            ),
                         ),
                       const SizedBox(height: 16),
 
@@ -246,19 +249,20 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         controller: _bountyController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'Price (RM)' : 'customer.bounty'.tr(),
-                          hintText:
-                              'Min: RM ${BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)}',
+                          labelText: isRunner ? 'post_task.price_runner'.tr() : 'customer.bounty'.tr(),
+                          hintText: 'post_task.min_rm'.tr(args: [
+                            BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)
+                          ]),
                           prefixIcon: const Icon(Icons.payments_outlined),
                           prefixText: 'RM ',
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a bounty amount';
+                            return 'post_task.err_bounty'.tr();
                           }
                           final amount = double.tryParse(value);
                           if (amount == null) {
-                            return 'Please enter a valid number';
+                            return 'post_task.err_valid_number'.tr();
                           }
                           final error =
                               BountyCalculator.validate(_selectedCategory, amount);
@@ -284,7 +288,10 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Minimum bounty for $_selectedCategory: RM ${BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)}',
+                                'post_task.min_bounty_info'.tr(args: [
+                                  _selectedCategory,
+                                  BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)
+                                ]),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppTheme.info,
@@ -315,7 +322,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                                     )
                                   : const Icon(Icons.send_rounded),
                               label: Text(
-                                gig.isLoading ? 'Posting...' : (isRunner ? 'Submit Service →' : 'Submit Task →'),
+                                gig.isLoading 
+                                    ? 'post_task.posting'.tr() 
+                                    : (isRunner ? 'post_task.submit_service'.tr() : 'post_task.submit_task'.tr()),
                               ),
                             ),
                           );
@@ -324,7 +333,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       const SizedBox(height: 12),
                       Center(
                         child: Text(
-                          isRunner ? 'Service will be visible to customers' : 'Task will appear in the live feed once submitted',
+                          isRunner ? 'post_task.service_visible'.tr() : 'post_task.task_visible'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade400,

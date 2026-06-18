@@ -241,7 +241,7 @@ class _RunnerFeedState extends State<_RunnerFeed> {
                   children: [
                     TileLayer(
                       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.ngam',
+                      userAgentPackageName: 'com.ngam',
                     ),
                     MarkerLayer(
                       markers: availableGigs.where((g) => g.latitude != null && g.longitude != null).map((gig) {

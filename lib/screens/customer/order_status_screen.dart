@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/gig_model.dart';
@@ -78,7 +79,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Order Status',
+          'order_status.title'.tr(),
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
       ),
@@ -108,7 +109,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Task ID: #GIG-$gigIdShort',
+                    'order_status.task_id'.tr(args: [gigIdShort]),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade500,
@@ -136,9 +137,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             const SizedBox(height: 24),
 
             // ─── Status Timeline ─────────────────────
-            const Text(
-              'Status',
-              style: TextStyle(
+            Text(
+              'order_status.status_label'.tr(),
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -193,7 +194,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Runner: ${gig.runnerName ?? 'Assigned'}',
+                            'order_status.runner_assigned'.tr(args: [gig.runnerName ?? 'order_status.assigned'.tr()]),
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -251,7 +252,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                           } catch (e) {
                             if (context.mounted) {
                               Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening chat: $e')));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('order_status.err_chat'.tr(args: [e.toString()]))));
                             }
                           }
                         },
@@ -284,7 +285,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     }
                   },
                   icon: const Icon(Icons.star_rounded),
-                  label: const Text('Rate & Review Runner'),
+                  label: Text('order_status.rate_review'.tr()),
                 ),
               ),
             ],
@@ -297,15 +298,15 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   color: AppTheme.success.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle,
+                    const Icon(Icons.check_circle,
                         color: AppTheme.success, size: 20),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
-                      'Review submitted ✓',
-                      style: TextStyle(
+                      'order_status.review_submitted'.tr(),
+                      style: const TextStyle(
                         color: AppTheme.success,
                         fontWeight: FontWeight.w600,
                       ),
