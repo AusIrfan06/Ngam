@@ -5,6 +5,7 @@ import '../services/supabase_service.dart';
 
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/push_service.dart';
 
 // ============================================================
 // Ngam App — Auth Provider
@@ -84,6 +85,9 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
       );
+      if (_user != null) {
+        await PushService.saveTokenToSupabase(_user!.id);
+      }
       _isLoading = false;
       notifyListeners();
       return true;

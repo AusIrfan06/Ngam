@@ -8,6 +8,7 @@ import 'providers/theme_provider.dart';
 import 'services/supabase_service.dart';
 import 'utils/app_theme.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'services/push_service.dart';
 
 // ─── Screens ─────────────────────────────────────────────────
 import 'screens/auth/login_screen.dart';
@@ -41,6 +42,9 @@ void main() async {
 
   // Initialize Supabase
   await SupabaseService.initialize();
+
+  // Initialize Push Notifications
+  await PushService.initialize();
 
   // Apply Screen Security if enabled
   try {

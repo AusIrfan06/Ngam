@@ -23,6 +23,8 @@ class GigService {
     required String category,
     required double bountyAmount,
     required String location,
+    double? latitude,
+    double? longitude,
     String? gigWorkerId,
     String? status,
   }) async {
@@ -39,6 +41,8 @@ class GigService {
       'bounty_amount': bountyAmount,
       'status': status ?? GigStatus.open,
       'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
       'created_at': now.toIso8601String(),
     };
 

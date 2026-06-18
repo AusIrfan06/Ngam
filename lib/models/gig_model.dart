@@ -12,6 +12,8 @@ class GigModel {
   final double bountyAmount;
   final String status; // OPEN, LOCKED, IN-PROGRESS, COMPLETED, CANCELLED
   final String location;
+  final double? latitude;
+  final double? longitude;
   final DateTime createdAt;
 
   // Joined fields (from related tables)
@@ -29,6 +31,8 @@ class GigModel {
     required this.bountyAmount,
     required this.status,
     required this.location,
+    this.latitude,
+    this.longitude,
     required this.createdAt,
     this.customerName,
     this.runnerName,
@@ -47,6 +51,8 @@ class GigModel {
       bountyAmount: (json['bounty_amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] as String? ?? 'OPEN',
       location: json['location'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       createdAt: DateTime.parse(json['created_at'] as String),
       customerName: json['customer_name'] as String?,
       runnerName: json['runner_name'] as String?,
@@ -65,6 +71,8 @@ class GigModel {
       'bounty_amount': bountyAmount,
       'status': status,
       'location': location,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -80,6 +88,8 @@ class GigModel {
     double? bountyAmount,
     String? status,
     String? location,
+    double? latitude,
+    double? longitude,
     DateTime? createdAt,
     String? customerName,
     String? runnerName,
@@ -95,6 +105,8 @@ class GigModel {
       bountyAmount: bountyAmount ?? this.bountyAmount,
       status: status ?? this.status,
       location: location ?? this.location,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       createdAt: createdAt ?? this.createdAt,
       customerName: customerName ?? this.customerName,
       runnerName: runnerName ?? this.runnerName,

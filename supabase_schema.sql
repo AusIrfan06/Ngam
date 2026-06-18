@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   gender VARCHAR(20),
   birth_date DATE,
   address TEXT,
+  avatar_url VARCHAR,
+  fcm_token TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -32,6 +34,8 @@ CREATE TABLE IF NOT EXISTS public.gigs (
   bounty_amount DECIMAL(10, 2) NOT NULL,
   status VARCHAR(50) NOT NULL DEFAULT 'OPEN', 
   location VARCHAR(255) NOT NULL,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -167,3 +171,34 @@ BEGIN
   END IF;
 END
 $$;
+
+-- =========================================================================================
+-- Avatar Storage Setup
+-- =========================================================================================
+
+-- Create the Storage Bucket for Avatars
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Set up Storage Policies (RLS) for the 'avatars' bucket
+
+-- Allow public read access to all avatars
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Avatar Public View" ON storage.objects;
+    CREATE POLICY "Avatar Public View" ON storage.objects FOR SELECT USING ( bucket_id = 'avatars' );
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- Allow authenticated users to upload an avatar
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Avatar User Upload" ON storage.objects;
+    CREATE POLICY "Avatar User Upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (
+        bucket_id = 'avatars' AND 
+        (storage.foldername(name))[1] = auth.uid()::text
+    );
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+

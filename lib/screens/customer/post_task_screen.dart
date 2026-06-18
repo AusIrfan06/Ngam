@@ -8,6 +8,8 @@ import '../../models/gig_model.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/bounty_calculator.dart';
 import '../../utils/constants.dart';
+import 'package:latlong2/latlong.dart';
+import '../../widgets/map_picker.dart';
 
 // ============================================================
 // Ngam App — Post Task Screen
@@ -28,6 +30,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   final _locationController = TextEditingController();
   final _bountyController = TextEditingController();
   String _selectedCategory = TaskCategory.food;
+  LatLng? _selectedLocation;
 
   @override
   void dispose() {
@@ -40,6 +43,12 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
 
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please tap on the map to pin the exact location')),
+      );
+      return;
+    }
 
     final authProvider = context.read<AuthProvider>();
     final gigProvider = context.read<GigProvider>();
@@ -63,6 +72,8 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         category: _selectedCategory,
         bountyAmount: double.parse(_bountyController.text),
         location: _locationController.text.trim(),
+        latitude: _selectedLocation!.latitude,
+        longitude: _selectedLocation!.longitude,
       );
     }
 
@@ -195,17 +206,39 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       TextFormField(
                         controller: _locationController,
                         decoration: InputDecoration(
-                          labelText: 'Location / Drop-off',
+                          labelText: 'Location / Drop-off Name',
                           hintText: 'e.g., Block C, Campus Library',
                           prefixIcon: Icon(Icons.location_on_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter a location';
+                            return 'Please enter a location name';
                           }
                           return null;
                         },
                       ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Pin Exact Location',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      MapPicker(
+                        initialCenter: const LatLng(3.140853, 101.693207),
+                        onLocationSelected: (point) {
+                          setState(() {
+                            _selectedLocation = point;
+                          });
+                        },
+                      ),
+                      if (_selectedLocation != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            'Location pinned: ${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}',
+                            style: const TextStyle(color: AppTheme.primary, fontSize: 12),
+                          ),
+                        ),
                       const SizedBox(height: 16),
 
                       // ─── Bounty Amount ───────────────────────

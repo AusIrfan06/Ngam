@@ -12,6 +12,8 @@ import 'my_jobs_screen.dart';
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 // ============================================================
 // Ngam App — Runner Home Screen
@@ -72,7 +74,14 @@ class _RunnerHomeScreenState extends State<RunnerHomeScreen> {
 }
 
 // ─── Runner Discovery Feed ──────────────────────────────────
-class _RunnerFeed extends StatelessWidget {
+class _RunnerFeed extends StatefulWidget {
+  @override
+  State<_RunnerFeed> createState() => _RunnerFeedState();
+}
+
+class _RunnerFeedState extends State<_RunnerFeed> {
+  bool _isMapView = false;
+
   @override
   Widget build(BuildContext context) {
     final gigProvider = context.watch<GigProvider>();
@@ -184,14 +193,30 @@ class _RunnerFeed extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // ─── Nearby Count ────────────────────────
-                  Text(
-                    'Nearby (${availableGigs.length} tasks)',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                  // ─── Nearby Count & Map Toggle ────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Nearby (${availableGigs.length} tasks)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isMapView ? Icons.list_rounded : Icons.map_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isMapView = !_isMapView;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -199,10 +224,56 @@ class _RunnerFeed extends StatelessWidget {
             ),
           ),
 
-          // ─── Gig List ───────────────────────────
+          // ─── Gig List / Map ───────────────────────────
           if (gigProvider.isLoading)
             const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_isMapView)
+            SliverFillRemaining(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: const LatLng(3.140853, 101.693207),
+                    initialZoom: 12,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.ngam',
+                    ),
+                    MarkerLayer(
+                      markers: availableGigs.where((g) => g.latitude != null && g.longitude != null).map((gig) {
+                        return Marker(
+                          point: LatLng(gig.latitude!, gig.longitude!),
+                          width: 50,
+                          height: 50,
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(context, '/task-detail', arguments: gig);
+                            },
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [BoxShadow(blurRadius: 4, color: Colors.black26)],
+                                  ),
+                                  child: Text(TaskCategory.icon(gig.category), style: const TextStyle(fontSize: 16)),
+                                ),
+                                const Icon(Icons.arrow_drop_down, color: Colors.white, size: 16),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
             )
           else if (availableGigs.isEmpty)
             SliverFillRemaining(

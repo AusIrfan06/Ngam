@@ -42,6 +42,7 @@ class SupabaseService {
     String? gender,
     DateTime? birthDate,
     String? address,
+    String? fcmToken,
   }) async {
     try {
       final updates = <String, dynamic>{};
@@ -52,6 +53,7 @@ class SupabaseService {
       if (gender != null) updates['gender'] = gender;
       if (birthDate != null) updates['birth_date'] = "${birthDate.year}-${birthDate.month.toString().padLeft(2, '0')}-${birthDate.day.toString().padLeft(2, '0')}";
       if (address != null) updates['address'] = address;
+      if (fcmToken != null) updates['fcm_token'] = fcmToken;
       if (updates.isEmpty) return null;
 
       await client.from('users').update(updates).eq('id', userId);

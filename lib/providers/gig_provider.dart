@@ -135,6 +135,8 @@ class GigProvider extends ChangeNotifier {
     required String category,
     required double bountyAmount,
     required String location,
+    double? latitude,
+    double? longitude,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -147,6 +149,8 @@ class GigProvider extends ChangeNotifier {
         category: category,
         bountyAmount: bountyAmount,
         location: location,
+        latitude: latitude,
+        longitude: longitude,
       );
       _isLoading = false;
       notifyListeners();
@@ -167,6 +171,8 @@ class GigProvider extends ChangeNotifier {
     required String category,
     required double price,
     required String location,
+    double? latitude,
+    double? longitude,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -180,6 +186,8 @@ class GigProvider extends ChangeNotifier {
         category: category,
         bountyAmount: price,
         location: location,
+        latitude: latitude,
+        longitude: longitude,
         status: 'SERVICE',
       );
       _services.insert(0, gig);
