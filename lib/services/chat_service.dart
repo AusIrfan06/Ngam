@@ -135,11 +135,23 @@ class ChatService {
     return await _supabase.from('users').select().eq('id', userId).single();
   }
 
-  /// Delete a conversation and all its messages
+  /// Delete a conversation and all its messages and images
   static Future<void> deleteConversation(String conversationId) async {
-    // Delete messages first
+    // 1. Delete all images from Supabase Storage
+    try {
+      final files = await _supabase.storage.from('chat_images').list(path: conversationId);
+      if (files.isNotEmpty) {
+        final filePaths = files.map((f) => '$conversationId/${f.name}').toList();
+        await _supabase.storage.from('chat_images').remove(filePaths);
+      }
+    } catch (e) {
+      // Safely ignore if the folder is already empty or doesn't exist
+    }
+
+    // 2. Delete messages from database
     await _supabase.from('messages').delete().eq('conversation_id', conversationId);
-    // Delete conversation
+    
+    // 3. Delete conversation record
     await _supabase.from('conversations').delete().eq('id', conversationId);
   }
 }

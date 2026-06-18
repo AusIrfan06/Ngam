@@ -33,7 +33,7 @@ class GigService {
     final gigId = _uuid.v4();
     final now = DateTime.now();
 
-    final gigData = {
+    final dbPayload = {
       'id': gigId,
       'customer_id': customerId,
       'gig_worker_id': gigWorkerId,
@@ -43,19 +43,23 @@ class GigService {
       'bounty_amount': bountyAmount,
       'status': status ?? GigStatus.open,
       'location': location,
-      if (customerName != null) 'customer_name': customerName,
-      if (runnerName != null) 'runner_name': runnerName,
       'latitude': latitude,
       'longitude': longitude,
       'created_at': now.toIso8601String(),
     };
 
-    await _client.from(DbTable.gigs).insert(gigData);
+    final gigDataForModel = {
+      ...dbPayload,
+      if (customerName != null) 'customer_name': customerName,
+      if (runnerName != null) 'runner_name': runnerName,
+    };
+
+    await _client.from(DbTable.gigs).insert(dbPayload);
 
     // Log the initial status
     await _logStatus(gigId, status ?? GigStatus.open);
 
-    return GigModel.fromJson(gigData);
+    return GigModel.fromJson(gigDataForModel);
   }
 
   // ─── READ ──────────────────────────────────────────────────
