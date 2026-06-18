@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/chat_model.dart';
 
@@ -13,11 +14,12 @@ class ChatService {
         // It's safer to fetch the stream and filter in map if the user is user1 or user2
         .map((maps) {
           final filtered = maps.where((m) => m['user1_id'] == currentUserId || m['user2_id'] == currentUserId).toList();
+          filtered.sort((a, b) {
+            final aTime = DateTime.tryParse(a['updated_at'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bTime = DateTime.tryParse(b['updated_at'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+            return bTime.compareTo(aTime);
+          });
           
-          // Note: Realtime streams don't support complex joins out of the box in the `stream()` method.
-          // To get the user profiles, you'd typically need to fetch them separately or use a database function.
-          // For simplicity in UI, we will rely on mapping it here and let the UI handle profile fetching,
-          // OR we can fetch profiles asynchronously.
           return filtered.map((e) => ConversationModel.fromJson(e, currentUserId)).toList();
         });
   }
@@ -75,6 +77,36 @@ class ChatService {
     // 2. Update conversation last_message, sender, and updated_at
     await _supabase.from('conversations').update({
       'last_message': content,
+      'last_message_sender_id': senderId,
+      'last_message_is_read': false,
+      'updated_at': now,
+    }).eq('id', conversationId);
+  }
+
+  /// Upload image and send an image message
+  static Future<void> sendImageMessage(String conversationId, String senderId, File imageFile) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    
+    // 1. Upload image to Storage bucket 'chat_images'
+    final fileExt = imageFile.path.split('.').last;
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}_$senderId.$fileExt';
+    final filePath = '$conversationId/$fileName';
+    
+    await _supabase.storage.from('chat_images').upload(filePath, imageFile);
+    final imageUrl = _supabase.storage.from('chat_images').getPublicUrl(filePath);
+
+    // 2. Insert message
+    await _supabase.from('messages').insert({
+      'conversation_id': conversationId,
+      'sender_id': senderId,
+      'content': '📷 Photo',
+      'image_url': imageUrl,
+      'created_at': now,
+    });
+
+    // 3. Update conversation last_message
+    await _supabase.from('conversations').update({
+      'last_message': '📷 Photo',
       'last_message_sender_id': senderId,
       'last_message_is_read': false,
       'updated_at': now,

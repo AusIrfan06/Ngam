@@ -1,10 +1,12 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 // ============================================================
 // Ngam App — Constants & Configuration
 // ============================================================
 
 // ─── Supabase Credentials ────────────────────────────────────
-const String supabaseUrl = 'https://aexpbrnxfsknbyqtzgne.supabase.co';
-const String supabaseAnonKey = 'sb_publishable_YDFJBfEWOjf0Pk9iaoCaqw_75sLs1nC';
+String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
+String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
 // ─── Task Categories ─────────────────────────────────────────
 class TaskCategory {

@@ -130,6 +130,7 @@ class GigProvider extends ChangeNotifier {
   /// Customer creates a new task
   Future<GigModel?> createGig({
     required String customerId,
+    required String customerName,
     required String title,
     required String description,
     required String category,
@@ -144,6 +145,7 @@ class GigProvider extends ChangeNotifier {
     try {
       final gig = await GigService.createGig(
         customerId: customerId,
+        customerName: customerName,
         title: title,
         description: description,
         category: category,
@@ -155,7 +157,8 @@ class GigProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return gig;
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Error creating gig: $e\n$st');
       _error = 'Failed to create task';
       _isLoading = false;
       notifyListeners();
@@ -166,6 +169,7 @@ class GigProvider extends ChangeNotifier {
   /// Runner creates a service listing
   Future<GigModel?> createServiceListing({
     required String runnerId,
+    required String runnerName,
     required String title,
     required String description,
     required String category,
@@ -180,7 +184,9 @@ class GigProvider extends ChangeNotifier {
     try {
       final gig = await GigService.createGig(
         customerId: runnerId,
+        customerName: runnerName,
         gigWorkerId: runnerId,
+        runnerName: runnerName,
         title: title,
         description: description,
         category: category,
@@ -206,6 +212,7 @@ class GigProvider extends ChangeNotifier {
   /// Customer orders a runner's service
   Future<GigModel?> orderService({
     required String customerId,
+    required String customerName,
     required GigModel serviceListing,
   }) async {
     _isLoading = true;
@@ -214,7 +221,9 @@ class GigProvider extends ChangeNotifier {
     try {
       final gig = await GigService.createGig(
         customerId: customerId,
+        customerName: customerName,
         gigWorkerId: serviceListing.gigWorkerId,
+        runnerName: serviceListing.runnerName,
         title: serviceListing.title,
         description: serviceListing.description,
         category: serviceListing.category,
@@ -250,9 +259,9 @@ class GigProvider extends ChangeNotifier {
   }
 
   /// Runner accepts a gig (Task-State Locker)
-  Future<bool> acceptGig(String gigId, String runnerId) async {
+  Future<bool> acceptGig(String gigId, String runnerId, String runnerName) async {
     try {
-      await GigService.acceptGig(gigId, runnerId);
+      await GigService.acceptGig(gigId, runnerId, runnerName);
       // Update local state
       _openGigs.removeWhere((g) => g.id == gigId);
       _activeJob = await GigService.fetchGigById(gigId);
@@ -292,7 +301,7 @@ class GigProvider extends ChangeNotifier {
       onError: (e) {
         _error = 'Real-time connection lost';
         notifyListeners();
-      },
+      }
     );
   }
 

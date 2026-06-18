@@ -164,11 +164,11 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                           onPressed: gigProvider.isLoading
                               ? null
                               : () async {
-                                  final userId =
-                                      context.read<AuthProvider>().user!.id;
+                                  final user = context.read<AuthProvider>().user!;
                                   final success = await gigProvider.acceptGig(
                                     gig.id,
-                                    userId,
+                                    user.id,
+                                    user.name,
                                   );
 
                                   if (success && context.mounted) {
@@ -178,7 +178,8 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                                       (route) => false,
                                       arguments: gig.copyWith(
                                         status: 'LOCKED',
-                                        gigWorkerId: userId,
+                                        gigWorkerId: user.id,
+                                        runnerName: user.name,
                                       ),
                                     );
                                   }

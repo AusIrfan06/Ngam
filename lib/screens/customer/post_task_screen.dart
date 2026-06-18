@@ -58,6 +58,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     if (authProvider.isRunner) {
       gig = await gigProvider.createServiceListing(
         runnerId: userId,
+        runnerName: authProvider.user!.name,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
@@ -67,6 +68,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     } else {
       gig = await gigProvider.createGig(
         customerId: userId,
+        customerName: authProvider.user!.name,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
@@ -87,6 +89,10 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
           arguments: gig,
         );
       }
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(gigProvider.error ?? 'Failed to post task. Check logs.')),
+      );
     }
   }
 

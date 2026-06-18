@@ -229,6 +229,7 @@ class _CustomerHomeFeed extends StatelessWidget {
                             if (auth.user == null) return;
                             final newGig = await gigProvider.orderService(
                               customerId: auth.user!.id,
+                              customerName: auth.user!.name,
                               serviceListing: gig,
                             );
                             if (newGig != null && context.mounted) {

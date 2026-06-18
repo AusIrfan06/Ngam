@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../services/chat_service.dart';
+import '../shared/chat_screen.dart';
 
 // ============================================================
 // Ngam App — Task Detail Screen (Runner)
@@ -225,6 +227,49 @@ class TaskDetailScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                          // Chat Button
+                          if (gig.customerId != currentUserId)
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: IconButton(
+                                onPressed: () async {
+                                  if (currentUserId == null) return;
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const Center(child: CircularProgressIndicator()),
+                                  );
+                                  try {
+                                    final conversation = await ChatService.createOrGetConversation(
+                                      currentUserId,
+                                      gig.customerId,
+                                      gigId: gig.id,
+                                    );
+                                    if (context.mounted) {
+                                      Navigator.pop(context); // Close loading dialog
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ChatThreadScreen(conversation: conversation),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error starting chat: $e')));
+                                    }
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.chat_bubble_outline,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

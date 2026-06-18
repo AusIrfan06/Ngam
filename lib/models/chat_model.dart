@@ -82,6 +82,7 @@ class MessageModel {
   final String conversationId;
   final String senderId;
   final String content;
+  final String? imageUrl;
   final bool isRead;
   final DateTime createdAt;
 
@@ -90,6 +91,7 @@ class MessageModel {
     required this.conversationId,
     required this.senderId,
     required this.content,
+    this.imageUrl,
     required this.isRead,
     required this.createdAt,
   });
@@ -100,6 +102,7 @@ class MessageModel {
       conversationId: json['conversation_id'],
       senderId: json['sender_id'],
       content: json['content'],
+      imageUrl: json['image_url'],
       isRead: json['is_read'] ?? false,
       createdAt: DateTime.parse(json['created_at']).toLocal(),
     );
@@ -110,6 +113,7 @@ class MessageModel {
       'conversation_id': conversationId,
       'sender_id': senderId,
       'content': content,
+      if (imageUrl != null) 'image_url': imageUrl,
       'is_read': isRead,
     };
   }

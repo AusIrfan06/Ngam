@@ -33,6 +33,7 @@ serve(async (req: Request) => {
     let targetUserId = null;
     let title = "Ngam Update";
     let body = "You have a new notification!";
+    let payloadData: Record<string, string> = {};
 
     // --- LOGIC FOR STATUS UPDATES ---
     if (payload.table === "status_logs" && payload.type === "INSERT") {
@@ -52,11 +53,13 @@ serve(async (req: Request) => {
           targetUserId = gig.customer_id;
           title = `Task Update: ${gig.title}`;
           body = `Your task status is now: ${status}`;
+          payloadData = { type: "gig_update", gig_id: gigId };
         } else if (status === "CANCELLED") {
           // If cancelled, notify the runner (if assigned)
           targetUserId = gig.gig_worker_id;
           title = `Task Cancelled`;
           body = `The task '${gig.title}' has been cancelled.`;
+          payloadData = { type: "gig_update", gig_id: gigId };
         }
       }
     }
@@ -65,6 +68,7 @@ serve(async (req: Request) => {
     if (payload.table === "messages" && payload.type === "INSERT") {
       const senderId = record.sender_id;
       const conversationId = record.conversation_id;
+      const content = record.content;
 
       // Find the other user in the conversation
       const { data: conv } = await supabase
@@ -75,8 +79,38 @@ serve(async (req: Request) => {
 
       if (conv) {
         targetUserId = conv.user1_id === senderId ? conv.user2_id : conv.user1_id;
-        title = "New Message";
-        body = "You have received a new chat message!";
+        
+        // Fetch the sender's name to display in the notification title
+        const { data: sender } = await supabase
+          .from("users")
+          .select("name")
+          .eq("id", senderId)
+          .single();
+          
+        const senderName = sender?.name || "Someone";
+
+        // Fetch the last 4 messages in this conversation
+        const { data: recentMessages } = await supabase
+          .from("messages")
+          .select("content, image_url, sender_id")
+          .eq("conversation_id", conversationId)
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        let bodyText = content;
+        if (recentMessages && recentMessages.length > 0) {
+          // Reverse to show chronological order
+          const chronological = recentMessages.reverse();
+          const lines = chronological.map((msg: any) => {
+            const txt = msg.image_url ? "📷 Photo" : msg.content;
+            return msg.sender_id === senderId ? txt : `You: ${txt}`;
+          });
+          bodyText = lines.join("\n");
+        }
+
+        title = senderName;
+        body = bodyText;
+        payloadData = { type: "chat_message", conversation_id: conversationId };
       }
     }
 
@@ -95,6 +129,16 @@ serve(async (req: Request) => {
             title: title,
             body: body,
           },
+          android: {
+            notification: {
+              tag: payloadData.conversation_id || payloadData.gig_id || "ngam_update",
+              sound: "default",
+              defaultVibrateTimings: true,
+              defaultSound: true,
+              icon: "notification",
+            }
+          },
+          data: payloadData,
           token: user.fcm_token,
         };
 

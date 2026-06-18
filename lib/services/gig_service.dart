@@ -23,6 +23,8 @@ class GigService {
     required String category,
     required double bountyAmount,
     required String location,
+    String? customerName,
+    String? runnerName,
     double? latitude,
     double? longitude,
     String? gigWorkerId,
@@ -41,6 +43,8 @@ class GigService {
       'bounty_amount': bountyAmount,
       'status': status ?? GigStatus.open,
       'location': location,
+      if (customerName != null) 'customer_name': customerName,
+      if (runnerName != null) 'runner_name': runnerName,
       'latitude': latitude,
       'longitude': longitude,
       'created_at': now.toIso8601String(),
@@ -149,12 +153,13 @@ class GigService {
 
   /// Runner accepts a gig — triggers the "State Locker"
   /// Sets status to LOCKED and assigns the runner
-  static Future<void> acceptGig(String gigId, String runnerId) async {
+  static Future<void> acceptGig(String gigId, String runnerId, String runnerName) async {
     // Atomically update the gig status
     await _client
         .from(DbTable.gigs)
         .update({
           'gig_worker_id': runnerId,
+          'runner_name': runnerName,
           'status': GigStatus.locked,
         })
         .eq('id', gigId)

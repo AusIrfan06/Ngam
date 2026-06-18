@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/gig_provider.dart';
@@ -35,10 +36,16 @@ import 'widgets/app_lock_wrapper.dart';
 // CSC264 Individual Project
 // ============================================================
 
+// ─── Global Navigator Key ─────────────────────────────────────
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await EasyLocalization.ensureInitialized();
+  
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
 
   // Initialize Supabase
   await SupabaseService.initialize();
@@ -81,6 +88,7 @@ class NgamApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           return MaterialApp(
+            navigatorKey: navigatorKey,
             title: 'Ngam',
             builder: (context, child) {
               return AppLockWrapper(child: child!);

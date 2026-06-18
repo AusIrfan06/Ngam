@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_theme.dart';
@@ -523,6 +525,8 @@ class ChatThreadScreen extends StatefulWidget {
 class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploadingImage = false;
   late String currentUserId;
   late String otherUserId;
   final List<MessageModel> _pendingMessages = [];
@@ -587,6 +591,62 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         );
       }
     });
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(source: source, imageQuality: 70);
+    if (pickedFile != null) {
+      setState(() => _isUploadingImage = true);
+      try {
+        await ChatService.sendImageMessage(widget.conversation.id, currentUserId, File(pickedFile.path));
+        _scrollToBottom();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload: $e')));
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isUploadingImage = false);
+        }
+      }
+    }
+  }
+
+  void _showAttachmentOptions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppTheme.primary, size: 24),
+                title: Text('Camera', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const HugeIcon(icon: HugeIcons.strokeRoundedImage01, color: AppTheme.primary, size: 24),
+                title: Text('Gallery', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -742,6 +802,19 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 ),
                 child: Row(
                   children: [
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _showAttachmentOptions,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedAttachment01,
+                          color: Colors.grey.shade500,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
                         controller: _controller,
@@ -772,12 +845,17 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                           color: AppTheme.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Center(
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedSent,
-                            color: Colors.white,
-                            size: 18,
-                          ),
+                        child: Center(
+                          child: _isUploadingImage 
+                          ? const SizedBox(
+                              width: 18, height: 18, 
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                            )
+                          : const HugeIcon(
+                              icon: HugeIcons.strokeRoundedSent,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                         ),
                       ),
                     ),
@@ -849,14 +927,34 @@ class _MessageBubble extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
-                      height: 1.4,
+                  if (message.imageUrl != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: message.imageUrl!,
+                          width: MediaQuery.of(context).size.width * 0.6,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            width: MediaQuery.of(context).size.width * 0.6,
+                            height: 150,
+                            color: isDark ? Colors.white10 : Colors.black12,
+                            child: const Center(child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                        ),
+                      ),
+                    )
+                  else
+                    Text(
+                      message.content,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                        height: 1.4,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
