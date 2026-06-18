@@ -237,6 +237,10 @@ class _CustomerHomeFeed extends StatelessWidget {
                                 SnackBar(content: Text('customer.service_ordered'.tr())),
                               );
                               Navigator.pushNamed(context, '/order-status', arguments: newGig);
+                            } else if (gigProvider.error != null && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(gigProvider.error!)),
+                              );
                             }
                           },
                           style: ElevatedButton.styleFrom(

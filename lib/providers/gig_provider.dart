@@ -235,8 +235,9 @@ class GigProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return gig;
-    } catch (e) {
-      _error = 'Failed to order service';
+    } catch (e, st) {
+      debugPrint('Error ordering service: $e\n$st');
+      _error = 'Failed to order service: $e';
       _isLoading = false;
       notifyListeners();
       return null;
