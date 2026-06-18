@@ -500,16 +500,8 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Name label
-                          _buildPremiumInput(
-                            isDark: isDark,
-                            label: "Display Name",
-                            hint: "e.g., My DuitNow QR",
-                            icon: HugeIcons.strokeRoundedUser,
-                            controller: nameController,
-                            keyboardType: TextInputType.text,
-                          ),
-                          const SizedBox(height: 16),
+                          // Name label removed because DuitNow QR includes the name in the image.
+
 
                           // QR Upload area
                           Text("YOUR QR CODE".toUpperCase(), style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
@@ -588,7 +580,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                               PaymentData.addPaymentMethod({
                                 "id": DateTime.now().millisecondsSinceEpoch.toString(),
                                 "type": "duitnow_qr",
-                                "name": nameController.text.trim().isEmpty ? "DuitNow QR" : nameController.text.trim(),
+                                "name": "DuitNow QR",
                                 "qrPath": pickedQr!.path,
                                 "isPrimary": false,
                               });
@@ -1066,7 +1058,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text("DuitNow QR", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
-                      Text(qr["name"] ?? "", style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11)),
+                      Text("Registered Name in Image", style: TextStyle(color: Colors.white70, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -1097,11 +1089,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                     borderRadius: BorderRadius.circular(8),
                     child: Image.file(
                       File(qr["qrPath"]),
-                      width: 160,
-                      height: 160,
+                      width: double.infinity,
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => const SizedBox(
-                        width: 160, height: 160,
+                        height: 160,
                         child: Center(child: Icon(Icons.broken_image_outlined, color: Colors.grey, size: 40)),
                       ),
                     ),

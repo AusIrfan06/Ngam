@@ -11,6 +11,7 @@ import 'my_tasks_screen.dart';
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 // ============================================================
 // Ngam App — Customer Home Screen
@@ -31,9 +32,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   void initState() {
     super.initState();
     // Load initial data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gigProvider = context.read<GigProvider>();
-      gigProvider.loadServices();
+      await gigProvider.loadServices();
+      FlutterNativeSplash.remove();
     });
   }
 
@@ -152,13 +154,18 @@ class _CustomerHomeFeed extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'customer.available_services'.tr(args: ['${gigProvider.filteredServices.length}']),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                      Expanded(
+                        child: Text(
+                          'customer.available_services'.tr(args: ['${gigProvider.filteredServices.length}']),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Icon(Icons.sort_rounded, color: Colors.grey.shade400),
                     ],
                   ),

@@ -11,6 +11,7 @@ import '../../widgets/bottom_nav_runner.dart';
 import 'my_jobs_screen.dart';
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 // ============================================================
 // Ngam App — Runner Home Screen
@@ -30,10 +31,11 @@ class _RunnerHomeScreenState extends State<RunnerHomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gigProvider = context.read<GigProvider>();
-      gigProvider.loadOpenGigs();
+      await gigProvider.loadOpenGigs();
       gigProvider.subscribeToOpenGigs();
+      FlutterNativeSplash.remove();
     });
   }
 

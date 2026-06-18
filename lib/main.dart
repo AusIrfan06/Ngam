@@ -7,6 +7,7 @@ import 'providers/gig_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/supabase_service.dart';
 import 'utils/app_theme.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 // ─── Screens ─────────────────────────────────────────────────
 import 'screens/auth/login_screen.dart';
@@ -34,7 +35,8 @@ import 'widgets/app_lock_wrapper.dart';
 // ============================================================
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await EasyLocalization.ensureInitialized();
 
   // Initialize Supabase
@@ -91,7 +93,7 @@ class NgamApp extends StatelessWidget {
             home: Consumer<AuthProvider>(
               builder: (context, auth, _) {
                 if (auth.isLoading) {
-                  return const _SplashScreen();
+                  return const SizedBox.shrink();
                 }
                 if (!auth.isLoggedIn) {
                   return const LoginScreen();
@@ -128,42 +130,3 @@ class NgamApp extends StatelessWidget {
   }
 }
 
-// ─── Splash Screen (while checking auth state) ───────────────
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0B),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo
-            Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primary.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset('assets/app.png', fit: BoxFit.cover),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(color: AppTheme.primary),
-          ],
-        ),
-      ),
-    );
-  }
-}
