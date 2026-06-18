@@ -96,8 +96,8 @@ class NgamApp extends StatelessWidget {
             // ─── Initial Route ─────────────────────
             home: Consumer<AuthProvider>(
               builder: (context, auth, _) {
-                if (auth.isLoading) {
-                  return const SizedBox.shrink();
+                if (auth.isInitializing) {
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
                 }
                 if (!auth.isLoggedIn) {
                   return const LoginScreen();

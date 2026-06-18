@@ -15,10 +15,12 @@ import '../services/push_service.dart';
 class AuthProvider extends ChangeNotifier {
   UserModel? _user;
   bool _isLoading = false;
+  bool _isInitializing = true;
   String? _error;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
+  bool get isInitializing => _isInitializing;
   String? get error => _error;
   bool get isLoggedIn => _user != null;
   String get userRole => _user?.role ?? 'pemesan';
@@ -27,16 +29,19 @@ class AuthProvider extends ChangeNotifier {
 
   /// Try to restore session on app start
   Future<void> initialize() async {
-    _isLoading = true;
+    _isInitializing = true;
     notifyListeners();
 
     try {
       _user = await AuthService.getCurrentUser();
+      if (_user != null) {
+        await PushService.saveTokenToSupabase(_user!.id);
+      }
     } catch (e) {
       _user = null;
     }
 
-    _isLoading = false;
+    _isInitializing = false;
     notifyListeners();
   }
 

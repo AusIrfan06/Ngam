@@ -155,6 +155,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             currentUserId: currentUser.id,
                             isDark: isDark,
                             onTap: () => _openChat(context, c, isDark),
+                            onLongPress: () => _showDeleteDialog(context, c),
                           );
                         },
                       );
@@ -172,6 +173,51 @@ class _ChatScreenState extends State<ChatScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => ChatThreadScreen(conversation: c),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, ConversationModel c) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Delete Chat?",
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        content: Text(
+          "This will permanently delete the conversation for both of you.",
+          style: GoogleFonts.outfit(
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text("Cancel", style: TextStyle(color: Colors.grey.shade500)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await ChatService.deleteConversation(c.id);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete chat: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
@@ -195,12 +241,14 @@ class _ConversationTile extends StatelessWidget {
   final String currentUserId;
   final bool isDark;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   const _ConversationTile({
     required this.conversation,
     required this.currentUserId,
     required this.isDark,
     required this.onTap,
+    required this.onLongPress,
   });
 
   @override
@@ -223,6 +271,7 @@ class _ConversationTile extends StatelessWidget {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
+          onLongPress: onLongPress,
           child: GlassContainer(
             useOwnLayer: true,
             quality: GlassQuality.standard,

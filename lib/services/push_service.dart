@@ -17,6 +17,14 @@ class PushService {
   static Future<void> initialize() async {
     try {
       await Firebase.initializeApp();
+      
+      // Request permissions (Required for iOS and Android 13+)
+      await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
       const AndroidInitializationSettings initializationSettingsAndroid =
@@ -28,6 +36,19 @@ class PushService {
       await _localNotifications.initialize(
         settings: initializationSettings,
       );
+
+      // Create Android Notification Channel
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'ngam_high_importance_channel', // id
+        'High Importance Notifications', // title
+        description: 'This channel is used for important notifications.', // description
+        importance: Importance.max,
+      );
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('Got a message whilst in the foreground!');

@@ -102,4 +102,12 @@ class ChatService {
   static Future<Map<String, dynamic>> getUserProfile(String userId) async {
     return await _supabase.from('users').select().eq('id', userId).single();
   }
+
+  /// Delete a conversation and all its messages
+  static Future<void> deleteConversation(String conversationId) async {
+    // Delete messages first
+    await _supabase.from('messages').delete().eq('conversation_id', conversationId);
+    // Delete conversation
+    await _supabase.from('conversations').delete().eq('id', conversationId);
+  }
 }

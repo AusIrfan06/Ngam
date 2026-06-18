@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Jobs',
+                      'runner.my_jobs_title'.tr(),
                       style: GoogleFonts.outfit(
                         fontSize: 26,
                         fontWeight: FontWeight.w800,
@@ -56,7 +57,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${gigProvider.myGigs.length} jobs',
+                      'runner.jobs_count'.tr(args: [gigProvider.myGigs.length.toString()]),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade500,
@@ -69,7 +70,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const PostTaskScreen()));
                   },
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Post Job'),
+                  label: Text('runner.post_job'.tr()),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -96,7 +97,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No jobs yet',
+                                'runner.no_jobs_yet'.tr(),
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey.shade400,
@@ -104,7 +105,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Accept your first gig to get started!',
+                                'runner.accept_first_gig'.tr(),
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey.shade400,
@@ -153,7 +154,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                                           final success = await context.read<GigProvider>().takeDownService(gig.id);
                                           if (success && context.mounted) {
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('Service taken down')),
+                                              SnackBar(content: Text('runner.service_taken_down'.tr())),
                                             );
                                           }
                                         },
@@ -163,7 +164,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                                           minimumSize: Size.zero,
                                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                         ),
-                                        child: const Text('Take Down', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                        child: Text('runner.take_down'.tr(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                                       )
                                     : null,
                               );

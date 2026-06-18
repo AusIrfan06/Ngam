@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/gig_model.dart';
@@ -33,7 +34,7 @@ class TaskDetailScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               title: Text(
-                'Task Detail',
+                'runner.task_detail'.tr(),
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -145,7 +146,7 @@ class TaskDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Posted ${gig.timeAgo}',
+                          'runner.posted_time'.tr(args: [gig.timeAgo]),
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.grey.shade500,
@@ -243,7 +244,7 @@ class TaskDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Bounty Offered',
+                            'runner.bounty_offered'.tr(),
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey.shade500,
@@ -269,7 +270,7 @@ class TaskDetailScreen extends StatelessWidget {
                             );
                           },
                           icon: const Icon(Icons.check_circle_outline),
-                          label: const Text('✓ Accept Gig'),
+                          label: Text('runner.accept_task'.tr()),
                           style: ElevatedButton.styleFrom(
                             textStyle: GoogleFonts.outfit(
                               fontSize: 18,

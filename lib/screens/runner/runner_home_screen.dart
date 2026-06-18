@@ -198,7 +198,7 @@ class _RunnerFeedState extends State<_RunnerFeed> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Nearby (${availableGigs.length} tasks)',
+                        'runner.nearby_tasks'.tr(args: [availableGigs.length.toString()]),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

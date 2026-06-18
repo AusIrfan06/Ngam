@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Confirm Acceptance',
+          'runner.confirm_acceptance'.tr(),
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
       ),
@@ -34,7 +35,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
 
             // ─── Header ──────────────────────────────
             Text(
-              'You are about to accept:',
+              'runner.about_to_accept'.tr(),
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey.shade600,
@@ -110,7 +111,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Once accepted, task is LOCKED.\nIt will be removed from the public feed.',
+                      'runner.warning_locked'.tr(),
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.red.shade700,
@@ -123,7 +124,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Task status will change to IN-PROGRESS in the database.',
+              'runner.status_in_progress'.tr(),
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade500,
@@ -143,7 +144,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close),
-                      label: const Text('Cancel'),
+                      label: Text('runner.cancel'.tr()),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.error,
                         side: const BorderSide(color: AppTheme.error),
@@ -192,7 +193,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                                   ),
                                 )
                               : const Icon(Icons.check),
-                          label: const Text('✓ Confirm'),
+                          label: Text('runner.confirm'.tr()),
                         );
                       },
                     ),

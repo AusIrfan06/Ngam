@@ -57,7 +57,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Runner View',
+          'runner.runner_view'.tr(),
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         leading: IconButton(
@@ -102,8 +102,8 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                       const Icon(Icons.work_rounded,
                           color: AppTheme.primary, size: 20),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Active Job:',
+                      Text(
+                        'runner.active_job'.tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -149,8 +149,8 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                         color: AppTheme.info.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: const Text(
-                      '⚡ IN-PROGRESS',
+                    child: Text(
+                      'runner.in_progress'.tr(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -164,8 +164,8 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             const SizedBox(height: 24),
 
             // ─── Upload Proof (Optional) ─────────────
-            const Text(
-              'Upload Proof (optional)',
+            Text(
+              'runner.upload_proof'.tr(),
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -175,8 +175,8 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             GestureDetector(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Photo upload coming soon!'),
+                  SnackBar(
+                    content: Text('runner.photo_upload_soon'.tr()),
                   ),
                 );
               },
@@ -201,7 +201,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Tap to upload photo',
+                      'runner.tap_upload'.tr(),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade400,
@@ -214,8 +214,8 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             const SizedBox(height: 24),
 
             // ─── Notes for Requester ─────────────────
-            const Text(
-              'Notes for Requester',
+            Text(
+              'runner.notes_requester'.tr(),
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -226,7 +226,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
               controller: _notesController,
               maxLines: 3,
               decoration: InputDecoration(
-                hintText: 'Any message for the customer...',
+                hintText: 'runner.notes_hint'.tr(),
               ),
             ),
             // ─── Chat with Customer Button ─────────────
@@ -333,15 +333,15 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
-                                        'Task Completed! 🎉',
+                                        'runner.task_completed'.tr(),
                                         style: GoogleFonts.outfit(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                       const SizedBox(height: 8),
-                                      const Text(
-                                        'Requester will be notified instantly.',
+                                      Text(
+                                        'runner.requester_notified'.tr(),
                                         textAlign: TextAlign.center,
                                         style: TextStyle(fontSize: 14),
                                       ),
@@ -357,7 +357,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                                               (route) => false,
                                             );
                                           },
-                                          child: const Text('Done'),
+                                          child: Text('runner.done'.tr()),
                                         ),
                                       ),
                                     ],
@@ -376,7 +376,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                             ),
                           )
                         : const Icon(Icons.check_circle_outline),
-                    label: const Text('✓ Mark as Completed'),
+                    label: Text('runner.mark_complete'.tr()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.success,
                       textStyle: GoogleFonts.outfit(
