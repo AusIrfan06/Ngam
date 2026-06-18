@@ -1,4 +1,4 @@
-# Ngam - Local Errands, Powered by Community
+# Ngam - Roger Anything, Kautim Instantly
 
 Ngam is a community-driven Flutter application that connects people who need help with local errands (Customers) and people willing to do them (Runners). Whether it's buying food, doing a quick grocery run, printing documents, or heavy lifting, Ngam provides a seamless platform to get tasks done.
 
