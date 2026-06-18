@@ -69,39 +69,35 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   }
 
   Future<void> _toggleAppLock(bool enable) async {
-    if (enable) {
-      try {
-        final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-        final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+    try {
+      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+      final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
 
-        if (canAuthenticate) {
-          final bool didAuthenticate = await _auth.authenticate(
-            localizedReason: 'Authenticate to enable App Lock',
-            options: const AuthenticationOptions(
-              biometricOnly: false,
-              stickyAuth: true,
-            ),
-          );
+      if (canAuthenticate) {
+        final bool didAuthenticate = await _auth.authenticate(
+          localizedReason: enable ? 'Authenticate to enable App Lock' : 'Authenticate to disable App Lock',
+          options: const AuthenticationOptions(
+            biometricOnly: false,
+            stickyAuth: true,
+          ),
+        );
 
-          if (didAuthenticate) {
-            await SecurityData.toggleSecuritySetting('appLockEnabled', true);
-            if (mounted) showGlassToast(context, "App Lock Enabled");
-          } else {
-            if (mounted) showGlassToast(context, "Authentication cancelled");
-            return;
-          }
-        } else {
-          await SecurityData.toggleSecuritySetting('appLockEnabled', true);
-          if (mounted) showGlassToast(context, "App Lock Enabled (No biometrics found)");
+        if (!didAuthenticate) {
+          if (mounted) showGlassToast(context, "Authentication cancelled");
+          return;
         }
-      } catch (e) {
-        if (mounted) showGlassToast(context, "Authentication error");
-        return;
       }
-    } else {
-      await SecurityData.toggleSecuritySetting('appLockEnabled', false);
-      if (mounted) showGlassToast(context, "App Lock Disabled");
+
+      // If authentication succeeds or if device doesn't support biometrics
+      await SecurityData.toggleSecuritySetting('appLockEnabled', enable);
+      if (mounted) {
+        showGlassToast(context, enable ? "App Lock Enabled" : "App Lock Disabled");
+      }
+    } catch (e) {
+      if (mounted) showGlassToast(context, "Authentication error");
+      return;
     }
+
     HapticFeedback.mediumImpact();
   }
 

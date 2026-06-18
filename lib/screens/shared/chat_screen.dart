@@ -314,17 +314,33 @@ class _ConversationTile extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 3),
-                        Text(
-                          lastMsg,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w400,
-                            color: unread > 0
-                                ? (isDark ? Colors.white70 : Colors.black87)
-                                : Colors.grey.shade500,
-                          ),
+                        Row(
+                          children: [
+                            if (c.lastMessageSenderId == currentUserId)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: MessageStatusIndicator(
+                                  isSending: false,
+                                  isRead: c.lastMessageIsRead,
+                                  isMe: true,
+                                  defaultColor: isDark ? Colors.white70 : Colors.grey.shade600,
+                                ),
+                              ),
+                            Expanded(
+                              child: Text(
+                                lastMsg,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w400,
+                                  color: unread > 0
+                                      ? (isDark ? Colors.white70 : Colors.black87)
+                                      : Colors.grey.shade500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -447,12 +463,16 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final ScrollController _scrollController = ScrollController();
   late String currentUserId;
   late String otherUserId;
+  final List<MessageModel> _pendingMessages = [];
 
   @override
   void initState() {
     super.initState();
     currentUserId = context.read<AuthProvider>().user!.id;
     otherUserId = widget.conversation.user1Id == currentUserId ? widget.conversation.user2Id : widget.conversation.user1Id;
+    
+    // Mark as read when entering the screen
+    ChatService.markMessagesAsRead(widget.conversation.id, otherUserId);
   }
 
   @override
@@ -466,11 +486,38 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
     _controller.clear();
-    await ChatService.sendMessage(widget.conversation.id, currentUserId, text);
+
+    // Optimistic UI for "sending" state
+    final pendingMsg = MessageModel(
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      conversationId: widget.conversation.id,
+      senderId: currentUserId,
+      content: text,
+      isRead: false,
+      createdAt: DateTime.now(),
+    );
+
+    setState(() {
+      _pendingMessages.add(pendingMsg);
+    });
+
+    _scrollToBottom();
+
+    try {
+      await ChatService.sendMessage(widget.conversation.id, currentUserId, text);
+    } finally {
+      // Remove pending message once real stream picks it up or if it failed
+      setState(() {
+        _pendingMessages.removeWhere((m) => m.id == pendingMsg.id);
+      });
+    }
+  }
+
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+          _scrollController.position.maxScrollExtent + 100, // extra to account for new msg
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -564,6 +611,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 }
                 final messages = snapshot.data ?? [];
                 
+                // Combine real messages and pending messages
+                final allMessages = [...messages, ..._pendingMessages];
+
                 // Auto scroll to bottom
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (_scrollController.hasClients) {
@@ -575,10 +625,16 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   controller: _scrollController,
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   physics: const BouncingScrollPhysics(),
-                  itemCount: messages.length,
+                  itemCount: allMessages.length,
                   itemBuilder: (context, index) {
-                    final msg = messages[index];
-                    return _MessageBubble(message: msg, isDark: isDark, isMe: msg.senderId == currentUserId);
+                    final msg = allMessages[index];
+                    final isSending = msg.id.startsWith('temp_');
+                    return _MessageBubble(
+                      message: msg, 
+                      isDark: isDark, 
+                      isMe: msg.senderId == currentUserId,
+                      isSending: isSending,
+                    );
                   },
                 );
               },
@@ -677,8 +733,14 @@ class _MessageBubble extends StatelessWidget {
   final MessageModel message;
   final bool isDark;
   final bool isMe;
+  final bool isSending;
 
-  const _MessageBubble({required this.message, required this.isDark, required this.isMe});
+  const _MessageBubble({
+    required this.message, 
+    required this.isDark, 
+    required this.isMe,
+    this.isSending = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -732,12 +794,26 @@ class _MessageBubble extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    message.formattedTime,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isMe ? Colors.white.withValues(alpha: 0.7) : Colors.grey.shade500,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        message.formattedTime,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isMe ? Colors.white.withValues(alpha: 0.7) : Colors.grey.shade500,
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 4),
+                        MessageStatusIndicator(
+                          isSending: isSending,
+                          isRead: message.isRead,
+                          isMe: isMe,
+                          defaultColor: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
@@ -746,6 +822,49 @@ class _MessageBubble extends StatelessWidget {
           if (isMe) const SizedBox(width: 8),
         ],
       ),
+    );
+  }
+}
+
+// ─── Message Status Indicator ──────────────────────────────────
+class MessageStatusIndicator extends StatelessWidget {
+  final bool isSending;
+  final bool isRead;
+  final bool isMe;
+  final Color defaultColor;
+
+  const MessageStatusIndicator({
+    super.key,
+    required this.isSending,
+    required this.isRead,
+    required this.isMe,
+    this.defaultColor = Colors.grey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isMe) return const SizedBox.shrink();
+
+    if (isSending) {
+      return Icon(
+        Icons.access_time,
+        color: defaultColor,
+        size: 14,
+      );
+    }
+
+    if (isRead) {
+      return const Icon(
+        Icons.done_all,
+        color: Colors.blueAccent,
+        size: 15,
+      );
+    }
+
+    return Icon(
+      Icons.check,
+      color: defaultColor,
+      size: 15,
     );
   }
 }

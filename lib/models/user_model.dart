@@ -10,6 +10,10 @@ class UserModel {
   final String role; // 'pemesan' or 'runner'
   final bool isVerifiedRunner;
   final String? avatarUrl;
+  final String? bio;
+  final String? gender;
+  final DateTime? birthDate;
+  final String? address;
   final DateTime createdAt;
 
   UserModel({
@@ -20,6 +24,10 @@ class UserModel {
     required this.role,
     this.isVerifiedRunner = false,
     this.avatarUrl,
+    this.bio,
+    this.gender,
+    this.birthDate,
+    this.address,
     required this.createdAt,
   });
 
@@ -33,6 +41,10 @@ class UserModel {
       role: json['role'] as String? ?? 'pemesan',
       isVerifiedRunner: json['is_verified_runner'] as bool? ?? false,
       avatarUrl: json['avatar_url'] as String?,
+      bio: json['bio'] as String?,
+      gender: json['gender'] as String?,
+      birthDate: json['birth_date'] != null ? DateTime.parse(json['birth_date'] as String) : null,
+      address: json['address'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -47,6 +59,10 @@ class UserModel {
       'role': role,
       'is_verified_runner': isVerifiedRunner,
       if (avatarUrl != null) 'avatar_url': avatarUrl,
+      if (bio != null) 'bio': bio,
+      if (gender != null) 'gender': gender,
+      if (birthDate != null) 'birth_date': "${birthDate!.year}-${birthDate!.month.toString().padLeft(2, '0')}-${birthDate!.day.toString().padLeft(2, '0')}",
+      if (address != null) 'address': address,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -60,6 +76,10 @@ class UserModel {
     String? role,
     bool? isVerifiedRunner,
     String? avatarUrl,
+    String? bio,
+    String? gender,
+    DateTime? birthDate,
+    String? address,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -70,6 +90,10 @@ class UserModel {
       role: role ?? this.role,
       isVerifiedRunner: isVerifiedRunner ?? this.isVerifiedRunner,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      bio: bio ?? this.bio,
+      gender: gender ?? this.gender,
+      birthDate: birthDate ?? this.birthDate,
+      address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
     );
   }

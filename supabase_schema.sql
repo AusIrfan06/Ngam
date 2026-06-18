@@ -14,6 +14,10 @@ CREATE TABLE IF NOT EXISTS public.users (
   phone VARCHAR(50) NOT NULL,
   role VARCHAR(50) NOT NULL,
   is_verified_runner BOOLEAN DEFAULT FALSE,
+  bio TEXT,
+  gender VARCHAR(20),
+  birth_date DATE,
+  address TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -67,6 +71,8 @@ CREATE TABLE IF NOT EXISTS public.conversations (
   user2_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   gig_id UUID REFERENCES public.gigs(id) ON DELETE SET NULL,
   last_message TEXT,
+  last_message_sender_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+  last_message_is_read BOOLEAN DEFAULT FALSE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   UNIQUE(user1_id, user2_id)
 );

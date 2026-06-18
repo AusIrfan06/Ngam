@@ -7,6 +7,8 @@ class ConversationModel {
   final String user2Id;
   final String? gigId;
   final String? lastMessage;
+  final String? lastMessageSenderId;
+  final bool lastMessageIsRead;
   final DateTime updatedAt;
 
   // Joined user details (e.g. the other person in the chat)
@@ -19,6 +21,8 @@ class ConversationModel {
     required this.user2Id,
     this.gigId,
     this.lastMessage,
+    this.lastMessageSenderId,
+    this.lastMessageIsRead = false,
     required this.updatedAt,
     this.otherUser,
     this.unreadCount = 0,
@@ -48,6 +52,8 @@ class ConversationModel {
       user2Id: json['user2_id'],
       gigId: json['gig_id'],
       lastMessage: json['last_message'],
+      lastMessageSenderId: json['last_message_sender_id'],
+      lastMessageIsRead: json['last_message_is_read'] ?? false,
       updatedAt: DateTime.parse(json['updated_at']).toLocal(),
       otherUser: otherUserParsed,
       // For a real app, unreadCount needs a separate query or counter, but we'll default to 0

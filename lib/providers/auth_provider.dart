@@ -159,16 +159,34 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Update profile details
-  Future<String?> updateProfile(String name, String phone) async {
+  Future<String?> updateProfile({
+    required String name,
+    required String phone,
+    String? bio,
+    String? gender,
+    DateTime? birthDate,
+    String? address,
+  }) async {
     if (_user == null) return 'User not logged in';
     try {
       final error = await SupabaseService.updateProfile(
         userId: _user!.id,
         name: name,
         phone: phone,
+        bio: bio,
+        gender: gender,
+        birthDate: birthDate,
+        address: address,
       );
       if (error == null) {
-        _user = _user!.copyWith(name: name, phone: phone);
+        _user = _user!.copyWith(
+          name: name, 
+          phone: phone,
+          bio: bio,
+          gender: gender,
+          birthDate: birthDate,
+          address: address,
+        );
         notifyListeners();
       }
       return error;

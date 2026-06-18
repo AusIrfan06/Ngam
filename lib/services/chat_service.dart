@@ -72,11 +72,30 @@ class ChatService {
       'created_at': now,
     });
 
-    // 2. Update conversation last_message and updated_at
+    // 2. Update conversation last_message, sender, and updated_at
     await _supabase.from('conversations').update({
       'last_message': content,
+      'last_message_sender_id': senderId,
+      'last_message_is_read': false,
       'updated_at': now,
     }).eq('id', conversationId);
+  }
+
+  /// Mark all messages in a conversation as read (sent by the other user)
+  static Future<void> markMessagesAsRead(String conversationId, String otherUserId) async {
+    // 1. Update messages table
+    await _supabase.from('messages')
+        .update({'is_read': true})
+        .eq('conversation_id', conversationId)
+        .eq('sender_id', otherUserId)
+        .eq('is_read', false);
+
+    // 2. Update conversation table if the last message was from the other user
+    // We can just update it safely if the last message sender was otherUserId
+    await _supabase.from('conversations')
+        .update({'last_message_is_read': true})
+        .eq('id', conversationId)
+        .eq('last_message_sender_id', otherUserId);
   }
   
   /// Fetch user profile helper
