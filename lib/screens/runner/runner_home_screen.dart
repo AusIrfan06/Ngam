@@ -9,6 +9,7 @@ import '../../widgets/category_chip.dart';
 import '../../widgets/task_card.dart';
 import '../../widgets/bottom_nav_runner.dart';
 import 'my_jobs_screen.dart';
+import 'stats_screen.dart';
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -47,6 +48,7 @@ class _RunnerHomeScreenState extends State<RunnerHomeScreen> {
       _RunnerFeed(),
       const MyJobsScreen(),
       const ChatScreen(),
+      const StatsScreen(),
       const ProfileScreen(),
     ];
 

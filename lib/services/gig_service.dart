@@ -117,7 +117,7 @@ class GigService {
     final response = await _client
         .from(DbTable.gigs)
         .select()
-        .or('gig_worker_id.eq.$runnerId,customer_id.eq.$runnerId')
+        .eq('gig_worker_id', runnerId)
         .order('created_at', ascending: false);
 
     return (response as List)
@@ -134,6 +134,19 @@ class GigService {
         .single();
 
     return GigModel.fromJson(response);
+  }
+
+  /// Fetch gigs shared between two users (e.g. for unified chat task switcher)
+  static Future<List<GigModel>> fetchSharedGigs(String userA, String userB) async {
+    final response = await _client
+        .from(DbTable.gigs)
+        .select()
+        .or('and(customer_id.eq.$userA,gig_worker_id.eq.$userB),and(customer_id.eq.$userB,gig_worker_id.eq.$userA)')
+        .order('created_at', ascending: false);
+
+    return (response as List)
+        .map((json) => GigModel.fromJson(json))
+        .toList();
   }
 
   /// Fetch the active (locked/in-progress) job for a runner

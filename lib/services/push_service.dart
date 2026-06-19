@@ -130,13 +130,28 @@ class PushService {
 
   static Future<void> _showLocalNotification(RemoteMessage message) async {
     final title = message.notification?.title ?? message.data['title'];
-    final body = message.notification?.body ?? message.data['body'];
+    String? body = message.notification?.body ?? message.data['body'];
 
     if (title == null && body == null) return;
 
     StyleInformation? styleInfo;
     if (body != null) {
-      final lines = body.split('\n');
+      final lines = body.split('\n').map((line) {
+        if (line.startsWith('__SYSTEM__:')) return line.replaceFirst('__SYSTEM__:', '');
+        if (line.startsWith('You: __SYSTEM__:')) return line.replaceFirst('You: __SYSTEM__:', 'You: ');
+        if (line.startsWith('__TASK_CARD__:')) return 'Sent a Task Card';
+        if (line.startsWith('You: __TASK_CARD__:')) return 'You: Sent a Task Card';
+        if (line.startsWith('__QUOTE__:')) return 'Sent a Custom Quote';
+        if (line.startsWith('You: __QUOTE__:')) return 'You: Sent a Custom Quote';
+        if (line.startsWith('__COUNTER__:')) return 'Sent a Counter-Offer';
+        if (line.startsWith('You: __COUNTER__:')) return 'You: Sent a Counter-Offer';
+        if (line == '__REQUEST_LOC__') return 'Requested your Location';
+        if (line == 'You: __REQUEST_LOC__') return 'You: Requested your Location';
+        return line;
+      }).toList();
+
+      body = lines.first; // The first line is the newest message now
+
       if (lines.length > 1) {
         styleInfo = InboxStyleInformation(
           lines,

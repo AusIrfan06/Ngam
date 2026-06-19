@@ -36,6 +36,10 @@ class BottomNavRunner extends StatelessWidget {
           title: 'Chat',
         ),
         NavItem(
+          icon: HugeIcons.strokeRoundedChartHistogram, // Fixed inverted icon
+          title: 'Stats',
+        ),
+        NavItem(
           icon: HugeIcons.strokeRoundedUser,
           title: 'Profile',
         ),

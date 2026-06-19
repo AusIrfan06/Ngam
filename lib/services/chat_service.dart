@@ -160,11 +160,22 @@ class ChatService {
       throw Exception('You cannot chat with yourself.');
     }
 
-    final existing = await _supabase
-        .from('conversations')
-        .select()
-        .or('and(user1_id.eq.$currentUserId,user2_id.eq.$otherUserId),and(user1_id.eq.$otherUserId,user2_id.eq.$currentUserId)')
-        .maybeSingle();
+    Map<String, dynamic>? existing;
+
+    if (gigId != null) {
+      existing = await _supabase
+          .from('conversations')
+          .select()
+          .eq('gig_id', gigId)
+          .maybeSingle();
+    } else {
+      existing = await _supabase
+          .from('conversations')
+          .select()
+          .or('and(user1_id.eq.$currentUserId,user2_id.eq.$otherUserId),and(user1_id.eq.$otherUserId,user2_id.eq.$currentUserId)')
+          .filter('gig_id', 'is', 'null')
+          .maybeSingle();
+    }
 
     if (existing != null) {
       return ConversationModel.fromJson(existing, currentUserId);

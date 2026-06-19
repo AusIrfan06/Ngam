@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/chat_model.dart';
@@ -20,8 +21,13 @@ class LocalDatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE messages ADD COLUMN reply_to_message TEXT').catchError((e) => null);
+        }
+      },
     );
   }
 
@@ -45,7 +51,8 @@ CREATE TABLE messages (
   message_type $textType,
   file_name $textNullType,
   file_size $integerNullType,
-  status $textType
+  status $textType,
+  reply_to_message $textNullType
 )
 ''');
 
@@ -69,6 +76,9 @@ CREATE TABLE conversations (
     final db = await instance.database;
     final json = message.toJson();
     json['is_read'] = message.isRead ? 1 : 0;
+    if (json['reply_to_message'] != null && json['reply_to_message'] is Map) {
+      json['reply_to_message'] = jsonEncode(json['reply_to_message']);
+    }
     
     await db.insert(
       'messages',
@@ -83,6 +93,9 @@ CREATE TABLE conversations (
     for (var message in messages) {
       final json = message.toJson();
       json['is_read'] = message.isRead ? 1 : 0;
+      if (json['reply_to_message'] != null && json['reply_to_message'] is Map) {
+        json['reply_to_message'] = jsonEncode(json['reply_to_message']);
+      }
       batch.insert('messages', json, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
@@ -103,6 +116,11 @@ CREATE TABLE conversations (
       return maps.map((json) {
         final mutableJson = Map<String, dynamic>.from(json);
         mutableJson['is_read'] = mutableJson['is_read'] == 1;
+        if (mutableJson['reply_to_message'] != null && mutableJson['reply_to_message'] is String) {
+          try {
+            mutableJson['reply_to_message'] = jsonDecode(mutableJson['reply_to_message']);
+          } catch (_) {}
+        }
         return MessageModel.fromJson(mutableJson);
       }).toList();
     } else {

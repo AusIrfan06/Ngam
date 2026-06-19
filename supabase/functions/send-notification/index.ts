@@ -102,7 +102,20 @@ serve(async (req: Request) => {
           // Reverse to show chronological order
           const chronological = recentMessages.reverse();
           const lines = chronological.map((msg: any) => {
-            const txt = msg.image_url ? "📷 Photo" : msg.content;
+            let txt = msg.image_url ? "📷 Photo" : msg.content;
+            
+            if (txt.startsWith("__SYSTEM__:")) {
+              txt = txt.replace("__SYSTEM__:", "");
+            } else if (txt.startsWith("__TASK_CARD__:")) {
+              txt = "Sent a Task Card";
+            } else if (txt.startsWith("__QUOTE__:")) {
+              txt = "Sent a Custom Quote";
+            } else if (txt.startsWith("__COUNTER__:")) {
+              txt = "Sent a Counter-Offer";
+            } else if (txt === "__REQUEST_LOC__") {
+              txt = "Requested your Location";
+            }
+            
             return msg.sender_id === senderId ? txt : `You: ${txt}`;
           });
           bodyText = lines.join("\n");

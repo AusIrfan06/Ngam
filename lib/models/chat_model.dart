@@ -137,6 +137,9 @@ class MessageModel {
   
   // Local state field ('sending', 'sent', 'failed')
   final String status;
+  
+  // Reply reference
+  final Map<String, dynamic>? replyToMessage;
 
   MessageModel({
     required this.id,
@@ -150,6 +153,7 @@ class MessageModel {
     this.fileName,
     this.fileSize,
     this.status = 'sent',
+    this.replyToMessage,
   });
 
   factory MessageModel.fromJson(Map<String, dynamic> json) {
@@ -165,6 +169,7 @@ class MessageModel {
       fileName: json['file_name'],
       fileSize: json['file_size'],
       status: json['status'] ?? 'sent',
+      replyToMessage: json['reply_to_message'],
     );
   }
 
@@ -213,6 +218,7 @@ class MessageModel {
       if (fileName != null) 'file_name': fileName,
       if (fileSize != null) 'file_size': fileSize,
       'status': status,
+      if (replyToMessage != null) 'reply_to_message': replyToMessage,
     };
   }
 
@@ -224,12 +230,8 @@ class MessageModel {
       'content': content,
       if (imageUrl != null) 'image_url': imageUrl,
       'is_read': isRead,
+      if (replyToMessage != null) 'reply_to_message': replyToMessage,
     };
-    
-    // Prevent errors if the Supabase table hasn't been updated with these new columns
-    if (messageType != 'text') json['message_type'] = messageType;
-    if (fileName != null) json['file_name'] = fileName;
-    if (fileSize != null) json['file_size'] = fileSize;
     
     return json;
   }
@@ -250,6 +252,7 @@ class MessageModel {
     String? fileName,
     int? fileSize,
     String? status,
+    Map<String, dynamic>? replyToMessage,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -263,6 +266,7 @@ class MessageModel {
       fileName: fileName ?? this.fileName,
       fileSize: fileSize ?? this.fileSize,
       status: status ?? this.status,
+      replyToMessage: replyToMessage ?? this.replyToMessage,
     );
   }
 }
