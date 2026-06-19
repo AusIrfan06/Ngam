@@ -25,7 +25,7 @@ class _MapPickerState extends State<MapPicker> {
       height: 200,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
       ),
       clipBehavior: Clip.antiAlias,
       child: FlutterMap(

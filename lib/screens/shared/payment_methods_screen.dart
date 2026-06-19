@@ -450,7 +450,6 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   // ─── DuitNow QR Sheet (Runner only) ──────────────────────────
   void _showAddDuitNowSheet(BuildContext context, bool isDark) {
     File? pickedQr;
-    final nameController = TextEditingController();
     final picker = ImagePicker();
 
     showModalBottomSheet(

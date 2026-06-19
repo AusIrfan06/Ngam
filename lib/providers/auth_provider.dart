@@ -209,7 +209,7 @@ class AuthProvider extends ChangeNotifier {
     if (_user == null) return 'User not logged in';
     try {
       final String path = '${_user!.id}/profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final storageResponse = await Supabase.instance.client.storage
+      await Supabase.instance.client.storage
           .from('avatars')
           .upload(path, imageFile, fileOptions: const FileOptions(cacheControl: '3600', upsert: true));
 
