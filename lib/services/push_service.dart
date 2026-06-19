@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import '../screens/shared/chat_screen.dart';
 import 'supabase_service.dart';
@@ -10,6 +12,32 @@ import 'supabase_service.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   debugPrint("Handling a background message: ${message.messageId}");
+}
+
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) async {
+  if (notificationResponse.actionId == 'reply_action' && notificationResponse.input != null) {
+    try {
+      await dotenv.load(fileName: ".env");
+      await SupabaseService.initialize();
+      
+      final String inputMessage = notificationResponse.input!;
+      final conversationId = notificationResponse.payload;
+      
+      if (conversationId != null && conversationId.isNotEmpty) {
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          await Supabase.instance.client.from('messages').insert({
+            'conversation_id': conversationId,
+            'sender_id': userId,
+            'content': inputMessage,
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Background reply error: $e');
+    }
+  }
 }
 
 class PushService {
@@ -37,6 +65,7 @@ class PushService {
 
       await _localNotifications.initialize(
         settings: initializationSettings,
+        onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
 
       // Create Android Notification Channel
@@ -62,7 +91,7 @@ class PushService {
         debugPrint('Got a message whilst in the foreground!');
         debugPrint('Message data: ${message.data}');
 
-        if (message.notification != null) {
+        if (message.notification != null || message.data.containsKey('title') || message.data.containsKey('body')) {
           _showLocalNotification(message);
         }
       });
@@ -100,17 +129,22 @@ class PushService {
   }
 
   static Future<void> _showLocalNotification(RemoteMessage message) async {
+    final title = message.notification?.title ?? message.data['title'];
+    final body = message.notification?.body ?? message.data['body'];
+
+    if (title == null && body == null) return;
+
     StyleInformation? styleInfo;
-    if (message.notification?.body != null) {
-      final lines = message.notification!.body!.split('\n');
+    if (body != null) {
+      final lines = body.split('\n');
       if (lines.length > 1) {
         styleInfo = InboxStyleInformation(
           lines,
-          contentTitle: message.notification!.title,
+          contentTitle: title,
           summaryText: '${lines.length} new messages',
         );
       } else {
-        styleInfo = BigTextStyleInformation(message.notification!.body!);
+        styleInfo = BigTextStyleInformation(body);
       }
     }
 
@@ -124,8 +158,19 @@ class PushService {
       showWhen: true,
       playSound: true,
       enableVibration: true,
-      icon: 'notification',
+      icon: '@mipmap/ic_launcher',
       styleInformation: styleInfo,
+      actions: <AndroidNotificationAction>[
+        const AndroidNotificationAction(
+          'reply_action',
+          'Reply',
+          inputs: <AndroidNotificationActionInput>[
+            AndroidNotificationActionInput(
+              label: 'Type a message...',
+            ),
+          ],
+        ),
+      ],
     );
     final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
@@ -135,9 +180,10 @@ class PushService {
 
     await _localNotifications.show(
       id: tagId.hashCode,
-      title: message.notification?.title,
-      body: message.notification?.body,
+      title: title,
+      body: body,
       notificationDetails: platformChannelSpecifics,
+      payload: message.data['conversation_id'],
     );
   }
 

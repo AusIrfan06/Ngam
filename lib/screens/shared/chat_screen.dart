@@ -18,6 +18,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 
 // ============================================================
@@ -633,6 +634,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     
     _loadOtherUserProfile();
     _loadMessages();
+    _loadDraft();
     
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
@@ -669,11 +671,24 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   void _onTextChanged(String text) {
     if (_typingTimer?.isActive ?? false) _typingTimer!.cancel();
     
+    // Save draft
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('draft_${widget.conversation.id}', text);
+    });
+
     _subscription?.sendBroadcastMessage(event: 'typing', payload: {'user_id': currentUserId, 'is_typing': true});
     
     _typingTimer = Timer(const Duration(seconds: 2), () {
       _subscription?.sendBroadcastMessage(event: 'typing', payload: {'user_id': currentUserId, 'is_typing': false});
     });
+  }
+
+  Future<void> _loadDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final draft = prefs.getString('draft_${widget.conversation.id}');
+    if (draft != null && draft.isNotEmpty && mounted) {
+      _controller.text = draft;
+    }
   }
 
   @override
@@ -716,6 +731,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
     _controller.clear();
+
+    // Clear draft
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove('draft_${widget.conversation.id}');
+    });
 
     final pendingMsg = MessageModel(
       id: 'temp_${DateTime.now().millisecondsSinceEpoch}',

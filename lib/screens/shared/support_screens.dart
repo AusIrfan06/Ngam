@@ -29,9 +29,27 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     {'q': 'Bagaimana pembayaran berfungsi?', 'a': 'Pembayaran dibuat terus antara Pemesan dan Runner selepas task selesai. Kami cadangkan menggunakan DuitNow atau pemindahan bank.'},
     {'q': 'Bolehkah saya batalkan task?', 'a': 'Ya, anda boleh batalkan task dari halaman "My Tasks" selagi task belum diterima oleh runner.'},
     {'q': 'Apa yang berlaku jika runner tidak hadir?', 'a': 'Hubungi kami melalui "Hubungi Kami" dan kami akan bantu selesaikan isu tersebut dalam masa 24 jam.'},
+    {'q': 'Adakah runner Ngam boleh dipercayai?', 'a': 'Semua runner kami perlu melalui proses verifikasi identiti yang ketat sebelum akaun mereka diaktifkan demi keselamatan anda.'},
+    {'q': 'Bolehkah saya berhubung dengan runner?', 'a': 'Ya, anda boleh menggunakan fungsi chat di dalam aplikasi untuk berkomunikasi dengan runner sebaik sahaja mereka menerima task anda.'},
+    {'q': 'Macam mana kalau harga barang berubah?', 'a': 'Anda boleh berbincang dengan runner melalui chat. Runner akan memaklumkan harga sebenar berserta resit untuk pengesahan anda.'},
+    {'q': 'Bagaimana cara untuk memberi rating?', 'a': 'Selepas task ditandakan sebagai selesai, satu pop-up akan muncul membenarkan anda untuk memberi rating dan ulasan kepada runner.'},
+    {'q': 'Adakah maklumat lokasi saya selamat?', 'a': 'Ya, maklumat peribadi dan lokasi tepat anda hanya akan dikongsi dengan runner yang telah sah menerima task anda sahaja.'},
+    {'q': 'Berapa lamakah masa untuk task disiapkan?', 'a': 'Masa bergantung kepada jenis task dan jarak lokasi. Anda boleh melihat anggaran masa atau bertanya terus kepada runner.'},
+    {'q': 'Apa jadi jika barang saya rosak?', 'a': 'Sila ambil gambar kerosakan dan hubungi khidmat pelanggan kami dalam masa 24 jam untuk bantuan pampasan.'},
+    {'q': 'Bolehkah saya tip runner?', 'a': 'Tentu sekali! Anda boleh memberikan tip tunai terus kepada runner atau menyertakan jumlah tip di dalam tawaran harga asal task anda.'},
+    {'q': 'Adakah terdapat had berat untuk barang?', 'a': 'Kami mencadangkan berat maksimum 15kg bagi task penghantaran motosikal. Untuk barang yang lebih besar, sila nyatakan dengan jelas di deskripsi.'},
+    {'q': 'Bolehkah saya tukar lokasi selepas runner terima task?', 'a': 'Perubahan lokasi selepas task diterima tertakluk kepada persetujuan runner. Kos tambahan mungkin dikenakan.'},
   ];
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   int? _expandedIndex;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +85,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.1 : 0.6))),
                   child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
                     style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                     decoration: InputDecoration(
                       filled: false,
@@ -82,40 +102,60 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               Text('SOALAN LAZIM', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
               const SizedBox(height: 12),
 
-              ...List.generate(_faqs.length, (index) {
-                final isExpanded = _expandedIndex == index;
-                return GestureDetector(
-                  onTap: () => setState(() => _expandedIndex = isExpanded ? null : index),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: isExpanded ? 0.08 : 0.03) : Colors.white.withValues(alpha: isExpanded ? 0.7 : 0.4),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isExpanded ? const Color(0xFFFF8C00).withValues(alpha: 0.6) : Colors.white.withValues(alpha: isDark ? 0.05 : 0.5),
-                        width: 1.5,
+              ...(() {
+                final filteredFaqs = _searchQuery.isEmpty
+                    ? _faqs
+                    : _faqs.where((faq) => faq['q']!.toLowerCase().contains(_searchQuery) || faq['a']!.toLowerCase().contains(_searchQuery)).toList();
+
+                if (filteredFaqs.isEmpty) {
+                  return [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      child: Center(
+                        child: Text(
+                          'Tiada soalan dijumpai untuk "$_searchQuery"',
+                          style: TextStyle(color: Colors.grey.shade500),
+                        ),
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(child: Text(_faqs[index]['q']!, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87))),
-                            Icon(isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: Colors.grey),
-                          ],
+                  ];
+                }
+
+                return List.generate(filteredFaqs.length, (index) {
+                  final isExpanded = _expandedIndex == index;
+                  return GestureDetector(
+                    onTap: () => setState(() => _expandedIndex = isExpanded ? null : index),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: isExpanded ? 0.08 : 0.03) : Colors.white.withValues(alpha: isExpanded ? 0.7 : 0.4),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isExpanded ? const Color(0xFFFF8C00).withValues(alpha: 0.6) : Colors.white.withValues(alpha: isDark ? 0.05 : 0.5),
+                          width: 1.5,
                         ),
-                        if (isExpanded) ...[
-                          const SizedBox(height: 12),
-                          Text(_faqs[index]['a']!, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black54, height: 1.5)),
-                        ]
-                      ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(child: Text(filteredFaqs[index]['q']!, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87))),
+                              Icon(isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: Colors.grey),
+                            ],
+                          ),
+                          if (isExpanded) ...[
+                            const SizedBox(height: 12),
+                            Text(filteredFaqs[index]['a']!, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black54, height: 1.5)),
+                          ]
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                });
+              })(),
             ],
           ),
         ),
