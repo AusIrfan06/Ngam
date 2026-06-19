@@ -85,9 +85,13 @@ class ChatService {
     }
   }
 
-  /// Subscribe to new messages via Supabase Realtime
-  static RealtimeChannel subscribeToNewMessages(String conversationId, void Function(MessageModel) onNewMessage) {
-    return _supabase.channel('public:messages:$conversationId')
+  /// Subscribe to new messages and typing events via Supabase Realtime
+  static RealtimeChannel subscribeToChatEvents(
+    String conversationId, {
+    required void Function(MessageModel) onNewMessage,
+    required void Function(String userId, bool isTyping) onTypingStatus,
+  }) {
+    return _supabase.channel('public:chat:$conversationId')
       .onPostgresChanges(
         event: PostgresChangeEvent.insert,
         schema: 'public',
@@ -103,7 +107,51 @@ class ChatService {
           onNewMessage(newMsg);
         },
       )
+      .onBroadcast(
+        event: 'typing',
+        callback: (payload) {
+          final userId = payload['user_id'] as String?;
+          final isTyping = payload['is_typing'] as bool? ?? false;
+          if (userId != null) onTypingStatus(userId, isTyping);
+        },
+      )
       .subscribe();
+  }
+
+  // --- Presence ---
+  static RealtimeChannel? _presenceChannel;
+
+  /// Joins the global presence channel to mark the current user as online.
+  static void trackPresence(String userId, void Function(Set<String>) onOnlineUsersUpdated) {
+    _presenceChannel?.unsubscribe();
+    
+    _presenceChannel = _supabase.channel('online_presence');
+    _presenceChannel!
+      .onPresenceSync((payload) {
+        final state = _presenceChannel!.presenceState();
+        final Set<String> onlineUserIds = {};
+        for (dynamic presenceState in state) {
+          final presences = presenceState.presences;
+          if (presences != null) {
+            for (dynamic p in presences) {
+              if (p.payload != null && p.payload['user_id'] != null) {
+                onlineUserIds.add(p.payload['user_id'] as String);
+              }
+            }
+          }
+        }
+        onOnlineUsersUpdated(onlineUserIds);
+      })
+      .subscribe((status, [error]) async {
+        if (status == RealtimeSubscribeStatus.subscribed) {
+          await _presenceChannel!.track({'user_id': userId});
+        }
+      });
+  }
+
+  static void stopTrackingPresence() {
+    _presenceChannel?.unsubscribe();
+    _presenceChannel = null;
   }
 
   /// Create or get a conversation between two users

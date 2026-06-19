@@ -217,17 +217,21 @@ class MessageModel {
   }
 
   Map<String, dynamic> toSupabaseJson() {
-    return {
+    final json = <String, dynamic>{
       if (id.isNotEmpty && !id.startsWith('temp_')) 'id': id,
       'conversation_id': conversationId,
       'sender_id': senderId,
       'content': content,
       if (imageUrl != null) 'image_url': imageUrl,
       'is_read': isRead,
-      'message_type': messageType,
-      if (fileName != null) 'file_name': fileName,
-      if (fileSize != null) 'file_size': fileSize,
     };
+    
+    // Prevent errors if the Supabase table hasn't been updated with these new columns
+    if (messageType != 'text') json['message_type'] = messageType;
+    if (fileName != null) json['file_name'] = fileName;
+    if (fileSize != null) json['file_size'] = fileSize;
+    
+    return json;
   }
 
   String get formattedTime {

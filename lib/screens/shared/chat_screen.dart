@@ -18,6 +18,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
 // ============================================================
 // Ngam App — Chat Screen
@@ -33,16 +34,34 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   late Stream<List<ConversationModel>> _conversationsStream;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+  String _searchQuery = '';
+  Set<String> _onlineUserIds = {};
 
   @override
   void initState() {
     super.initState();
+    _searchFocus.addListener(() {
+      if (mounted) setState(() {});
+    });
     final currentUser = context.read<AuthProvider>().user;
     if (currentUser != null) {
       _conversationsStream = ChatService.getConversationsStream(currentUser.id);
+      ChatService.trackPresence(currentUser.id, (onlineIds) {
+        if (mounted) setState(() => _onlineUserIds = onlineIds);
+      });
     } else {
       _conversationsStream = const Stream.empty();
     }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    ChatService.stopTrackingPresence();
+    super.dispose();
   }
 
   @override
@@ -86,35 +105,83 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: GlassContainer(
                     useOwnLayer: true,
                     quality: GlassQuality.standard,
-                    shape: LiquidRoundedSuperellipse(borderRadius: 20.0),
+                    shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
                     settings: _glassSettings(isDark),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.white.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(20),
+                            ? Colors.white.withValues(alpha: _searchFocus.hasFocus ? 0.08 : 0.04)
+                            : Colors.white.withValues(alpha: _searchFocus.hasFocus ? 0.5 : 0.2),
+                        borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.7),
-                          width: 1.0,
+                          color: _searchFocus.hasFocus 
+                              ? AppTheme.primary.withValues(alpha: 0.5)
+                              : Colors.white.withValues(alpha: isDark ? 0.1 : 0.4),
+                          width: _searchFocus.hasFocus ? 1.5 : 1.0,
                         ),
                       ),
                       child: Row(
                         children: [
-                          HugeIcon(
-                            icon: HugeIcons.strokeRoundedSearch01,
-                            color: Colors.grey.shade500,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Search conversations...',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade500,
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedSearch01,
+                              color: isDark ? Colors.white70 : Colors.grey.shade600,
+                              size: 20,
+                              strokeWidth: 2.0,
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocus,
+                              onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black87,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Search conversations...',
+                                hintStyle: TextStyle(
+                                  fontSize: 15,
+                                  color: isDark ? Colors.white54 : Colors.grey.shade500,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ),
+                          if (_searchQuery.isNotEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                                _searchFocus.unfocus();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white24 : Colors.black12,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.close,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                  size: 14,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -151,7 +218,19 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                          return const Center(child: Text("No conversations yet."));
                       }
-                      final conversations = snapshot.data!;
+                      final allConversations = snapshot.data!;
+                      final conversations = _searchQuery.isEmpty 
+                          ? allConversations 
+                          : allConversations.where((c) {
+                              final nameMatch = (c.otherUser?.name ?? '').toLowerCase().contains(_searchQuery);
+                              final msgMatch = (c.lastMessage ?? '').toLowerCase().contains(_searchQuery);
+                              return nameMatch || msgMatch;
+                            }).toList();
+                            
+                      if (conversations.isEmpty) {
+                         return Center(child: Text("No matching conversations."));
+                      }
+                      
                       return ListView.separated(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                         physics: const BouncingScrollPhysics(),
@@ -159,10 +238,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final c = conversations[index];
+                          final isOnline = c.otherUser != null && _onlineUserIds.contains(c.otherUser!.id);
                           return _ConversationTile(
                             conversation: c,
                             currentUserId: currentUser.id,
                             isDark: isDark,
+                            isOnline: isOnline,
                             onTap: () => _openChat(context, c, isDark),
                             onLongPress: () => _showDeleteDialog(context, c),
                           );
@@ -249,6 +330,7 @@ class _ConversationTile extends StatelessWidget {
   final ConversationModel conversation;
   final String currentUserId;
   final bool isDark;
+  final bool isOnline;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -256,6 +338,7 @@ class _ConversationTile extends StatelessWidget {
     required this.conversation,
     required this.currentUserId,
     required this.isDark,
+    this.isOnline = false,
     required this.onTap,
     required this.onLongPress,
   });
@@ -346,6 +429,23 @@ class _ConversationTile extends StatelessWidget {
                               )
                             : null,
                       ),
+                      if (isOnline)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4CAF50),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(width: 14),
@@ -522,6 +622,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   RealtimeChannel? _subscription;
   Map<String, dynamic>? _otherUserProfile;
 
+  bool _isOtherTyping = false;
+  Timer? _typingTimer;
+
   @override
   void initState() {
     super.initState();
@@ -537,24 +640,45 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       }
     });
 
-    _subscription = ChatService.subscribeToNewMessages(widget.conversation.id, (newMsg) {
-      if (mounted) {
-        setState(() {
-          final existingIndex = _messages.indexWhere((m) => m.id == newMsg.id || (m.status == 'sending' && m.content == newMsg.content));
-          if (existingIndex != -1) {
-            _messages[existingIndex] = newMsg;
-          } else {
-            _messages.insert(0, newMsg);
-          }
-        });
-      }
-    });
+    _subscription = ChatService.subscribeToChatEvents(
+      widget.conversation.id,
+      onNewMessage: (newMsg) {
+        if (mounted) {
+          setState(() {
+            final existingIndex = _messages.indexWhere((m) => m.id == newMsg.id || (m.status == 'sending' && m.content == newMsg.content));
+            if (existingIndex != -1) {
+              _messages[existingIndex] = newMsg;
+            } else {
+              _messages.insert(0, newMsg);
+            }
+          });
+        }
+      },
+      onTypingStatus: (String userId, bool isTyping) {
+        if (userId == otherUserId && mounted) {
+          setState(() {
+            _isOtherTyping = isTyping;
+          });
+        }
+      },
+    );
 
     ChatService.markMessagesAsRead(widget.conversation.id, otherUserId);
   }
 
+  void _onTextChanged(String text) {
+    if (_typingTimer?.isActive ?? false) _typingTimer!.cancel();
+    
+    _subscription?.sendBroadcastMessage(event: 'typing', payload: {'user_id': currentUserId, 'is_typing': true});
+    
+    _typingTimer = Timer(const Duration(seconds: 2), () {
+      _subscription?.sendBroadcastMessage(event: 'typing', payload: {'user_id': currentUserId, 'is_typing': false});
+    });
+  }
+
   @override
   void dispose() {
+    _typingTimer?.cancel();
     _subscription?.unsubscribe();
     _controller.dispose();
     _scrollController.dispose();
@@ -619,6 +743,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           final index = _messages.indexWhere((m) => m.id == pendingMsg.id);
           if (index != -1) _messages[index] = pendingMsg.copyWith(status: 'failed');
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send: $e')),
+        );
       }
     }
   }
@@ -651,6 +778,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             final index = _messages.indexWhere((m) => m.id == pendingMsg.id);
             if (index != -1) _messages[index] = pendingMsg.copyWith(status: 'failed');
           });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to send image: $e')),
+          );
         }
       } finally {
         if (mounted) setState(() => _isUploadingImage = false);
@@ -740,6 +870,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               final index = _messages.indexWhere((m) => m.id == pendingMsg.id);
               if (index != -1) _messages[index] = pendingMsg.copyWith(status: 'failed');
             });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to send file: $e')),
+            );
           }
         } finally {
           if (mounted) setState(() => _isUploadingImage = false);
@@ -1015,14 +1148,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       body: Stack(
         children: [
           // ─── Main Content ──────────────────────────────────────────
-          Column(
-            children: [
           // ─── Messages ────────────────────────────────────────
-          Expanded(
+          Positioned.fill(
             child: ListView.builder(
               reverse: true,
               controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(16, 80, 16, 16), // Extra top padding for the floating top bar
+              padding: const EdgeInsets.fromLTRB(16, 80, 16, 100), // Extra top padding for the top bar, bottom for input
               physics: const BouncingScrollPhysics(),
               itemCount: _messages.length + (_isLoading ? 1 : 0),
               itemBuilder: (context, index) {
@@ -1076,13 +1207,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           ),
 
           // ─── Input Bar ───────────────────────────────────────
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              16, 4, 16,
-              MediaQuery.of(context).viewInsets.bottom > 0
-                  ? 8
-                  : MediaQuery.of(context).padding.bottom + 8,
-            ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom > 0
+                ? 8
+                : MediaQuery.of(context).padding.bottom + 8,
             child: GlassContainer(
               useOwnLayer: true,
               quality: GlassQuality.standard,
@@ -1135,7 +1265,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     Expanded(
                       child: TextField(
                         controller: _controller,
-                        onSubmitted: (_) => _sendMessage(),
+                        onChanged: _onTextChanged,
+                        onSubmitted: (_) {
+                          _typingTimer?.cancel();
+                          _subscription?.sendBroadcastMessage(event: 'typing', payload: {'user_id': currentUserId, 'is_typing': false});
+                          _sendMessage();
+                        },
                         style: TextStyle(
                           fontSize: 14,
                           color: isDark ? Colors.white : Colors.black87,
@@ -1155,7 +1290,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     const SizedBox(width: 8),
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: _sendMessage,
+                      onTap: () {
+                        _typingTimer?.cancel();
+                        _subscription?.sendBroadcastMessage(event: 'typing', payload: {'user_id': currentUserId, 'is_typing': false});
+                        _sendMessage();
+                      },
                       child: Container(
                         width: 34,
                         height: 34,
@@ -1182,8 +1321,28 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               ),
             ),
           ),
-        ],
-      ),
+          
+          // ─── Typing Indicator ──────────────────────────────────
+          if (_isOtherTyping)
+            Positioned(
+              left: 32,
+              bottom: (MediaQuery.of(context).viewInsets.bottom > 0 ? 8 : MediaQuery.of(context).padding.bottom + 8) + 60,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white12 : Colors.black12,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  '${_otherUserProfile?['name'] ?? 'User'} is typing...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ),
       
       // ─── Custom Glass Floating Top Bar ─────────────────────────────────
       Positioned(
@@ -1313,7 +1472,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   if (_otherUserProfile != null) ...(() {
                     final phone = _otherUserProfile!['phone'] ?? _otherUserProfile!['phone_number'];
                     if (phone != null && phone.toString().isNotEmpty) {
-                      return [
+                      return <Widget>[
                         const SizedBox(width: 8),
                         GlassContainer(
                           useOwnLayer: true,
