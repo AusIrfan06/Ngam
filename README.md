@@ -1,5 +1,10 @@
 # Ngam - Roger Anything, Kautim Instantly
 
+[![Download APK](https://img.shields.io/badge/Download-Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AusIrfan06/Ngam/releases/latest/download/app-release.apk)
+
+[Atau klik sini untuk ke halaman Releases](https://github.com/AusIrfan06/Ngam/releases)
+
+
 Ngam is a community-driven Flutter application that connects people who need help with local errands (Customers) and people willing to do them (Runners). Whether it's buying food, doing a quick grocery run, printing documents, or heavy lifting, Ngam provides a seamless platform to get tasks done.
 
 ## Features

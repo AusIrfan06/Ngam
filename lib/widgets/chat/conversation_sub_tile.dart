@@ -132,15 +132,22 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (gigStatus != null) ...[
               Padding(
-                padding: const EdgeInsets.only(right: 12.0),
-                child: HugeIcon(
-                  icon: _getIconForStatus(gigStatus),
-                  color: _getColorForStatus(gigStatus, widget.isDark),
-                  size: 28,
+                padding: const EdgeInsets.only(right: 12.0, top: 2.0),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _getColorForStatus(gigStatus, widget.isDark).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: HugeIcon(
+                    icon: _getIconForStatus(gigStatus),
+                    color: _getColorForStatus(gigStatus, widget.isDark),
+                    size: 18,
+                  ),
                 ),
               ),
             ],
@@ -153,7 +160,7 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: unread > 0 ? FontWeight.w800 : FontWeight.w600,
-                      color: AppTheme.primary,
+                      color: widget.isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/user_model.dart';
 import '../../models/chat_model.dart';
 import '../../services/chat_service.dart';
 import '../../utils/app_theme.dart';
 import 'conversation_sub_tile.dart';
+import '../typing_indicator.dart';
 
 class UserGroupConversationCard extends StatefulWidget {
   final UserModel otherUser;
@@ -35,6 +38,53 @@ class UserGroupConversationCard extends StatefulWidget {
 
 class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
   bool _isExpanded = false;
+  bool _isTyping = false;
+  final List<RealtimeChannel> _typingChannels = [];
+  Timer? _typingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupTypingListeners();
+  }
+
+  void _setupTypingListeners() {
+    for (var conversation in widget.conversations) {
+      final channel = Supabase.instance.client
+          .channel('public:chat:${conversation.id}')
+          .onBroadcast(
+            event: 'typing',
+            callback: (payload) {
+              final userId = payload['user_id'] as String?;
+              final isTyping = payload['is_typing'] as bool? ?? false;
+              
+              if (userId == widget.otherUser.id && mounted) {
+                setState(() {
+                  _isTyping = isTyping;
+                });
+                
+                if (isTyping) {
+                  _typingTimer?.cancel();
+                  _typingTimer = Timer(const Duration(seconds: 3), () {
+                    if (mounted) setState(() => _isTyping = false);
+                  });
+                }
+              }
+            },
+          );
+      channel.subscribe();
+      _typingChannels.add(channel);
+    }
+  }
+
+  @override
+  void dispose() {
+    _typingTimer?.cancel();
+    for (var channel in _typingChannels) {
+      channel.unsubscribe();
+    }
+    super.dispose();
+  }
 
   Widget _buildBadge(dynamic icon, Color color, String text) {
     return Container(
@@ -63,17 +113,26 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
 
   @override
   Widget build(BuildContext context) {
-    int inProgress = 0;
-    int completed = 0;
+    int openCount = 0;
+    int inProgressCount = 0;
+    int completedCount = 0;
+    int lockedCount = 0;
     int unreadCount = 0;
 
     for (var c in widget.conversations) {
-      unreadCount += c.unreadCount;
+      if (c.unreadCount > 0) {
+        unreadCount += c.unreadCount;
+      } else if (!c.lastMessageIsRead && c.lastMessageSenderId != widget.currentUserId) {
+        unreadCount += 1;
+      }
+
       if (c.gigId != null) {
         final gigData = ChatService.getCachedGigSync(c.gigId!);
         final status = gigData?['status']?.toString().toUpperCase();
-        if (status == 'IN-PROGRESS') inProgress++;
-        else if (status == 'COMPLETED') completed++;
+        if (status == 'OPEN') openCount++;
+        else if (status == 'IN-PROGRESS') inProgressCount++;
+        else if (status == 'COMPLETED') completedCount++;
+        else if (status == 'LOCKED') lockedCount++;
       }
     }
 
@@ -202,10 +261,40 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
                             spacing: 6,
                             runSpacing: 4,
                             children: [
-                              _buildBadge(HugeIcons.strokeRoundedWorkHistory, AppTheme.primary, '${widget.conversations.length}'),
-                              if (inProgress > 0) _buildBadge(HugeIcons.strokeRoundedHourglass, Colors.blue, '$inProgress'),
-                              if (completed > 0) _buildBadge(HugeIcons.strokeRoundedTick01, Colors.green, '$completed'),
-                              if (unreadCount > 0) _buildBadge(HugeIcons.strokeRoundedMessageMultiple01, Colors.orange, '$unreadCount'),
+                              if (openCount > 0) _buildBadge(HugeIcons.strokeRoundedWorkHistory, AppTheme.primary, '$openCount'),
+                              if (inProgressCount > 0) _buildBadge(HugeIcons.strokeRoundedHourglass, Colors.blue, '$inProgressCount'),
+                              if (completedCount > 0) _buildBadge(HugeIcons.strokeRoundedTick01, Colors.green, '$completedCount'),
+                              if (lockedCount > 0) _buildBadge(HugeIcons.strokeRoundedLockKey, Colors.orange, '$lockedCount'),
+                              if (unreadCount > 0) _buildBadge(HugeIcons.strokeRoundedMessageMultiple01, Colors.red, '$unreadCount'),
+                              if (_isTyping)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Typing',
+                                        style: TextStyle(
+                                          color: AppTheme.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const SizedBox(
+                                        width: 16,
+                                        height: 10,
+                                        child: TypingIndicator(isDark: false),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                         ],

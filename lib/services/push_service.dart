@@ -42,10 +42,22 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
             'last_message_is_read': false,
             'updated_at': now,
           }).eq('id', conversationId);
+          
+          // Cancel the notification to dismiss the inline reply loading spinner
+          if (notificationResponse.id != null) {
+            await FlutterLocalNotificationsPlugin().cancel(notificationResponse.id!);
+          }
+        } else {
+          if (notificationResponse.id != null) {
+            await FlutterLocalNotificationsPlugin().cancel(notificationResponse.id!);
+          }
         }
       }
     } catch (e) {
       debugPrint('Background reply error: $e');
+      if (notificationResponse.id != null) {
+        await FlutterLocalNotificationsPlugin().cancel(notificationResponse.id!);
+      }
     }
   }
 }
@@ -183,7 +195,7 @@ class PushService {
       showWhen: true,
       playSound: true,
       enableVibration: true,
-      icon: '@mipmap/ic_launcher',
+      icon: 'notification',
       styleInformation: styleInfo,
       actions: <AndroidNotificationAction>[
         const AndroidNotificationAction(

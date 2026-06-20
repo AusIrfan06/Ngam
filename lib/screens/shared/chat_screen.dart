@@ -463,6 +463,25 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   GigModel? _linkedGig;
   List<GigModel> _sharedGigs = [];
 
+  String _formatDateDivider(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final msgDate = DateTime(date.year, date.month, date.day);
+
+    if (msgDate == today) {
+      return 'Today';
+    } else if (msgDate == yesterday) {
+      return 'Yesterday';
+    } else {
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      if (date.year == now.year) {
+        return '${date.day} ${months[date.month - 1]}';
+      }
+      return '${date.day} ${months[date.month - 1]} ${date.year}';
+    }
+  }
+
   dynamic _getIconForStatus(String status) {
     switch (status.toUpperCase()) {
       case 'OPEN':
@@ -481,8 +500,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   }
 
   Color _getColorForStatus(String status, bool isDark, bool isActive) {
-    if (!isActive) return isDark ? Colors.white54 : Colors.black54;
-
     switch (status.toUpperCase()) {
       case 'OPEN':
         return AppTheme.primary;
@@ -1523,8 +1540,41 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   controller: _scrollController,
                   padding: EdgeInsets.fromLTRB(16, _sharedGigs.isNotEmpty ? 170 : 80, 16, 160), // Extra top padding for the top bar and carousel, bottom for input
                   physics: const BouncingScrollPhysics(),
-                  itemCount: displayMessages.length + (_isLoading ? 1 : 0),
+                  itemCount: displayMessages.length + (_isLoading ? 1 : 0) + (_isOtherTyping ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (_isOtherTyping) {
+                      if (index == 0) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const SizedBox(width: 8),
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: AppTheme.primary,
+                                backgroundImage: _otherUserProfile?['avatar_url'] != null && _otherUserProfile!['avatar_url'].isNotEmpty 
+                                    ? CachedNetworkImageProvider(_otherUserProfile!['avatar_url']) 
+                                    : null,
+                                child: _otherUserProfile?['avatar_url'] == null || _otherUserProfile!['avatar_url'].isEmpty
+                                    ? Text(
+                                        _otherUserProfile?['name'] != null && _otherUserProfile!['name'].isNotEmpty 
+                                            ? _otherUserProfile!['name'][0].toUpperCase() 
+                                            : '?',
+                                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 8),
+                              TypingIndicator(isDark: isDark),
+                            ],
+                          ),
+                        );
+                      }
+                      index--;
+                    }
+                    
                     if (index == displayMessages.length) {
                       return const Center(
                         child: Padding(
@@ -1547,44 +1597,84 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                         }
                       }
                     }
-                    
-                    return SwipeToReply(
-                      isMe: msg.senderId == currentUserId,
-                      onSwipe: () {
-                        setState(() => _replyingToMessage = msg);
-                        HapticFeedback.lightImpact();
-                      },
-                  child: Container(
-                    key: _messageKeys.putIfAbsent(msg.id, () => GlobalKey()),
-                    child: _MessageBubble(
-                      message: msg, 
-                      isDark: isDark, 
-                      isMe: msg.senderId == currentUserId,
-                      showAvatar: showAvatar,
-                      otherAvatarUrl: _otherUserProfile?['avatar_url'],
-                      otherName: _otherUserProfile?['name'],
-                      onReplyTap: () {
-                        if (msg.replyToMessage != null && msg.replyToMessage!['id'] != null) {
-                          _scrollToMessage(msg.replyToMessage!['id']);
+                      bool showDateDivider = false;
+                      if (index == displayMessages.length - 1) {
+                        showDateDivider = true;
+                      } else {
+                        final olderMsg = displayMessages[index + 1];
+                        if (msg.createdAt.year != olderMsg.createdAt.year ||
+                            msg.createdAt.month != olderMsg.createdAt.month ||
+                            msg.createdAt.day != olderMsg.createdAt.day) {
+                          showDateDivider = true;
                         }
-                      },
-                      onImageTap: () {
-                      if (!msg.isImage) return;
-                      final imageMessages = _messages.where((m) => m.isImage).toList();
-                      final initialIndex = imageMessages.indexWhere((m) => m.id == msg.id);
-                      if (initialIndex != -1) {
-                        showDialog(
-                          context: context,
-                          builder: (_) => _ImageViewerDialog(
-                            imageUrls: imageMessages.map((m) => m.imageUrl!).toList(),
-                            initialIndex: initialIndex,
+                      }
+
+                      Widget messageWidget = SwipeToReply(
+                        isMe: msg.senderId == currentUserId,
+                        onSwipe: () {
+                          setState(() => _replyingToMessage = msg);
+                          HapticFeedback.lightImpact();
+                        },
+                        child: Container(
+                          key: _messageKeys.putIfAbsent(msg.id, () => GlobalKey()),
+                          child: _MessageBubble(
+                            message: msg, 
+                            isDark: isDark, 
+                            isMe: msg.senderId == currentUserId,
+                            showAvatar: showAvatar,
+                            otherAvatarUrl: _otherUserProfile?['avatar_url'],
+                            otherName: _otherUserProfile?['name'],
+                            onReplyTap: () {
+                              if (msg.replyToMessage != null && msg.replyToMessage!['id'] != null) {
+                                _scrollToMessage(msg.replyToMessage!['id']);
+                              }
+                            },
+                            onImageTap: () {
+                              if (!msg.isImage) return;
+                              final imageMessages = _messages.where((m) => m.isImage).toList();
+                              final initialIndex = imageMessages.indexWhere((m) => m.id == msg.id);
+                              if (initialIndex != -1) {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => _ImageViewerDialog(
+                                    imageUrls: imageMessages.map((m) => m.imageUrl!).toList(),
+                                    initialIndex: initialIndex,
+                                  ),
+                                );
+                              }
+                            },
                           ),
+                        ),
+                      );
+
+                      if (showDateDivider) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  _formatDateDivider(msg.createdAt),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white70 : Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            messageWidget,
+                          ],
                         );
                       }
-                    },
-                  ),
-                ),
-                );
+
+                      return messageWidget;
               },
             );
           }),
@@ -1797,14 +1887,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           ],
         ),
       ),
-      // ─── Typing Indicator ──────────────────────────────────
-      if (_isOtherTyping)
-            Positioned(
-              left: 32,
-              bottom: (MediaQuery.of(context).viewInsets.bottom > 0 ? 8 : MediaQuery.of(context).padding.bottom + 8) + 60,
-              child: TypingIndicator(isDark: isDark),
-            ),
-      
       // ─── Custom Glass Floating Top Bar ─────────────────────────────────
       Positioned(
         top: 0,
@@ -1882,32 +1964,57 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                                     },
                                     child: Row(
                                       children: [
-                                        Container(
-                                          width: 32,
-                                          height: 32,
-                                          decoration: BoxDecoration(
-                                            color: avatarColor.withValues(alpha: 0.15),
-                                            shape: BoxShape.circle,
-                                            border: Border.all(color: avatarColor.withValues(alpha: 0.4), width: 1.5),
-                                            image: avatarUrl != null
-                                                ? DecorationImage(
-                                                    image: CachedNetworkImageProvider(avatarUrl),
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : null,
-                                          ),
-                                          child: avatarUrl == null
-                                              ? Center(
-                                                  child: Text(
-                                                    avatar,
-                                                    style: GoogleFonts.outfit(
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w800,
-                                                      color: avatarColor,
+                                        ValueListenableBuilder<Set<String>>(
+                                          valueListenable: ChatService.onlineUsers,
+                                          builder: (context, onlineUsers, child) {
+                                            final isOnline = onlineUsers.contains(otherUserId);
+                                            return Stack(
+                                              clipBehavior: Clip.none,
+                                              children: [
+                                                Container(
+                                                  width: 32,
+                                                  height: 32,
+                                                  decoration: BoxDecoration(
+                                                    color: avatarColor.withValues(alpha: 0.15),
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(color: avatarColor.withValues(alpha: 0.4), width: 1.5),
+                                                    image: avatarUrl != null
+                                                        ? DecorationImage(
+                                                            image: CachedNetworkImageProvider(avatarUrl),
+                                                            fit: BoxFit.cover,
+                                                          )
+                                                        : null,
+                                                  ),
+                                                  child: avatarUrl == null
+                                                      ? Center(
+                                                          child: Text(
+                                                            avatar,
+                                                            style: GoogleFonts.outfit(
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.w800,
+                                                              color: avatarColor,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : null,
+                                                ),
+                                                if (isOnline)
+                                                  Positioned(
+                                                    bottom: 0,
+                                                    right: 0,
+                                                    child: Container(
+                                                      width: 10,
+                                                      height: 10,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.green,
+                                                        shape: BoxShape.circle,
+                                                        border: Border.all(color: isDark ? const Color(0xFF1E1E1E) : Colors.white, width: 2),
+                                                      ),
                                                     ),
                                                   ),
-                                                )
-                                              : null,
+                                              ],
+                                            );
+                                          },
                                         ),
                                         const SizedBox(width: 8),
                                         Expanded(
@@ -2035,13 +2142,28 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               builder: (context, constraints) {
                 final screenWidth = MediaQuery.of(context).size.width;
                 final defaultLeftPadding = (screenWidth * (1 - 0.65)) / 2;
-                final shift = 16.0 - defaultLeftPadding;
 
-                return Transform.translate(
-                  offset: Offset(shift, 0),
-                  child: SizedBox(
-                    height: 70,
-                    child: PageView.builder(
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      double page = 0.0;
+                      if (_pageController.hasClients && _pageController.position.hasContentDimensions) {
+                        page = _pageController.page ?? 0.0;
+                      }
+                      final shiftLeft = defaultLeftPadding - 16.0;
+                      final factor = (1.0 - page).clamp(0.0, 1.0);
+                      final currentShift = shiftLeft * factor;
+
+                      return Transform.translate(
+                        offset: Offset(-currentShift, 0),
+                        child: child,
+                      );
+                    },
+                    child: SizedBox(
+                      height: 70,
+                      child: PageView.builder(
                       physics: const BouncingScrollPhysics(),
                       clipBehavior: Clip.none,
                       padEnds: true,
@@ -2053,8 +2175,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                       itemBuilder: (context, index) {
                         final gig = _sharedGigs[index];
                         final isActive = _linkedGig?.id == gig.id;
-                        
-                        return GestureDetector(
+                        Widget card = GestureDetector(
                           onTap: () {
                             if (isActive) {
                               Navigator.push(context, MaterialPageRoute(
@@ -2066,7 +2187,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                             }
                           },
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 12, bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       child: GlassContainer(
                         useOwnLayer: true,
                         quality: GlassQuality.standard,
@@ -2086,14 +2207,14 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
                             color: isActive 
-                                ? AppTheme.primary.withValues(alpha: 0.4)
-                                : (isDark ? Colors.white.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.4)),
+                                ? (isDark ? AppTheme.primary.withValues(alpha: 0.25) : AppTheme.primary.withValues(alpha: 0.15))
+                                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.5)),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isActive 
-                                  ? AppTheme.primary.withValues(alpha: 0.5) 
-                                  : Colors.white.withValues(alpha: isDark ? 0.1 : 0.3), 
-                              width: isActive ? 1.0 : 1.0
+                                  ? AppTheme.primary.withValues(alpha: 0.6) 
+                                  : Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), 
+                              width: isActive ? 1.5 : 1.0
                             ),
                           ),
                           child: Row(
@@ -2101,7 +2222,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                               Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: isActive ? _getColorForStatus(gig.status, isDark, isActive).withValues(alpha: 0.15) : _getColorForStatus(gig.status, isDark, isActive).withValues(alpha: 0.1),
+                                  color: _getColorForStatus(gig.status, isDark, isActive).withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
                                 child: HugeIcon(
@@ -2129,7 +2250,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                                     Text(
                                       '${gig.formattedBounty} • ${gig.status}',
                                       style: TextStyle(
-                                        color: isActive ? (isDark ? Colors.white70 : Colors.black54) : Colors.grey, 
+                                        color: isDark ? Colors.white70 : Colors.black54, 
                                         fontSize: 11,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -2143,9 +2264,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                       ),
                     ),
                   );
+
+                  return card;
                 },
               ),
             ),
+          ),
           );
         },
       ),
