@@ -260,16 +260,22 @@ class GigProvider extends ChangeNotifier {
   }
 
   /// Runner accepts a gig (Task-State Locker)
-  Future<bool> acceptGig(String gigId, String runnerId, String runnerName) async {
+  Future<bool> acceptGig(String gigId, String runnerId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
-      await GigService.acceptGig(gigId, runnerId, runnerName);
+      await GigService.acceptGig(gigId, runnerId);
       // Update local state
       _openGigs.removeWhere((g) => g.id == gigId);
       _activeJob = await GigService.fetchGigById(gigId);
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = 'Failed to accept gig. It may already be taken.';
+      _isLoading = false;
+      _error = 'Failed to accept gig. It may already be taken. ($e)';
       notifyListeners();
       return false;
     }

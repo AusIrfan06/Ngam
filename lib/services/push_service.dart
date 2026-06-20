@@ -18,6 +18,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void notificationTapBackground(NotificationResponse notificationResponse) async {
   if (notificationResponse.actionId == 'reply_action' && notificationResponse.input != null) {
     try {
+      WidgetsFlutterBinding.ensureInitialized();
       await dotenv.load(fileName: ".env");
       await SupabaseService.initialize();
       
@@ -27,11 +28,20 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
       if (conversationId != null && conversationId.isNotEmpty) {
         final userId = Supabase.instance.client.auth.currentUser?.id;
         if (userId != null) {
+          final now = DateTime.now().toUtc().toIso8601String();
           await Supabase.instance.client.from('messages').insert({
             'conversation_id': conversationId,
             'sender_id': userId,
             'content': inputMessage,
+            'created_at': now,
           });
+          
+          await Supabase.instance.client.from('conversations').update({
+            'last_message': inputMessage,
+            'last_message_sender_id': userId,
+            'last_message_is_read': false,
+            'updated_at': now,
+          }).eq('id', conversationId);
         }
       }
     } catch (e) {

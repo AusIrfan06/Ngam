@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/chat_model.dart';
 import '../models/user_model.dart';
@@ -21,9 +22,25 @@ class ChatService {
       return null;
     }
   }
+  static final Map<String, Map<String, dynamic>> _gigCache = {};
+  
+  static Map<String, dynamic>? getCachedGigSync(String gigId) => _gigCache[gigId];
+
+  static Future<Map<String, dynamic>?> getCachedGig(String gigId) async {
+    if (_gigCache.containsKey(gigId)) return _gigCache[gigId];
+    try {
+      final data = await _supabase.from('gigs').select('customer_id, gig_worker_id, title, status').eq('id', gigId).maybeSingle();
+      if (data != null) {
+        _gigCache[gigId] = data;
+      }
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
 
   /// Fetch all conversations for the current user
-  static Stream<List<ConversationModel>> getConversationsStream(String currentUserId) async* {
+  static Stream<List<ConversationModel>> getConversationsStream(String currentUserId, {required bool isRunner}) async* {
     final localDb = LocalDatabaseService.instance;
 
     // Yield local data instantly
@@ -32,6 +49,18 @@ class ChatService {
       // For local conversations, populate with cached users
       List<ConversationModel> populatedLocal = [];
       for (var conv in localConversations) {
+        if (conv.gigId != null) {
+           final gigData = _gigCache[conv.gigId!];
+           if (gigData != null) {
+             final isCustomerInGig = gigData['customer_id'] == currentUserId;
+             if (isRunner && isCustomerInGig) continue;
+             if (!isRunner && !isCustomerInGig) continue;
+           } else {
+             // Skip if we don't have gig cache to avoid flickering wrong role chats
+             continue;
+           }
+        }
+
         final otherId = conv.user1Id == currentUserId ? conv.user2Id : conv.user1Id;
         final otherUser = _userCache[otherId];
         populatedLocal.add(conv.copyWith(otherUser: otherUser));
@@ -54,6 +83,16 @@ class ChatService {
           List<ConversationModel> conversations = [];
           for (var e in filtered) {
              final conv = ConversationModel.fromJson(e, currentUserId);
+
+             if (conv.gigId != null) {
+               final gigData = await getCachedGig(conv.gigId!);
+               if (gigData != null) {
+                 final isCustomerInGig = gigData['customer_id'] == currentUserId;
+                 if (isRunner && isCustomerInGig) continue;
+                 if (!isRunner && !isCustomerInGig) continue;
+               }
+             }
+
              final otherId = conv.user1Id == currentUserId ? conv.user2Id : conv.user1Id;
              final otherUser = await getCachedUser(otherId);
              conversations.add(conv.copyWith(otherUser: otherUser));
@@ -120,10 +159,11 @@ class ChatService {
 
   // --- Presence ---
   static RealtimeChannel? _presenceChannel;
+  static final ValueNotifier<Set<String>> onlineUsers = ValueNotifier({});
 
   /// Joins the global presence channel to mark the current user as online.
-  static void trackPresence(String userId, void Function(Set<String>) onOnlineUsersUpdated) {
-    _presenceChannel?.unsubscribe();
+  static void trackPresence(String userId) {
+    if (_presenceChannel != null) return; // Already tracking
     
     _presenceChannel = _supabase.channel('online_presence');
     _presenceChannel!
@@ -140,7 +180,7 @@ class ChatService {
             }
           }
         }
-        onOnlineUsersUpdated(onlineUserIds);
+        onlineUsers.value = onlineUserIds;
       })
       .subscribe((status, [error]) async {
         if (status == RealtimeSubscribeStatus.subscribed) {
@@ -152,6 +192,7 @@ class ChatService {
   static void stopTrackingPresence() {
     _presenceChannel?.unsubscribe();
     _presenceChannel = null;
+    onlineUsers.value = {};
   }
 
   /// Create or get a conversation between two users
@@ -167,6 +208,7 @@ class ChatService {
           .from('conversations')
           .select()
           .eq('gig_id', gigId)
+          .or('and(user1_id.eq.$currentUserId,user2_id.eq.$otherUserId),and(user1_id.eq.$otherUserId,user2_id.eq.$currentUserId)')
           .maybeSingle();
     } else {
       existing = await _supabase

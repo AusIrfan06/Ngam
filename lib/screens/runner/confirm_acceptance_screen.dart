@@ -168,7 +168,6 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                                   final success = await gigProvider.acceptGig(
                                     gig.id,
                                     user.id,
-                                    user.name,
                                   );
 
                                   if (success && context.mounted) {
@@ -180,6 +179,13 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                                         status: 'LOCKED',
                                         gigWorkerId: user.id,
                                         runnerName: user.name,
+                                      ),
+                                    );
+                                  } else if (!success && context.mounted && gigProvider.error != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(gigProvider.error!),
+                                        backgroundColor: AppTheme.error,
                                       ),
                                     );
                                   }

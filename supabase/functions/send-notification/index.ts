@@ -101,7 +101,9 @@ serve(async (req: Request) => {
         if (recentMessages && recentMessages.length > 0) {
           // Reverse to show chronological order
           const chronological = recentMessages.reverse();
-          const lines = chronological.map((msg: any) => {
+          const lines = chronological
+            .filter((msg: any) => !msg.content.startsWith("__SYSTEM__Context:"))
+            .map((msg: any) => {
             let txt = msg.image_url ? "📷 Photo" : msg.content;
             
             if (txt.startsWith("__SYSTEM__:")) {

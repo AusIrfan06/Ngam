@@ -170,17 +170,18 @@ class GigService {
 
   /// Runner accepts a gig — triggers the "State Locker"
   /// Sets status to LOCKED and assigns the runner
-  static Future<void> acceptGig(String gigId, String runnerId, String runnerName) async {
+  static Future<void> acceptGig(String gigId, String runnerId) async {
     // Atomically update the gig status
     await _client
         .from(DbTable.gigs)
         .update({
           'gig_worker_id': runnerId,
-          'runner_name': runnerName,
           'status': GigStatus.locked,
         })
         .eq('id', gigId)
-        .eq('status', GigStatus.open); // Only lock if still OPEN
+        .eq('status', GigStatus.open) // Only lock if still OPEN
+        .select()
+        .single();
 
     await _logStatus(gigId, GigStatus.locked);
   }
