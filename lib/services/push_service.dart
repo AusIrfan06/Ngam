@@ -8,6 +8,14 @@ import '../main.dart';
 import '../screens/shared/chat_screen.dart';
 import 'supabase_service.dart';
 
+int getConsistentNotificationId(String string) {
+  int hash = 0;
+  for (int i = 0; i < string.length; i++) {
+    hash = 31 * hash + string.codeUnitAt(i);
+  }
+  return hash & 0x7FFFFFFF;
+}
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -26,6 +34,7 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
       final conversationId = notificationResponse.payload;
       
       if (conversationId != null && conversationId.isNotEmpty) {
+        final notificationId = getConsistentNotificationId(conversationId);
         final userId = Supabase.instance.client.auth.currentUser?.id;
         if (userId != null) {
           final now = DateTime.now().toUtc().toIso8601String();
@@ -44,19 +53,17 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
           }).eq('id', conversationId);
           
           // Cancel the notification to dismiss the inline reply loading spinner
-          if (notificationResponse.id != null) {
-            await FlutterLocalNotificationsPlugin().cancel(notificationResponse.id!);
-          }
+          await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
         } else {
-          if (notificationResponse.id != null) {
-            await FlutterLocalNotificationsPlugin().cancel(notificationResponse.id!);
-          }
+          await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
         }
       }
     } catch (e) {
       debugPrint('Background reply error: $e');
-      if (notificationResponse.id != null) {
-        await FlutterLocalNotificationsPlugin().cancel(notificationResponse.id!);
+      if (notificationResponse.payload != null) {
+        await FlutterLocalNotificationsPlugin().cancel(id: getConsistentNotificationId(notificationResponse.payload!));
+      } else if (notificationResponse.id != null) {
+        await FlutterLocalNotificationsPlugin().cancel(id: notificationResponse.id!);
       }
     }
   }
@@ -185,6 +192,8 @@ class PushService {
       }
     }
 
+    final bool hasConversation = message.data['conversation_id'] != null;
+
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'ngam_high_importance_channel', // id
@@ -197,7 +206,7 @@ class PushService {
       enableVibration: true,
       icon: 'notification',
       styleInformation: styleInfo,
-      actions: <AndroidNotificationAction>[
+      actions: hasConversation ? <AndroidNotificationAction>[
         const AndroidNotificationAction(
           'reply_action',
           'Reply',
@@ -207,16 +216,16 @@ class PushService {
             ),
           ],
         ),
-      ],
+      ] : null,
     );
     final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
     // Group notifications by conversation or gig ID so they replace each other
-    final String tagId = message.data['conversation_id'] ?? message.data['gig_id'] ?? message.hashCode.toString();
+    final String tagId = message.data['conversation_id'] ?? message.data['gig_id'] ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
     await _localNotifications.show(
-      id: tagId.hashCode,
+      id: getConsistentNotificationId(tagId),
       title: title,
       body: body,
       notificationDetails: platformChannelSpecifics,

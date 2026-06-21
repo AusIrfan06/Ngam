@@ -300,44 +300,13 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    HugeIcon(
-                      icon: _isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
-                      color: widget.isDark ? Colors.white54 : Colors.black54,
-                      size: 20,
-                    ),
                   ],
                 ),
               ),
             ),
-            
-            // Content
-            AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: _isExpanded ? Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Divider(
-                      height: 1,
-                      color: widget.isDark ? Colors.white12 : Colors.black12,
-                    ),
-                  ),
-                  ...widget.conversations.map((c) => ConversationSubTile(
-                        conversation: c,
-                        currentUserId: widget.currentUserId,
-                        isDark: widget.isDark,
-                        onTap: () => widget.onTap(c),
-                        onLongPress: () => widget.onLongPress(c),
-                      )),
-                  const SizedBox(height: 8),
-                ],
-              ) : const SizedBox(width: double.infinity),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
-}
