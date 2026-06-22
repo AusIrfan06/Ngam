@@ -131,7 +131,9 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
     }
     
     int unread = 0;
-    if (widget.gigOverride != null) {
+    if (c.lastMessageSenderId == widget.currentUserId) {
+      unread = 0;
+    } else if (widget.gigOverride != null) {
       unread = c.taskUnreadCounts?[widget.gigOverride!.id] ?? 0;
     } else {
       // General chat unread logic: total unread minus sum of specific task unreads

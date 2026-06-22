@@ -133,9 +133,18 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
     int unreadCount = 0;
 
     for (var c in widget.conversations) {
-      if (c.unreadCount > 0) {
-        unreadCount += c.unreadCount;
-      } else if (!c.lastMessageIsRead && c.lastMessageSenderId != widget.currentUserId) {
+      if (c.lastMessageSenderId == widget.currentUserId) {
+        continue; // I sent the last message, so it's not unread for me
+      }
+
+      int specificUnreads = 0;
+      if (c.taskUnreadCounts != null) {
+        specificUnreads = c.taskUnreadCounts!.values.fold(0, (sum, val) => sum + val);
+      }
+
+      if (specificUnreads > 0) {
+        unreadCount += specificUnreads;
+      } else if (!c.lastMessageIsRead) {
         unreadCount += 1;
       }
     }
