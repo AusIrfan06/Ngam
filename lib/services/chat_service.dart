@@ -201,23 +201,11 @@ class ChatService {
       throw Exception('You cannot chat with yourself.');
     }
 
-    Map<String, dynamic>? existing;
-
-    if (gigId != null) {
-      existing = await _supabase
-          .from('conversations')
-          .select()
-          .eq('gig_id', gigId)
-          .or('and(user1_id.eq.$currentUserId,user2_id.eq.$otherUserId),and(user1_id.eq.$otherUserId,user2_id.eq.$currentUserId)')
-          .maybeSingle();
-    } else {
-      existing = await _supabase
-          .from('conversations')
-          .select()
-          .or('and(user1_id.eq.$currentUserId,user2_id.eq.$otherUserId),and(user1_id.eq.$otherUserId,user2_id.eq.$currentUserId)')
-          .filter('gig_id', 'is', 'null')
-          .maybeSingle();
-    }
+    final existing = await _supabase
+        .from('conversations')
+        .select()
+        .or('and(user1_id.eq.$currentUserId,user2_id.eq.$otherUserId),and(user1_id.eq.$otherUserId,user2_id.eq.$currentUserId)')
+        .maybeSingle();
 
     if (existing != null) {
       return ConversationModel.fromJson(existing, currentUserId);
@@ -234,18 +222,27 @@ class ChatService {
   }
 
   /// Send a message
-  static Future<void> sendMessage(MessageModel message) async {
+  static Future<void> sendMessage(MessageModel message, {String? contextGigId}) async {
     try {
       // 1. Insert message
       await _supabase.from('messages').insert(message.toSupabaseJson());
 
       // 2. Update conversation
-      await _supabase.from('conversations').update({
-        'last_message': message.content,
-        'last_message_sender_id': message.senderId,
-        'last_message_is_read': false,
-        'updated_at': message.createdAt.toUtc().toIso8601String(),
-      }).eq('id', message.conversationId);
+      if (contextGigId != null) {
+        await _supabase.rpc('update_conversation_task_message', params: {
+          'p_conversation_id': message.conversationId,
+          'p_sender_id': message.senderId,
+          'p_message_content': message.content,
+          'p_gig_id': contextGigId,
+        });
+      } else {
+        await _supabase.from('conversations').update({
+          'last_message': message.content,
+          'last_message_sender_id': message.senderId,
+          'last_message_is_read': false,
+          'updated_at': message.createdAt.toUtc().toIso8601String(),
+        }).eq('id', message.conversationId);
+      }
       
       // Update local status
       final sentMsg = message.copyWith(status: 'sent');
@@ -258,7 +255,7 @@ class ChatService {
   }
 
   /// Upload image and send an image message
-  static Future<void> sendImageMessage(MessageModel pendingMessage, File imageFile) async {
+  static Future<void> sendImageMessage(MessageModel pendingMessage, File imageFile, {String? contextGigId}) async {
     try {
       final fileExt = imageFile.path.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${pendingMessage.senderId}.$fileExt';
@@ -275,12 +272,21 @@ class ChatService {
 
       await _supabase.from('messages').insert(newMsg.toSupabaseJson());
 
-      await _supabase.from('conversations').update({
-        'last_message': '📷 Photo',
-        'last_message_sender_id': pendingMessage.senderId,
-        'last_message_is_read': false,
-        'updated_at': newMsg.createdAt.toUtc().toIso8601String(),
-      }).eq('id', pendingMessage.conversationId);
+      if (contextGigId != null) {
+        await _supabase.rpc('update_conversation_task_message', params: {
+          'p_conversation_id': pendingMessage.conversationId,
+          'p_sender_id': pendingMessage.senderId,
+          'p_message_content': '📷 Photo',
+          'p_gig_id': contextGigId,
+        });
+      } else {
+        await _supabase.from('conversations').update({
+          'last_message': '📷 Photo',
+          'last_message_sender_id': pendingMessage.senderId,
+          'last_message_is_read': false,
+          'updated_at': newMsg.createdAt.toUtc().toIso8601String(),
+        }).eq('id', pendingMessage.conversationId);
+      }
       
       await LocalDatabaseService.instance.insertMessage(newMsg.copyWith(status: 'sent'));
     } catch (e) {
@@ -290,7 +296,7 @@ class ChatService {
   }
 
   /// Upload file and send a file message
-  static Future<void> sendFileMessage(MessageModel pendingMessage, File file, String fileName) async {
+  static Future<void> sendFileMessage(MessageModel pendingMessage, File file, String fileName, {String? contextGigId}) async {
     try {
       final filePath = '${pendingMessage.conversationId}/${DateTime.now().millisecondsSinceEpoch}_$fileName';
       
@@ -305,12 +311,21 @@ class ChatService {
 
       await _supabase.from('messages').insert(newMsg.toSupabaseJson());
 
-      await _supabase.from('conversations').update({
-        'last_message': '📎 File',
-        'last_message_sender_id': pendingMessage.senderId,
-        'last_message_is_read': false,
-        'updated_at': newMsg.createdAt.toUtc().toIso8601String(),
-      }).eq('id', pendingMessage.conversationId);
+      if (contextGigId != null) {
+        await _supabase.rpc('update_conversation_task_message', params: {
+          'p_conversation_id': pendingMessage.conversationId,
+          'p_sender_id': pendingMessage.senderId,
+          'p_message_content': '📎 File',
+          'p_gig_id': contextGigId,
+        });
+      } else {
+        await _supabase.from('conversations').update({
+          'last_message': '📎 File',
+          'last_message_sender_id': pendingMessage.senderId,
+          'last_message_is_read': false,
+          'updated_at': newMsg.createdAt.toUtc().toIso8601String(),
+        }).eq('id', pendingMessage.conversationId);
+      }
       
       await LocalDatabaseService.instance.insertMessage(newMsg.copyWith(status: 'sent'));
     } catch (e) {
@@ -328,7 +343,10 @@ class ChatService {
         .eq('is_read', false);
 
     await _supabase.from('conversations')
-        .update({'last_message_is_read': true})
+        .update({
+          'last_message_is_read': true,
+          'task_unread_counts': {},
+        })
         .eq('id', conversationId)
         .eq('last_message_sender_id', otherUserId);
   }

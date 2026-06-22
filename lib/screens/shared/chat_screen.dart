@@ -292,7 +292,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             currentUserId: currentUser.id,
                             isDark: isDark,
                             isOnline: isOnline,
-                            onTap: (c) => _openChat(context, c, isDark),
+                            onTap: (c, gigId) => _openChat(context, c, isDark, gigId),
                             onLongPress: (c) => _showDeleteDialog(context, c),
                           );
                         },
@@ -306,11 +306,11 @@ class _ChatScreenState extends State<ChatScreen> {
         );
   }
 
-  void _openChat(BuildContext context, ConversationModel c, bool isDark) {
+  void _openChat(BuildContext context, ConversationModel c, bool isDark, String? initialGigId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatThreadScreen(conversation: c),
+        builder: (_) => ChatThreadScreen(conversation: c, initialGigId: initialGigId),
       ),
     );
   }
@@ -432,8 +432,9 @@ class _GlassIconButton extends StatelessWidget {
 // ─── Chat Thread Screen ───────────────────────────────────────
 class ChatThreadScreen extends StatefulWidget {
   final ConversationModel conversation;
+  final String? initialGigId;
 
-  const ChatThreadScreen({super.key, required this.conversation});
+  const ChatThreadScreen({super.key, required this.conversation, this.initialGigId});
 
   @override
   State<ChatThreadScreen> createState() => _ChatThreadScreenState();
@@ -627,15 +628,20 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         setState(() {
           _sharedGigs = shared;
           
-          if (widget.conversation.gigId != null) {
-            _linkedGig = shared.cast<GigModel?>().firstWhere(
-              (g) => g?.id == widget.conversation.gigId, 
-              orElse: () => null
-            );
-            
-            // Fallback if not found in shared
-            if (_linkedGig == null) {
-              GigService.fetchGigById(widget.conversation.gigId!).then((g) {
+          String? targetGigId = widget.initialGigId ?? widget.conversation.gigId;
+          
+          if (targetGigId != null) {
+            final idx = _sharedGigs.indexWhere((g) => g.id == targetGigId);
+            if (idx != -1) {
+              _linkedGig = _sharedGigs[idx];
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_pageController.hasClients) {
+                  _pageController.jumpToPage(idx);
+                }
+              });
+            } else {
+              // Fallback if not found in shared
+              GigService.fetchGigById(targetGigId).then((g) {
                 if (mounted) setState(() => _linkedGig = g);
               });
             }
@@ -753,7 +759,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     }
 
     try {
-      await ChatService.sendMessage(pendingMsg);
+      await ChatService.sendMessage(pendingMsg, contextGigId: _linkedGig?.id);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -790,7 +796,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       });
 
       try {
-        await ChatService.sendImageMessage(pendingMsg, File(pickedFile.path));
+        await ChatService.sendImageMessage(pendingMsg, File(pickedFile.path), contextGigId: _linkedGig?.id);
       } catch (e) {
         if (mounted) {
           setState(() {
@@ -925,7 +931,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       status: 'sending',
     );
     setState(() { _messages.insert(0, newMsg); });
-    await ChatService.sendMessage(newMsg);
+    await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
   }
 
   void _showCreateQuoteDialog() {
@@ -972,7 +978,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   status: 'sending',
                 );
                 setState(() { _messages.insert(0, newMsg); });
-                await ChatService.sendMessage(newMsg);
+                await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
               },
               child: const Text('Send Quote'),
             ),
@@ -1021,7 +1027,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   status: 'sending',
                 );
                 setState(() { _messages.insert(0, newMsg); });
-                await ChatService.sendMessage(newMsg);
+                await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
               },
               child: const Text('Send Counter'),
             ),
@@ -1152,7 +1158,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         status: 'sending',
       );
       setState(() { _messages.insert(0, newMsg); });
-      await ChatService.sendMessage(newMsg);
+      await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
     }
   }
 
@@ -1170,7 +1176,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       status: 'sending',
     );
     setState(() { _messages.insert(0, newMsg); });
-    await ChatService.sendMessage(newMsg);
+    await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
   }
 
   Future<void> _pickFile() async {
@@ -1206,7 +1212,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         });
 
         try {
-          await ChatService.sendFileMessage(pendingMsg, file, fileName);
+          await ChatService.sendFileMessage(pendingMsg, file, fileName, contextGigId: _linkedGig?.id);
         } catch (e) {
           if (mounted) {
             setState(() {

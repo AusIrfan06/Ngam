@@ -10,6 +10,8 @@ class ConversationModel {
   final String? lastMessageSenderId;
   final bool lastMessageIsRead;
   final DateTime updatedAt;
+  final Map<String, dynamic>? taskLastMessages;
+  final Map<String, int>? taskUnreadCounts;
 
   // Joined user details (e.g. the other person in the chat)
   final UserModel? otherUser;
@@ -24,6 +26,8 @@ class ConversationModel {
     this.lastMessageSenderId,
     this.lastMessageIsRead = false,
     required this.updatedAt,
+    this.taskLastMessages,
+    this.taskUnreadCounts,
     this.otherUser,
     this.unreadCount = 0,
   });
@@ -60,6 +64,12 @@ class ConversationModel {
       lastMessageSenderId: json['last_message_sender_id'],
       lastMessageIsRead: json['last_message_is_read'] ?? false,
       updatedAt: DateTime.parse(json['updated_at']).toLocal(),
+      taskLastMessages: json['task_last_messages'] != null 
+          ? Map<String, dynamic>.from(json['task_last_messages']) 
+          : null,
+      taskUnreadCounts: json['task_unread_counts'] != null
+          ? Map<String, int>.from(json['task_unread_counts'].map((k, v) => MapEntry(k.toString(), v as int)))
+          : null,
       otherUser: otherUserParsed,
       unreadCount: json['unread_count'] ?? 0, 
     );
@@ -75,6 +85,8 @@ class ConversationModel {
       'last_message_sender_id': lastMessageSenderId,
       'last_message_is_read': lastMessageIsRead,
       'updated_at': updatedAt.toIso8601String(),
+      if (taskLastMessages != null) 'task_last_messages': taskLastMessages,
+      if (taskUnreadCounts != null) 'task_unread_counts': taskUnreadCounts,
       'unread_count': unreadCount,
     };
   }
@@ -103,6 +115,8 @@ class ConversationModel {
     String? lastMessageSenderId,
     bool? lastMessageIsRead,
     DateTime? updatedAt,
+    Map<String, dynamic>? taskLastMessages,
+    Map<String, int>? taskUnreadCounts,
     UserModel? otherUser,
     int? unreadCount,
   }) {
@@ -115,6 +129,8 @@ class ConversationModel {
       lastMessageSenderId: lastMessageSenderId ?? this.lastMessageSenderId,
       lastMessageIsRead: lastMessageIsRead ?? this.lastMessageIsRead,
       updatedAt: updatedAt ?? this.updatedAt,
+      taskLastMessages: taskLastMessages ?? this.taskLastMessages,
+      taskUnreadCounts: taskUnreadCounts ?? this.taskUnreadCounts,
       otherUser: otherUser ?? this.otherUser,
       unreadCount: unreadCount ?? this.unreadCount,
     );

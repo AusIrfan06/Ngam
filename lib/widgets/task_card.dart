@@ -116,15 +116,16 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                       ),
                       const SizedBox(height: 8),
 
-                      // Category chip + Status
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           CategoryChip(
                             label: widget.gig.category,
                             showIcon: false,
                           ),
-                          if (widget.showStatus) ...[
-                            const SizedBox(width: 8),
+                          if (widget.showStatus)
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -143,7 +144,6 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                                 ),
                               ),
                             ),
-                          ],
                         ],
                       ),
 

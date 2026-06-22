@@ -21,11 +21,17 @@ class LocalDatabaseService {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE messages ADD COLUMN reply_to_message TEXT').catchError((e) => null);
+        }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE conversations ADD COLUMN task_last_messages TEXT').catchError((e) => null);
+        }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE conversations ADD COLUMN task_unread_counts TEXT').catchError((e) => null);
         }
       },
     );
@@ -66,7 +72,9 @@ CREATE TABLE conversations (
   last_message_sender_id $textNullType,
   last_message_is_read $boolType,
   updated_at $textType,
-  unread_count $integerType
+  unread_count $integerType,
+  task_last_messages $textNullType,
+  task_unread_counts $textNullType
 )
 ''');
   }
@@ -152,6 +160,12 @@ CREATE TABLE conversations (
     final db = await instance.database;
     final json = conversation.toJson();
     json['last_message_is_read'] = conversation.lastMessageIsRead ? 1 : 0;
+    if (json['task_last_messages'] != null && json['task_last_messages'] is Map) {
+      json['task_last_messages'] = jsonEncode(json['task_last_messages']);
+    }
+    if (json['task_unread_counts'] != null && json['task_unread_counts'] is Map) {
+      json['task_unread_counts'] = jsonEncode(json['task_unread_counts']);
+    }
     await db.insert('conversations', json, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -161,6 +175,12 @@ CREATE TABLE conversations (
     for (var conv in conversations) {
       final json = conv.toJson();
       json['last_message_is_read'] = conv.lastMessageIsRead ? 1 : 0;
+      if (json['task_last_messages'] != null && json['task_last_messages'] is Map) {
+        json['task_last_messages'] = jsonEncode(json['task_last_messages']);
+      }
+      if (json['task_unread_counts'] != null && json['task_unread_counts'] is Map) {
+        json['task_unread_counts'] = jsonEncode(json['task_unread_counts']);
+      }
       batch.insert('conversations', json, conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
@@ -177,7 +197,17 @@ CREATE TABLE conversations (
       return maps.map((json) {
         final mutableJson = Map<String, dynamic>.from(json);
         mutableJson['last_message_is_read'] = mutableJson['last_message_is_read'] == 1;
-        return ConversationModel.fromJson(mutableJson, ''); 
+        if (mutableJson['task_last_messages'] != null && mutableJson['task_last_messages'] is String) {
+          try {
+            mutableJson['task_last_messages'] = jsonDecode(mutableJson['task_last_messages']);
+          } catch (_) {}
+        }
+        if (mutableJson['task_unread_counts'] != null && mutableJson['task_unread_counts'] is String) {
+          try {
+            mutableJson['task_unread_counts'] = jsonDecode(mutableJson['task_unread_counts']);
+          } catch (_) {}
+        }
+        return ConversationModel.fromJson(mutableJson, '');  
       }).toList();
     } else {
       return [];

@@ -7,7 +7,9 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/user_model.dart';
 import '../../models/chat_model.dart';
+import '../../models/gig_model.dart';
 import '../../services/chat_service.dart';
+import '../../services/gig_service.dart';
 import '../../utils/app_theme.dart';
 import 'conversation_sub_tile.dart';
 import '../typing_indicator.dart';
@@ -18,7 +20,7 @@ class UserGroupConversationCard extends StatefulWidget {
   final String currentUserId;
   final bool isDark;
   final bool isOnline;
-  final void Function(ConversationModel) onTap;
+  final void Function(ConversationModel, String?) onTap;
   final void Function(ConversationModel) onLongPress;
 
   const UserGroupConversationCard({
@@ -41,11 +43,22 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
   bool _isTyping = false;
   final List<RealtimeChannel> _typingChannels = [];
   Timer? _typingTimer;
+  List<GigModel>? _sharedGigs;
 
   @override
   void initState() {
     super.initState();
     _setupTypingListeners();
+    _loadSharedGigs();
+  }
+
+  Future<void> _loadSharedGigs() async {
+    try {
+      final gigs = await GigService.fetchSharedGigs(widget.currentUserId, widget.otherUser.id);
+      if (mounted) setState(() => _sharedGigs = gigs);
+    } catch (e) {
+      if (mounted) setState(() => _sharedGigs = []);
+    }
   }
 
   void _setupTypingListeners() {
@@ -125,10 +138,11 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
       } else if (!c.lastMessageIsRead && c.lastMessageSenderId != widget.currentUserId) {
         unreadCount += 1;
       }
+    }
 
-      if (c.gigId != null) {
-        final gigData = ChatService.getCachedGigSync(c.gigId!);
-        final status = gigData?['status']?.toString().toUpperCase();
+    if (_sharedGigs != null) {
+      for (var gig in _sharedGigs!) {
+        final status = gig.status.toUpperCase();
         if (status == 'OPEN') openCount++;
         else if (status == 'IN-PROGRESS') inProgressCount++;
         else if (status == 'COMPLETED') completedCount++;
@@ -300,13 +314,68 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    HugeIcon(
+                      icon: _isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                      color: widget.isDark ? Colors.white54 : Colors.black54,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),
             ),
-            ],
-          ),
+            
+            // Content
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _isExpanded ? Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Divider(
+                      height: 1,
+                      color: widget.isDark ? Colors.white12 : Colors.black12,
+                    ),
+                  ),
+                  if (_sharedGigs == null)
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else ...[
+                    // Show General Chat only if there are no specific tasks
+                    if (_sharedGigs!.isEmpty)
+                      ConversationSubTile(
+                        conversation: widget.conversations.first,
+                        currentUserId: widget.currentUserId,
+                        isDark: widget.isDark,
+                        onTap: () => widget.onTap(widget.conversations.first, null),
+                        onLongPress: () => widget.onLongPress(widget.conversations.first),
+                      ),
+                    // Specific Gigs
+                    ..._sharedGigs!.map((gig) => ConversationSubTile(
+                          conversation: widget.conversations.first,
+                          gigOverride: gig,
+                          currentUserId: widget.currentUserId,
+                          isDark: widget.isDark,
+                          onTap: () => widget.onTap(widget.conversations.first, gig.id),
+                          onLongPress: () => widget.onLongPress(widget.conversations.first),
+                        )),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ) : const SizedBox(width: double.infinity),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
+}

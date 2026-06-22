@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../models/chat_model.dart';
+import '../../models/gig_model.dart';
 import '../../services/chat_service.dart';
 import '../../utils/app_theme.dart';
 import '../typing_indicator.dart';
 
 class ConversationSubTile extends StatefulWidget {
   final ConversationModel conversation;
+  final GigModel? gigOverride;
   final String currentUserId;
   final bool isDark;
   final VoidCallback onTap;
@@ -17,6 +19,7 @@ class ConversationSubTile extends StatefulWidget {
   const ConversationSubTile({
     super.key,
     required this.conversation,
+    this.gigOverride,
     required this.currentUserId,
     required this.isDark,
     required this.onTap,
@@ -108,6 +111,13 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
   Widget build(BuildContext context) {
     final c = widget.conversation;
     String lastMsg = c.lastMessage ?? 'Started a conversation';
+    if (widget.gigOverride != null && c.taskLastMessages != null) {
+      final taskMsg = c.taskLastMessages![widget.gigOverride!.id];
+      if (taskMsg != null && taskMsg.toString().isNotEmpty) {
+        lastMsg = taskMsg.toString();
+      }
+    }
+
     if (lastMsg.startsWith('__SYSTEM__:')) {
       lastMsg = lastMsg.replaceFirst('__SYSTEM__:', '');
     } else if (lastMsg.startsWith('__TASK_CARD__:')) {
@@ -120,11 +130,26 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
       lastMsg = 'Requested your Location';
     }
     
-    final int unread = c.unreadCount;
-    final String time = c.formattedTime;
-    final gigData = c.gigId != null ? ChatService.getCachedGigSync(c.gigId!) : null;
-    final gigTitle = gigData?['title'] ?? (c.gigId != null ? 'Task Chat' : 'General Chat');
-    final String? gigStatus = gigData?['status'];
+    int unread = 0;
+    if (widget.gigOverride != null) {
+      unread = c.taskUnreadCounts?[widget.gigOverride!.id] ?? 0;
+    } else {
+      // General chat unread logic: total unread minus sum of specific task unreads
+      int specificUnreadSum = 0;
+      if (c.taskUnreadCounts != null) {
+        specificUnreadSum = c.taskUnreadCounts!.values.fold(0, (sum, val) => sum + val);
+      }
+      unread = (c.unreadCount - specificUnreadSum).clamp(0, 999);
+    }
+    
+    bool isThisTaskUnread = unread > 0;
+
+    final String time = widget.gigOverride == null ? c.formattedTime : '';
+    final gigData = widget.gigOverride == null && c.gigId != null 
+        ? ChatService.getCachedGigSync(c.gigId!) 
+        : null;
+    final gigTitle = widget.gigOverride?.title ?? gigData?['title'] ?? 'General Chat';
+    final String? gigStatus = widget.gigOverride?.status ?? gigData?['status'];
 
     return InkWell(
       onTap: widget.onTap,
@@ -150,6 +175,9 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
                   ),
                 ),
               ),
+            ] else ...[
+               // Placeholder for alignment if no status icon
+               const SizedBox(width: 46),
             ],
             Expanded(
               child: Column(
@@ -159,7 +187,7 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
                     gigTitle,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: unread > 0 ? FontWeight.w800 : FontWeight.w600,
+                      fontWeight: isThisTaskUnread ? FontWeight.w800 : FontWeight.w600,
                       color: widget.isDark ? Colors.white : Colors.black87,
                     ),
                     maxLines: 2,
@@ -222,32 +250,55 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  time,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: unread > 0 ? AppTheme.primary : Colors.grey.shade500,
-                    fontWeight: unread > 0 ? FontWeight.w700 : FontWeight.w400,
-                  ),
-                ),
-                if (unread > 0) ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary,
-                      borderRadius: BorderRadius.circular(10),
+                if (time.isNotEmpty)
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: unread > 0 ? AppTheme.primary : Colors.grey.shade500,
+                      fontWeight: unread > 0 ? FontWeight.w700 : FontWeight.w400,
                     ),
-                    child: Text(
-                      unread > 99 ? '99+' : unread.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                  ),
+                if (isThisTaskUnread && widget.gigOverride != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        unread > 99 ? '99+' : unread.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
-                  ),
-                ] else const SizedBox(height: 20),
+                  )
+                else if (unread > 0 && widget.gigOverride == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        unread > 99 ? '99+' : unread.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 20),
               ],
             ),
           ],
