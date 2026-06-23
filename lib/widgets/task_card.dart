@@ -3,8 +3,8 @@ import '../models/gig_model.dart';
 import 'category_chip.dart';
 
 // ============================================================
-// Ngam App — Task Card Widget
-// Displays a gig/task in a card format
+// Ngam App — Task Card Widget (Rezrv Inspired)
+// Displays a gig/task in a premium vertical card format
 // ============================================================
 
 class TaskCard extends StatefulWidget {
@@ -64,6 +64,28 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
     }
   }
 
+  List<Color> _getCategoryGradient() {
+    switch (widget.gig.category) {
+      case 'Delivery': return [const Color(0xFFFF9A9E), const Color(0xFFFECFEF)];
+      case 'Cleaning': return [const Color(0xFF4FACFE), const Color(0xFF00F2FE)];
+      case 'Assembly': return [const Color(0xFFFCCB90), const Color(0xFFD57EEB)];
+      case 'Shopping': return [const Color(0xFFE0C3FC), const Color(0xFF8EC5FC)];
+      case 'Moving': return [const Color(0xFF84FAB0), const Color(0xFF8FD3F4)];
+      default: return [const Color(0xFF43E97B), const Color(0xFF38F9D7)];
+    }
+  }
+
+  IconData _getCategoryIcon() {
+    switch (widget.gig.category) {
+      case 'Delivery': return Icons.local_shipping_rounded;
+      case 'Cleaning': return Icons.cleaning_services_rounded;
+      case 'Assembly': return Icons.build_circle_rounded;
+      case 'Shopping': return Icons.shopping_cart_rounded;
+      case 'Moving': return Icons.inventory_2_rounded;
+      default: return Icons.task_alt_rounded;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -80,134 +102,156 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
           child: child,
         ),
         child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: Theme.of(context).cardTheme.color,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Left content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title
-                      Text(
-                        widget.gig.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          CategoryChip(
-                            label: widget.gig.category,
-                            showIcon: false,
-                          ),
-                          if (widget.showStatus)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor().withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                widget.gig.status,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getStatusColor(),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-
-                      if (widget.gig.location.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on_outlined,
-                              size: 14,
-                              color: Colors.grey.shade500,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                widget.gig.location,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Cover Image / Gradient Header
+              Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: _getCategoryGradient(),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
-
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                        Container(
+                child: Stack(
+                  children: [
+                    Center(
+                      child: Icon(
+                        _getCategoryIcon(),
+                        size: 64,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    if (widget.showStatus)
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
+                            horizontal: 10,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                              )
+                            ],
                           ),
                           child: Text(
-                            widget.gig.formattedBounty,
+                            widget.gig.status,
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: _getStatusColor(),
                             ),
-                            maxLines: 1,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              
+              // Content Area
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title & Price Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.gig.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (widget.actionWidget != null) ...[
-                          const SizedBox(height: 8),
-                          widget.actionWidget!,
-                        ],
+                        const SizedBox(width: 8),
+                        Text(
+                          widget.gig.formattedBounty,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+
+                    // Location
+                    if (widget.gig.location.isNotEmpty) ...[
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 16,
+                            color: Colors.grey.shade500,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              widget.gig.location,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
+                    // Category Chip
+                    CategoryChip(
+                      label: widget.gig.category,
+                      showIcon: false,
+                    ),
+
+                    if (widget.actionWidget != null) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: widget.actionWidget,
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

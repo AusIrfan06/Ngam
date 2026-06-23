@@ -242,21 +242,10 @@ class _RunnerFeedState extends State<_RunnerFeed> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      urlTemplate: Theme.of(context).brightness == Brightness.dark
+                          ? 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+                          : 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.ngam',
-                      tileBuilder: Theme.of(context).brightness == Brightness.dark
-                          ? (context, widget, tile) {
-                              return ColorFiltered(
-                                colorFilter: const ColorFilter.matrix(<double>[
-                                  -1,  0,  0, 0, 255,
-                                   0, -1,  0, 0, 255,
-                                   0,  0, -1, 0, 255,
-                                   0,  0,  0, 1,   0,
-                                ]),
-                                child: widget,
-                              );
-                            }
-                          : null,
                     ),
                     MarkerLayer(
                       markers: availableGigs.where((g) => g.latitude != null && g.longitude != null).map((gig) {

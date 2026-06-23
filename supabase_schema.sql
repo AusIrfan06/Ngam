@@ -77,8 +77,7 @@ CREATE TABLE IF NOT EXISTS public.conversations (
   last_message TEXT,
   last_message_sender_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
   last_message_is_read BOOLEAN DEFAULT FALSE,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  UNIQUE(user1_id, user2_id)
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- 7. MESSAGES TABLE
