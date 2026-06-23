@@ -13,6 +13,9 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/chat_service.dart';
 import '../shared/chat_screen.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ============================================================
 // Ngam App — Order Status Screen (Customer)
@@ -30,6 +33,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   GigModel? _gig;
   StreamSubscription? _subscription;
   bool _hasReview = false;
+  RealtimeChannel? _trackingChannel;
+  LatLng? _runnerLocation;
+  final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -40,6 +46,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         setState(() => _gig = gig);
         _subscribeToUpdates(gig.id);
         _checkReview(gig.id);
+        if (gig.status == 'IN-PROGRESS') {
+           _subscribeToLocation(gig.id);
+        }
       }
     });
   }
@@ -59,9 +68,38 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     }
   }
 
+  void _subscribeToLocation(String gigId) {
+    _trackingChannel = Supabase.instance.client.channel('public:gig_location:$gigId');
+    _trackingChannel!.onBroadcast(
+      event: 'location_update',
+      callback: (payload) {
+        if (mounted && payload != null) {
+          final lat = payload['lat'];
+          final lng = payload['lng'];
+          if (lat != null && lng != null) {
+            final newPos = LatLng(lat is int ? lat.toDouble() : lat as double, lng is int ? lng.toDouble() : lng as double);
+            setState(() {
+              _runnerLocation = newPos;
+            });
+            // Try to move map to show both
+            if (_gig != null && _gig!.latitude != null && _gig!.longitude != null) {
+              final dest = LatLng(_gig!.latitude!, _gig!.longitude!);
+              final bounds = LatLngBounds.fromPoints([newPos, dest]);
+              try {
+                _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(40)));
+              } catch (_) {}
+            }
+          }
+        }
+      },
+    ).subscribe();
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();
+    _trackingChannel?.unsubscribe();
+    _mapController.dispose();
     super.dispose();
   }
 
@@ -159,6 +197,82 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 onExpired: () {
                   // SLA expired notification
                 },
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // ─── Live Tracking Map ────────────────────
+            if (gig.status == 'IN-PROGRESS' && gig.latitude != null && gig.longitude != null) ...[
+              Text(
+                'Live Location',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                height: 250,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: LatLng(gig.latitude!, gig.longitude!),
+                    initialZoom: 14.0,
+                    interactionOptions: const InteractionOptions(
+                       flags: InteractiveFlag.all,
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.ngam',
+                      tileBuilder: Theme.of(context).brightness == Brightness.dark
+                          ? (context, widget, tile) {
+                              return ColorFiltered(
+                                colorFilter: const ColorFilter.matrix(<double>[
+                                  -1,  0,  0, 0, 255,
+                                   0, -1,  0, 0, 255,
+                                   0,  0, -1, 0, 255,
+                                   0,  0,  0, 1,   0,
+                                ]),
+                                child: widget,
+                              );
+                            }
+                          : null,
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        // Destination Marker
+                        Marker(
+                          point: LatLng(gig.latitude!, gig.longitude!),
+                          width: 40,
+                          height: 40,
+                          child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                        ),
+                        // Runner Marker
+                        if (_runnerLocation != null)
+                          Marker(
+                            point: _runnerLocation!,
+                            width: 50,
+                            height: 50,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.delivery_dining, color: AppTheme.primary, size: 30),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
             ],

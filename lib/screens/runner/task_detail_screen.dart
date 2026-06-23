@@ -118,7 +118,20 @@ class TaskDetailScreen extends StatelessWidget {
                           children: [
                             TileLayer(
                               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.ngam',
+                              userAgentPackageName: 'com.example.ngam',
+                              tileBuilder: Theme.of(context).brightness == Brightness.dark
+                                  ? (context, widget, tile) {
+                                      return ColorFiltered(
+                                        colorFilter: const ColorFilter.matrix(<double>[
+                                          -1,  0,  0, 0, 255,
+                                           0, -1,  0, 0, 255,
+                                           0,  0, -1, 0, 255,
+                                           0,  0,  0, 1,   0,
+                                        ]),
+                                        child: widget,
+                                      );
+                                    }
+                                  : null,
                             ),
                             MarkerLayer(
                               markers: [

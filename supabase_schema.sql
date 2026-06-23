@@ -104,55 +104,145 @@ ALTER TABLE public.runner_verifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
--- Safe Policy Creation (Prevents "Already Exists" Errors)
+-- Safe Policy Deletion (Remove old dangerous policies)
 DO $$
 BEGIN
     DROP POLICY IF EXISTS "Allow public select on users" ON public.users;
-    CREATE POLICY "Allow public select on users" ON public.users FOR SELECT USING (true);
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
     DROP POLICY IF EXISTS "Allow public insert on users" ON public.users;
-    CREATE POLICY "Allow public insert on users" ON public.users FOR INSERT WITH CHECK (true);
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
     DROP POLICY IF EXISTS "Allow public update on users" ON public.users;
-    CREATE POLICY "Allow public update on users" ON public.users FOR UPDATE USING (true);
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
     DROP POLICY IF EXISTS "Allow public all on gigs" ON public.gigs;
-    CREATE POLICY "Allow public all on gigs" ON public.gigs FOR ALL USING (true) WITH CHECK (true);
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
     DROP POLICY IF EXISTS "Allow public all on conversations" ON public.conversations;
-    CREATE POLICY "Allow public all on conversations" ON public.conversations FOR ALL USING (true) WITH CHECK (true);
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
-
-DO $$
-BEGIN
     DROP POLICY IF EXISTS "Allow public all on messages" ON public.messages;
-    CREATE POLICY "Allow public all on messages" ON public.messages FOR ALL USING (true) WITH CHECK (true);
+    DROP POLICY IF EXISTS "Allow public all on verifications" ON public.runner_verifications;
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
-DO $$
-BEGIN
-    DROP POLICY IF EXISTS "Allow public all on verifications" ON public.runner_verifications;
-    CREATE POLICY "Allow public all on verifications" ON public.runner_verifications FOR ALL USING (true) WITH CHECK (true);
-EXCEPTION WHEN OTHERS THEN NULL;
-END $$;
+-- ==========================================
+-- 1. USERS
+-- ==========================================
+-- Anyone can view user profiles
+CREATE POLICY "Users can be viewed by anyone" 
+ON public.users FOR SELECT USING (true);
+
+-- Users can only insert their own profile
+CREATE POLICY "Users can insert their own profile" 
+ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Users can only update their own profile
+CREATE POLICY "Users can update their own profile" 
+ON public.users FOR UPDATE USING (auth.uid() = id);
+
+-- Users can only delete their own profile
+CREATE POLICY "Users can delete their own profile" 
+ON public.users FOR DELETE USING (auth.uid() = id);
+
+-- ==========================================
+-- 2. GIGS
+-- ==========================================
+-- Anyone can view gigs
+CREATE POLICY "Gigs can be viewed by anyone" 
+ON public.gigs FOR SELECT USING (true);
+
+-- Customers can insert gigs
+CREATE POLICY "Customers can insert their own gigs" 
+ON public.gigs FOR INSERT WITH CHECK (auth.uid() = customer_id);
+
+-- Customers can update their own gigs, Runners can update gigs they are assigned to
+CREATE POLICY "Customers and Assigned Runners can update gigs" 
+ON public.gigs FOR UPDATE 
+USING (
+    auth.uid() = customer_id OR 
+    auth.uid() = gig_worker_id OR 
+    (status = 'OPEN' AND gig_worker_id IS NULL) -- Allow runner to accept open gig
+);
+
+-- Only Customers can delete their own gigs
+CREATE POLICY "Customers can delete their own gigs" 
+ON public.gigs FOR DELETE USING (auth.uid() = customer_id);
+
+-- ==========================================
+-- 3. STATUS LOGS
+-- ==========================================
+CREATE POLICY "Status logs viewable by anyone" 
+ON public.status_logs FOR SELECT USING (true);
+
+CREATE POLICY "Status logs insertable by anyone" 
+ON public.status_logs FOR INSERT WITH CHECK (true); 
+-- In a real prod environment, restrict this to customer or runner of the gig.
+
+-- ==========================================
+-- 4. REVIEWS
+-- ==========================================
+CREATE POLICY "Reviews viewable by anyone" 
+ON public.reviews FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert their own reviews" 
+ON public.reviews FOR INSERT WITH CHECK (auth.uid() = reviewer_id);
+
+CREATE POLICY "Users can edit their own reviews" 
+ON public.reviews FOR UPDATE USING (auth.uid() = reviewer_id);
+
+CREATE POLICY "Users can delete their own reviews" 
+ON public.reviews FOR DELETE USING (auth.uid() = reviewer_id);
+
+-- ==========================================
+-- 5. RUNNER VERIFICATIONS
+-- ==========================================
+-- Only the runner themselves can read their verification info
+CREATE POLICY "Runners can view their own verification" 
+ON public.runner_verifications FOR SELECT USING (auth.uid() = user_id);
+
+-- Runners can only insert their own info
+CREATE POLICY "Runners can insert their own verification" 
+ON public.runner_verifications FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Runners can update their own info
+CREATE POLICY "Runners can update their own verification" 
+ON public.runner_verifications FOR UPDATE USING (auth.uid() = user_id);
+
+-- ==========================================
+-- 6. CONVERSATIONS
+-- ==========================================
+-- Users can only see conversations they are part of
+CREATE POLICY "Users can view their conversations" 
+ON public.conversations FOR SELECT 
+USING (auth.uid() = user1_id OR auth.uid() = user2_id);
+
+-- Users can only create conversations involving themselves
+CREATE POLICY "Users can insert their conversations" 
+ON public.conversations FOR INSERT 
+WITH CHECK (auth.uid() = user1_id OR auth.uid() = user2_id);
+
+-- Users can only update their conversations
+CREATE POLICY "Users can update their conversations" 
+ON public.conversations FOR UPDATE 
+USING (auth.uid() = user1_id OR auth.uid() = user2_id);
+
+-- ==========================================
+-- 7. MESSAGES
+-- ==========================================
+-- Users can view messages in their conversations
+CREATE POLICY "Users can view messages in their conversations" 
+ON public.messages FOR SELECT 
+USING (
+    EXISTS (
+        SELECT 1 FROM public.conversations c 
+        WHERE c.id = messages.conversation_id 
+        AND (c.user1_id = auth.uid() OR c.user2_id = auth.uid())
+    )
+);
+
+-- Users can insert messages if they are the sender
+CREATE POLICY "Users can insert their own messages" 
+ON public.messages FOR INSERT 
+WITH CHECK (
+    auth.uid() = sender_id AND
+    EXISTS (
+        SELECT 1 FROM public.conversations c 
+        WHERE c.id = messages.conversation_id 
+        AND (c.user1_id = auth.uid() OR c.user2_id = auth.uid())
+    )
+);
 
 
 -- Enable Realtime for conversations, messages, and gigs safely

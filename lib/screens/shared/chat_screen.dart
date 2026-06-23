@@ -595,7 +595,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       },
     );
 
-    ChatService.markMessagesAsRead(widget.conversation.id, otherUserId);
+    // Removed global markMessagesAsRead from initState
+    // It is now handled in _loadGigDetails and onPageChanged
   }
 
   void _onTextChanged(String text) {
@@ -647,6 +648,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             }
           }
         });
+        
+        ChatService.markMessagesAsRead(widget.conversation.id, otherUserId, gigId: _linkedGig?.id);
       }
     } catch (e) {
       debugPrint('Error loading gig details: $e');
@@ -2176,6 +2179,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                       controller: _pageController,
                       onPageChanged: (index) {
                         setState(() { _linkedGig = _sharedGigs[index]; });
+                        ChatService.markMessagesAsRead(widget.conversation.id, otherUserId, gigId: _linkedGig?.id);
                       },
                       itemCount: _sharedGigs.length,
                       itemBuilder: (context, index) {

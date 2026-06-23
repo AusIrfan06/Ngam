@@ -335,20 +335,36 @@ class ChatService {
   }
 
   /// Mark all messages in a conversation as read (sent by the other user)
-  static Future<void> markMessagesAsRead(String conversationId, String otherUserId) async {
+  static Future<void> markMessagesAsRead(String conversationId, String otherUserId, {String? gigId}) async {
     await _supabase.from('messages')
         .update({'is_read': true})
         .eq('conversation_id', conversationId)
         .eq('sender_id', otherUserId)
         .eq('is_read', false);
 
-    await _supabase.from('conversations')
-        .update({
-          'last_message_is_read': true,
-          'task_unread_counts': {},
-        })
-        .eq('id', conversationId)
-        .eq('last_message_sender_id', otherUserId);
+    if (gigId != null) {
+      final response = await _supabase.from('conversations').select('task_unread_counts').eq('id', conversationId).maybeSingle();
+      if (response != null && response['task_unread_counts'] != null) {
+        Map<String, dynamic> counts = Map<String, dynamic>.from(response['task_unread_counts']);
+        counts.remove(gigId);
+        
+        await _supabase.from('conversations')
+            .update({
+              if (counts.isEmpty) 'last_message_is_read': true,
+              'task_unread_counts': counts,
+            })
+            .eq('id', conversationId)
+            .eq('last_message_sender_id', otherUserId);
+      }
+    } else {
+      await _supabase.from('conversations')
+          .update({
+            'last_message_is_read': true,
+            'task_unread_counts': {},
+          })
+          .eq('id', conversationId)
+          .eq('last_message_sender_id', otherUserId);
+    }
   }
   
   /// Fetch user profile helper

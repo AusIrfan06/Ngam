@@ -10,6 +10,7 @@ import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../shared/chat_screen.dart';
+import '../../services/location_service.dart';
 
 // ============================================================
 // Ngam App — Active Job Screen (Runner)
@@ -34,6 +35,11 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
       final gig = ModalRoute.of(context)?.settings.arguments as GigModel?;
       if (gig != null) {
         setState(() => _gig = gig);
+        
+        // Start tracking location if gig is IN-PROGRESS
+        if (gig.status == 'IN-PROGRESS' && gig.gigWorkerId != null) {
+          LocationService.instance.startTracking(gig.id, gig.gigWorkerId!);
+        }
       }
     });
   }
@@ -41,6 +47,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
   @override
   void dispose() {
     _notesController.dispose();
+    LocationService.instance.stopTracking();
     super.dispose();
   }
 
@@ -305,6 +312,9 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                             final success =
                                 await gigProvider.completeGig(gig.id);
                             if (success && context.mounted) {
+                              // Stop tracking once completed
+                              LocationService.instance.stopTracking();
+                              
                               // Show completion dialog
                               showDialog(
                                 context: context,
