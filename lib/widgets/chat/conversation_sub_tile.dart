@@ -110,7 +110,7 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
   @override
   Widget build(BuildContext context) {
     final c = widget.conversation;
-    String lastMsg = c.lastMessage ?? 'No messages yet';
+    String lastMsg = c.lastMessage ?? (widget.gigOverride != null ? 'Task: ${widget.gigOverride!.title}' : 'No messages yet');
     if (widget.gigOverride != null && c.taskLastMessages != null) {
       final taskMsg = c.taskLastMessages![widget.gigOverride!.id];
       if (taskMsg != null && taskMsg.toString().isNotEmpty) {

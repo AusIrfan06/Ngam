@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/gig_model.dart';
 import '../services/gig_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 // ============================================================
 // Ngam App — Gig Provider
@@ -17,6 +18,7 @@ class GigProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   StreamSubscription? _gigsSubscription;
+  StreamSubscription<Position>? _locationSubscription;
 
   List<GigModel> get openGigs => _openGigs;
   List<GigModel> get myGigs => _myGigs;
@@ -103,9 +105,11 @@ class GigProvider extends ChangeNotifier {
   Future<void> loadActiveJob(String runnerId) async {
     try {
       _activeJob = await GigService.fetchActiveJob(runnerId);
+      _handleLocationTracking();
       notifyListeners();
     } catch (e) {
       _activeJob = null;
+      _handleLocationTracking();
     }
   }
 
@@ -270,6 +274,7 @@ class GigProvider extends ChangeNotifier {
       // Update local state
       _openGigs.removeWhere((g) => g.id == gigId);
       _activeJob = await GigService.fetchGigById(gigId);
+      _handleLocationTracking();
       _isLoading = false;
       notifyListeners();
       return true;
@@ -286,6 +291,7 @@ class GigProvider extends ChangeNotifier {
     try {
       await GigService.completeGig(gigId);
       _activeJob = null;
+      _handleLocationTracking();
       notifyListeners();
       return true;
     } catch (e) {
@@ -316,6 +322,44 @@ class GigProvider extends ChangeNotifier {
   void unsubscribe() {
     _gigsSubscription?.cancel();
     _gigsSubscription = null;
+    _locationSubscription?.cancel();
+    _locationSubscription = null;
+  }
+
+  // ─── Location Tracking ────────────────────────────────────
+
+  void _handleLocationTracking() async {
+    if (_activeJob != null && _activeJob!.status == 'IN-PROGRESS') {
+      if (_locationSubscription == null) {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) return;
+        
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+          if (permission == LocationPermission.denied) return;
+        }
+        if (permission == LocationPermission.deniedForever) return;
+
+        _locationSubscription = Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10, // Update every 10 meters
+          ),
+        ).listen((Position position) {
+          if (_activeJob != null) {
+            GigService.updateRunnerLocation(
+              _activeJob!.id,
+              position.latitude,
+              position.longitude,
+            );
+          }
+        });
+      }
+    } else {
+      _locationSubscription?.cancel();
+      _locationSubscription = null;
+    }
   }
 
   // ─── Cleanup ──────────────────────────────────────────────

@@ -14,6 +14,8 @@ class GigModel {
   final String location;
   final double? latitude;
   final double? longitude;
+  final double? runnerLatitude;
+  final double? runnerLongitude;
   final DateTime createdAt;
 
   // Joined fields (from related tables)
@@ -33,6 +35,8 @@ class GigModel {
     required this.location,
     this.latitude,
     this.longitude,
+    this.runnerLatitude,
+    this.runnerLongitude,
     required this.createdAt,
     this.customerName,
     this.runnerName,
@@ -53,6 +57,8 @@ class GigModel {
       location: json['location'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      runnerLatitude: (json['runner_latitude'] as num?)?.toDouble(),
+      runnerLongitude: (json['runner_longitude'] as num?)?.toDouble(),
       createdAt: DateTime.parse(json['created_at'] as String),
       customerName: json['customer_name'] as String?,
       runnerName: json['runner_name'] as String?,
@@ -73,6 +79,8 @@ class GigModel {
       'location': location,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
+      if (runnerLatitude != null) 'runner_latitude': runnerLatitude,
+      if (runnerLongitude != null) 'runner_longitude': runnerLongitude,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -90,6 +98,8 @@ class GigModel {
     String? location,
     double? latitude,
     double? longitude,
+    double? runnerLatitude,
+    double? runnerLongitude,
     DateTime? createdAt,
     String? customerName,
     String? runnerName,
@@ -107,6 +117,8 @@ class GigModel {
       location: location ?? this.location,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      runnerLatitude: runnerLatitude ?? this.runnerLatitude,
+      runnerLongitude: runnerLongitude ?? this.runnerLongitude,
       createdAt: createdAt ?? this.createdAt,
       customerName: customerName ?? this.customerName,
       runnerName: runnerName ?? this.runnerName,

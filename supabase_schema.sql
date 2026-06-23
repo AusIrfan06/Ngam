@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS public.gigs (
   description TEXT NOT NULL,
   category VARCHAR(50) NOT NULL,
   bounty_amount DECIMAL(10, 2) NOT NULL,
+  runner_latitude DOUBLE PRECISION,
+  runner_longitude DOUBLE PRECISION,
   status VARCHAR(50) NOT NULL DEFAULT 'OPEN', 
   location VARCHAR(255) NOT NULL,
   latitude DOUBLE PRECISION,

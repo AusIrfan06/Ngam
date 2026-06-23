@@ -242,7 +242,14 @@ class GigService {
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
   }
 
-  // ─── STATUS LOGS ───────────────────────────────────────────
+  static Future<void> updateRunnerLocation(String gigId, double lat, double lng) async {
+    await _client.from(DbTable.gigs).update({
+      'runner_latitude': lat,
+      'runner_longitude': lng,
+    }).eq('id', gigId);
+  }
+
+  // ─── STATE LOGGING ───────────────────────────────────────────
 
   /// Fetch status logs for a gig (audit trail)
   static Future<List<StatusLogModel>> fetchStatusLogs(String gigId) async {

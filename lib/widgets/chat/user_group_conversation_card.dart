@@ -144,7 +144,7 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
 
       if (specificUnreads > 0) {
         unreadCount += specificUnreads;
-      } else if (!c.lastMessageIsRead) {
+      } else if (!c.lastMessageIsRead && c.lastMessage != null) {
         unreadCount += 1;
       }
     }
@@ -359,24 +359,30 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
                       ),
                     )
                   else ...[
-                    // Show General Chat only if there are no specific tasks
-                    if (_sharedGigs!.isEmpty)
+                    // Show General Chat if there's a conversation with no gigId
+                    if (widget.conversations.any((c) => c.gigId == null))
                       ConversationSubTile(
-                        conversation: widget.conversations.first,
+                        conversation: widget.conversations.firstWhere((c) => c.gigId == null),
                         currentUserId: widget.currentUserId,
                         isDark: widget.isDark,
-                        onTap: () => widget.onTap(widget.conversations.first, null),
-                        onLongPress: () => widget.onLongPress(widget.conversations.first),
+                        onTap: () => widget.onTap(widget.conversations.firstWhere((c) => c.gigId == null), null),
+                        onLongPress: () => widget.onLongPress(widget.conversations.firstWhere((c) => c.gigId == null)),
                       ),
                     // Specific Gigs
-                    ..._sharedGigs!.map((gig) => ConversationSubTile(
-                          conversation: widget.conversations.first,
-                          gigOverride: gig,
-                          currentUserId: widget.currentUserId,
-                          isDark: widget.isDark,
-                          onTap: () => widget.onTap(widget.conversations.first, gig.id),
-                          onLongPress: () => widget.onLongPress(widget.conversations.first),
-                        )),
+                    ..._sharedGigs!.map((gig) {
+                      final conv = widget.conversations.firstWhere(
+                        (c) => c.gigId == gig.id,
+                        orElse: () => widget.conversations.first,
+                      );
+                      return ConversationSubTile(
+                        conversation: conv,
+                        gigOverride: gig,
+                        currentUserId: widget.currentUserId,
+                        isDark: widget.isDark,
+                        onTap: () => widget.onTap(conv, gig.id),
+                        onLongPress: () => widget.onLongPress(conv),
+                      );
+                    }),
                   ],
                   const SizedBox(height: 8),
                 ],

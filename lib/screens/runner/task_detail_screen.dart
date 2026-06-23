@@ -10,6 +10,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../services/chat_service.dart';
 import '../shared/chat_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ============================================================
 // Ngam App — Task Detail Screen (Runner)
@@ -137,6 +138,32 @@ class TaskDetailScreen extends StatelessWidget {
                               ],
                             ),
                           ],
+                        ),
+                      ),
+
+                    // ─── Navigate Button ─────────────────────
+                    if (gig.latitude != null && gig.longitude != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () async {
+                              final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${gig.latitude},${gig.longitude}');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            icon: const Icon(Icons.navigation_rounded),
+                            label: const Text('Navigate to Location'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(color: AppTheme.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
 
