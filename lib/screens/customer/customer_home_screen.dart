@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
+import 'dart:ui' as ui;
+import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/gig_provider.dart';
 import '../../models/gig_model.dart';
@@ -12,7 +15,6 @@ import 'my_tasks_screen.dart';
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 // ============================================================
 // Ngam App — Customer Home Screen (Rezrv Inspired)
@@ -99,52 +101,102 @@ class _CustomerHomeFeed extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '👋 ${'customer.greeting'.tr(args: [userName])}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: Theme.of(context).colorScheme.onSurface,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 20 * (1 - value)),
+                          child: Opacity(
+                            opacity: value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        '👋 ${'customer.greeting'.tr(args: [userName])}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      "What do you need help with today?",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade500,
-                        fontWeight: FontWeight.w500,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 700),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 20 * (1 - value)),
+                          child: Opacity(
+                            opacity: value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "What do you need help with today?",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
                     // Search Bar Mockup
-                    Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search_rounded, color: Colors.grey.shade400),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              "Search services, tasks, or runners...",
-                              style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                              overflow: TextOverflow.ellipsis,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 800),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 30 * (1 - value)),
+                          child: Opacity(
+                            opacity: value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardTheme.color?.withValues(alpha: 0.7) ?? Theme.of(context).cardColor.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.15)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 15,
+                              offset: const Offset(0, 5),
+                            )
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: BackdropFilter(
+                            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.search_rounded, color: Colors.grey.shade400),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      "Search services, tasks, or runners...",
+                                      style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
@@ -202,8 +254,28 @@ class _CustomerHomeFeed extends StatelessWidget {
 
           // ─── Loading / Empty State ───────────────────────────
           if (gigProvider.isLoading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
+            SliverFillRemaining(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: List.generate(3, (index) => 
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Shimmer.fromColors(
+                        baseColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade300,
+                        highlightColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade700 : Colors.grey.shade100,
+                        child: Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    )
+                  ),
+                ),
+              ),
             )
           else if (gigProvider.filteredServices.isEmpty)
             SliverFillRemaining(

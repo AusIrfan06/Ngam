@@ -679,17 +679,53 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     if (_isLoading || !_hasMore) return;
     setState(() => _isLoading = true);
 
-    final newMessages = await ChatService.getMessages(widget.conversation.id, offset: _messages.length, limit: 50);
+    final currentOffset = _messages.length;
+
+    // 1. Instantly load from local cache
+    final localMessages = await LocalDatabaseService.instance.getMessages(widget.conversation.id, offset: currentOffset, limit: 50);
     
     if (mounted) {
       setState(() {
-        if (newMessages.isEmpty) {
-          _hasMore = false;
-        } else {
-          _messages.addAll(newMessages);
+        bool addedLocal = false;
+        for (var msg in localMessages) {
+          if (!_messages.any((m) => m.id == msg.id)) {
+            _messages.add(msg);
+            addedLocal = true;
+          }
         }
-        _isLoading = false;
+        if (addedLocal) {
+          _messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        }
+        _isLoading = false; // Hide loading spinner instantly
       });
+    }
+
+    // 2. Fetch from network in background to sync missing/updated messages
+    try {
+      final networkMessages = await ChatService.getMessages(widget.conversation.id, offset: currentOffset, limit: 50);
+      if (mounted) {
+        setState(() {
+          bool addedNetwork = false;
+          for (var msg in networkMessages) {
+            final index = _messages.indexWhere((m) => m.id == msg.id);
+            if (index != -1) {
+              _messages[index] = msg; // Update status (e.g. read receipts)
+            } else {
+              _messages.add(msg);
+              addedNetwork = true;
+            }
+          }
+          if (addedNetwork) {
+            _messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          }
+          
+          if (networkMessages.isEmpty && localMessages.isEmpty) {
+            _hasMore = false;
+          }
+        });
+      }
+    } catch (_) {
+      // Ignored if offline
     }
   }
   void _scrollToMessage(String messageId) async {
@@ -1156,12 +1192,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         conversationId: widget.conversation.id,
         senderId: currentUserId,
         content: '__SYSTEM__Context:${_linkedGig!.id}',
-        isRead: false,
+        isRead: true, // System messages are inherently read
         createdAt: DateTime.now().subtract(const Duration(milliseconds: 1)),
         status: 'sending',
       );
       setState(() { _messages.insert(0, newMsg); });
-      await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
+      await ChatService.sendSystemMessage(newMsg);
     }
   }
 

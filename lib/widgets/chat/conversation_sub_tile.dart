@@ -110,12 +110,21 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
   @override
   Widget build(BuildContext context) {
     final c = widget.conversation;
-    String lastMsg = c.lastMessage ?? (widget.gigOverride != null ? 'Task: ${widget.gigOverride!.title}' : 'No messages yet');
-    if (widget.gigOverride != null && c.taskLastMessages != null) {
-      final taskMsg = c.taskLastMessages![widget.gigOverride!.id];
-      if (taskMsg != null && taskMsg.toString().isNotEmpty) {
-        lastMsg = taskMsg.toString();
+    String lastMsg;
+    if (widget.gigOverride != null) {
+      if (c.gigId == widget.gigOverride!.id) {
+        lastMsg = c.lastMessage ?? 'Task: ${widget.gigOverride!.title}';
+      } else {
+        lastMsg = 'Task: ${widget.gigOverride!.title}';
+        if (c.taskLastMessages != null) {
+          final taskMsg = c.taskLastMessages![widget.gigOverride!.id];
+          if (taskMsg != null && taskMsg.toString().isNotEmpty) {
+            lastMsg = taskMsg.toString();
+          }
+        }
       }
+    } else {
+      lastMsg = c.lastMessage ?? 'No messages yet';
     }
 
     if (lastMsg.startsWith('__SYSTEM__:')) {

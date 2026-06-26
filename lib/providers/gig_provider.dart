@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/gig_model.dart';
 import '../services/gig_service.dart';
 import 'package:geolocator/geolocator.dart';
+import '../utils/constants.dart';
 
 // ============================================================
 // Ngam App — Gig Provider
@@ -233,7 +234,7 @@ class GigProvider extends ChangeNotifier {
         category: serviceListing.category,
         bountyAmount: serviceListing.bountyAmount,
         location: serviceListing.location,
-        status: 'LOCKED',
+        status: GigStatus.pending,
       );
       _myGigs.insert(0, gig);
       _isLoading = false;
@@ -281,6 +282,53 @@ class GigProvider extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       _error = 'Failed to accept gig. It may already be taken. ($e)';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Runner accepts a pending service order
+  Future<bool> acceptPendingGig(String gigId, String runnerId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await GigService.acceptPendingGig(gigId, runnerId);
+      // Update local state by re-fetching
+      _activeJob = await GigService.fetchGigById(gigId);
+      final index = _myGigs.indexWhere((g) => g.id == gigId);
+      if (index != -1) {
+        _myGigs[index] = _activeJob!;
+      }
+      _handleLocationTracking();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to accept order. ($e)';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Runner rejects a pending service order
+  Future<bool> rejectPendingGig(String gigId, String runnerId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await GigService.rejectPendingGig(gigId, runnerId);
+      // Update local state
+      _myGigs.removeWhere((g) => g.id == gigId);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to reject order. ($e)';
       notifyListeners();
       return false;
     }

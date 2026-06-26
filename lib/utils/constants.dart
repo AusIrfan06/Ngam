@@ -40,6 +40,7 @@ class TaskCategory {
 // ─── Gig Status ──────────────────────────────────────────────
 class GigStatus {
   static const String open = 'OPEN';
+  static const String pending = 'PENDING';
   static const String locked = 'LOCKED';
   static const String inProgress = 'IN-PROGRESS';
   static const String completed = 'COMPLETED';

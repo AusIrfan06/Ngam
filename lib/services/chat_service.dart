@@ -261,6 +261,20 @@ class ChatService {
     }
   }
 
+  /// Send a system message (e.g., date dividers, context updates) without incrementing unread counts
+  static Future<void> sendSystemMessage(MessageModel message) async {
+    try {
+      await _supabase.from('messages').insert(message.toSupabaseJson());
+      
+      final sentMsg = message.copyWith(status: 'sent', isRead: true);
+      await LocalDatabaseService.instance.insertMessage(sentMsg);
+    } catch (e) {
+      final failedMsg = message.copyWith(status: 'failed');
+      await LocalDatabaseService.instance.insertMessage(failedMsg);
+      rethrow;
+    }
+  }
+
   /// Upload image and send an image message
   static Future<void> sendImageMessage(MessageModel pendingMessage, File imageFile, {String? contextGigId}) async {
     try {
@@ -350,27 +364,51 @@ class ChatService {
         .eq('is_read', false);
 
     if (gigId != null) {
-      final response = await _supabase.from('conversations').select('task_unread_counts').eq('id', conversationId).maybeSingle();
+      final response = await _supabase.from('conversations').select().eq('id', conversationId).maybeSingle();
       if (response != null && response['task_unread_counts'] != null) {
         Map<String, dynamic> counts = Map<String, dynamic>.from(response['task_unread_counts']);
         counts.remove(gigId);
         
+        final updatePayload = <String, dynamic>{
+          'task_unread_counts': counts,
+        };
+        
+        // Only mark global last message as read if it was actually sent by them
+        if (counts.isEmpty && response['last_message_sender_id'] == otherUserId) {
+          updatePayload['last_message_is_read'] = true;
+        }
+
         await _supabase.from('conversations')
-            .update({
-              if (counts.isEmpty) 'last_message_is_read': true,
-              'task_unread_counts': counts,
-            })
-            .eq('id', conversationId)
-            .eq('last_message_sender_id', otherUserId);
+            .update(updatePayload)
+            .eq('id', conversationId);
+            
+        // Update local DB instantly
+        final conv = ConversationModel.fromJson({
+          ...response,
+          ...updatePayload,
+        }, '');
+        await LocalDatabaseService.instance.insertConversation(conv);
       }
     } else {
-      await _supabase.from('conversations')
-          .update({
-            'last_message_is_read': true,
-            'task_unread_counts': {},
-          })
-          .eq('id', conversationId)
-          .eq('last_message_sender_id', otherUserId);
+      final response = await _supabase.from('conversations').select().eq('id', conversationId).maybeSingle();
+      if (response != null) {
+        final updatePayload = <String, dynamic>{
+          'task_unread_counts': {},
+        };
+        if (response['last_message_sender_id'] == otherUserId) {
+          updatePayload['last_message_is_read'] = true;
+        }
+        
+        await _supabase.from('conversations')
+            .update(updatePayload)
+            .eq('id', conversationId);
+            
+        final conv = ConversationModel.fromJson({
+          ...response,
+          ...updatePayload,
+        }, '');
+        await LocalDatabaseService.instance.insertConversation(conv);
+      }
     }
   }
   

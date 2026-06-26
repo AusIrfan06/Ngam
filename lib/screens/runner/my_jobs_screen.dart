@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/gig_provider.dart';
 import '../../widgets/task_card.dart';
+import '../../utils/constants.dart';
 import '../customer/post_task_screen.dart';
+import '../../models/gig_model.dart';
 
 // ============================================================
 // Ngam App — My Jobs Screen (Runner)
@@ -145,6 +147,8 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                                         '/active-job',
                                         arguments: gig,
                                       );
+                                    } else if (gig.status == GigStatus.pending && currentUserId != null) {
+                                      _showPendingOptions(context, gig, currentUserId);
                                     }
                                   }
                                 },
@@ -175,6 +179,75 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showPendingOptions(BuildContext context, GigModel gig, String runnerId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext bottomSheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Order Request',
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'A customer wants to hire you for:\n"${gig.title}"\n\nDo you want to accept this order?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(bottomSheetContext);
+                    final gigProvider = context.read<GigProvider>();
+                    final success = await gigProvider.acceptPendingGig(gig.id, runnerId);
+                    if (success && context.mounted) {
+                      Navigator.pushNamed(context, '/active-job', arguments: gig);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Accept Order', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(bottomSheetContext);
+                    final gigProvider = context.read<GigProvider>();
+                    await gigProvider.rejectPendingGig(gig.id, runnerId);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text('Reject Order', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

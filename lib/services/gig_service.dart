@@ -186,6 +186,38 @@ class GigService {
     await _logStatus(gigId, GigStatus.locked);
   }
 
+  /// Runner accepts a pending service order
+  static Future<void> acceptPendingGig(String gigId, String runnerId) async {
+    await _client
+        .from(DbTable.gigs)
+        .update({
+          'status': GigStatus.locked,
+        })
+        .eq('id', gigId)
+        .eq('status', GigStatus.pending)
+        .eq('gig_worker_id', runnerId) // Security check
+        .select()
+        .single();
+
+    await _logStatus(gigId, GigStatus.locked);
+  }
+
+  /// Runner rejects a pending service order
+  static Future<void> rejectPendingGig(String gigId, String runnerId) async {
+    await _client
+        .from(DbTable.gigs)
+        .update({
+          'status': GigStatus.cancelled,
+        })
+        .eq('id', gigId)
+        .eq('status', GigStatus.pending)
+        .eq('gig_worker_id', runnerId) // Security check
+        .select()
+        .single();
+
+    await _logStatus(gigId, GigStatus.cancelled);
+  }
+
   /// Runner starts working on the gig
   static Future<void> startGig(String gigId) async {
     await _client
