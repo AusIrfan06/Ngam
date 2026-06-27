@@ -15,6 +15,8 @@ import 'my_tasks_screen.dart';
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 // ============================================================
 // Ngam App — Customer Home Screen (Rezrv Inspired)
@@ -39,6 +41,32 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       await gigProvider.loadServices();
       FlutterNativeSplash.remove();
     });
+  }
+
+  LiquidGlassSettings _getGlassSettings(bool isDark, {double blur = 2.0}) {
+    return isDark
+        ? LiquidGlassSettings(
+      thickness: 0.1,
+      blur: blur,
+      refractiveIndex: 1.0,
+      glassColor: Colors.transparent,
+      lightAngle: 45.0,
+      lightIntensity: 0.1,
+      ambientStrength: 1.0,
+      saturation: 1.0,
+      chromaticAberration: 0.0,
+    )
+        : LiquidGlassSettings(
+      thickness: 0.1,
+      blur: blur,
+      refractiveIndex: 1.0,
+      glassColor: Colors.transparent,
+      lightAngle: 45.0,
+      lightIntensity: 0.2,
+      ambientStrength: 1.0,
+      saturation: 1.0,
+      chromaticAberration: 0.0,
+    );
   }
 
   @override
@@ -80,6 +108,8 @@ class _CustomerHomeFeed extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
     final gigProvider = context.watch<GigProvider>();
     final userName = authProvider.user?.name ?? 'User';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color lightModeGray = const Color(0xFF3A3A3C);
 
     final trendingTasks = gigProvider.filteredServices.take(3).toList();
     final moreTasks = gigProvider.filteredServices.skip(3).toList();
@@ -161,40 +191,53 @@ class _CustomerHomeFeed extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Container(
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardTheme.color?.withValues(alpha: 0.7) ?? Theme.of(context).cardColor.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.15)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 15,
-                              offset: const Offset(0, 5),
-                            )
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.search_rounded, color: Colors.grey.shade400),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      "Search services, tasks, or runners...",
-                                      style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                      child: GlassContainer(
+                        useOwnLayer: true,
+                        quality: GlassQuality.standard,
+                        shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                        settings: context.findAncestorStateOfType<_CustomerHomeScreenState>()!._getGlassSettings(isDark),
+                        child: Container(
+                          height: 48,
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                              width: 1.0,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedSearch01,
+                                  color: isDark ? Colors.white70 : lightModeGray.withValues(alpha: 0.6),
+                                  size: 20,
+                                  strokeWidth: 2.0,
+                                )
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "Search services, tasks, or runners...",
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white38 : lightModeGray.withValues(alpha: 0.4),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

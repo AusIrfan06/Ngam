@@ -25,6 +25,8 @@ class _MapPickerState extends State<MapPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 200,
       decoration: BoxDecoration(
@@ -55,10 +57,10 @@ class _MapPickerState extends State<MapPicker> {
             ),
             children: [
               TileLayer(
-                urlTemplate: Theme.of(context).brightness == Brightness.dark
-                    ? 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-                    : 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.ngam',
+                urlTemplate: isDark
+                    ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.ngam.app',
               ),
               if (_selectedLocation != null)
                 MarkerLayer(

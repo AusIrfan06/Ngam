@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -99,6 +100,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   final Color _lightModeGray = const Color(0xFF3A3A3C);
   bool _isSearchPanelOpen = false;
   bool _isMapLocked = false;
+  double _searchRadiusKm = 10.0;
   final double _baseLatitudeOffset = -0.0055;
 
   double get _adaptiveOffset {
@@ -178,8 +180,17 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         return distanceA.compareTo(distanceB);
       });
 
+      // Filter by search radius
+      final withinRadius = available.where((g) {
+        double distM = Geolocator.distanceBetween(
+          _currentLocation.latitude, _currentLocation.longitude,
+          g.latitude!, g.longitude!,
+        );
+        return distM <= _searchRadiusKm * 1000;
+      }).toList();
+
       setState(() {
-        _nearbyGigs = available;
+        _nearbyGigs = withinRadius;
         if (_searchController.text.isEmpty) {
           _displayedGigs = List.from(_nearbyGigs);
         }
@@ -524,10 +535,21 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                   children: [
                     TileLayer(
                       urlTemplate: isDark
-                          ? 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-                          : 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                      ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.ngam',
                       retinaMode: RetinaMode.isHighDensity(context),
+                      tileBuilder: isDark ? (context, tileWidget, tile) {
+                        return ColorFiltered(
+                          colorFilter: const ColorFilter.matrix([
+                            0.85, 0, 0, 0, 8,
+                            0, 0.85, 0, 0, 10,
+                            0, 0, 1.0, 0, 15,
+                            0, 0, 0, 1, 0,
+                          ]),
+                          child: tileWidget,
+                        );
+                      } : null,
                     ),
                     MarkerClusterLayerWidget(
                       options: MarkerClusterLayerOptions(
@@ -624,29 +646,29 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         child: GlassContainer(
           useOwnLayer: true,
           quality: GlassQuality.standard,
-          shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+          shape: LiquidRoundedSuperellipse(borderRadius: 28.0),
           settings: _getGlassSettings(isDark),
           child: Container(
             height: 48,
-            padding: const EdgeInsets.symmetric(horizontal: 18),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08), width: 0.8),
             ),
             child: Row(
               children: [
                 SizedBox(width: 20, height: 20, child: _isSearching
-                    ? CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.white : _lightModeGray))
-                    : HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.6), size: 20, strokeWidth: 2.0)),
-                const SizedBox(width: 12),
+                    ? CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.4)))
+                    : HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.4), size: 20, strokeWidth: 1.8)),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: _searchController, focusNode: _searchFocus, onChanged: _handleSearch, onSubmitted: _executeSearch,
-                    style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w500, fontSize: 15),
+                    cursorColor: const Color(0xFFAB47BC), // Match design 1 cursor color
                     decoration: InputDecoration(
-                      hintText: 'Search available jobs...', 
-                      hintStyle: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 14), 
+                      hintText: 'Search', 
+                      hintStyle: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.35), fontSize: 15, fontWeight: FontWeight.w400), 
                       border: InputBorder.none, 
                       isDense: true,
                       filled: false,
@@ -654,31 +676,98 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                   ),
                 ),
                 if (_searchController.text.isNotEmpty)
-                  GestureDetector(onTap: _clearSearch, child: Icon(Icons.close, size: 18, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.6))),
+                  GestureDetector(onTap: _clearSearch, child: Icon(Icons.close, size: 18, color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.4))),
               ],
             ),
           ),
         ),
       ),
       const SizedBox(width: 12),
-      _AnimatedPressable(
-        onTap: () {
-          _killFocus();
-          Navigator.pushNamed(context, '/qr-scanner');
-        },
-        child: GlassContainer(
-          useOwnLayer: true,
-          quality: GlassQuality.standard,
-          shape: LiquidRoundedSuperellipse(borderRadius: 100.0),
-          settings: _getGlassSettings(isDark),
-          child: Container(
-            height: 48, width: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+      GlassContainer(
+        useOwnLayer: true,
+        quality: GlassQuality.standard,
+        shape: LiquidRoundedSuperellipse(borderRadius: 100.0),
+        settings: _getGlassSettings(isDark),
+        child: Container(
+          height: 48, width: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08), width: 0.8),
+          ),
+          child: Center(
+            child: PopupMenuButton<String>(
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedMoreVertical, color: isDark ? Colors.white70 : _lightModeGray, size: 22, strokeWidth: 2.0),
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+              elevation: 8,
+              offset: const Offset(0, 48),
+              onSelected: (value) {
+                _killFocus();
+                switch (value) {
+                  case 'settings':
+                    Navigator.pushNamed(context, '/profile');
+                    break;
+                  case 'share_location':
+                    _shareLocation();
+                    break;
+                  case 'radius':
+                    _showRadiusDialog();
+                    break;
+                  case 'report':
+                    _showReportDialog();
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'radius',
+                  child: Row(
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedRadar01, color: Colors.blue, size: 20, strokeWidth: 2.0),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Search Radius', style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 14, fontWeight: FontWeight.w600)),
+                          Text('${_searchRadiusKm.toStringAsFixed(0)} km', style: TextStyle(color: Colors.blue, fontSize: 11, fontWeight: FontWeight.bold)),
+                        ],
+                      )),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'share_location',
+                  child: Row(
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedLocationShare02, color: isDark ? Colors.white70 : _lightModeGray, size: 20, strokeWidth: 2.0),
+                      const SizedBox(width: 12),
+                      Text('Share Location', style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 14, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'settings',
+                  child: Row(
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedSettings02, color: isDark ? Colors.white70 : _lightModeGray, size: 20, strokeWidth: 2.0),
+                      const SizedBox(width: 12),
+                      Text('Settings', style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 14, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'report',
+                  child: Row(
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: Colors.orange, size: 20, strokeWidth: 2.0),
+                      const SizedBox(width: 12),
+                      Text('Report', style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 14, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            child: Center(child: HugeIcon(icon: HugeIcons.strokeRoundedQrCode01, color: isDark ? Colors.white70 : _lightModeGray, size: 22, strokeWidth: 2.0)),
           ),
         ),
       ),
@@ -851,7 +940,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                       useOwnLayer: true, quality: GlassQuality.standard, shape: LiquidRoundedSuperellipse(borderRadius: 100.0), settings: _getGlassSettings(isDark),
                       child: Container(
                           height: 48, width: 48,
-                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4))]),
+                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08), width: 0.8)),
                           child: Center(child: HugeIcon(icon: HugeIcons.strokeRoundedLocationShare02, color: _followUser ? Colors.blue : (isDark ? Colors.white70 : _lightModeGray), size: 22, strokeWidth: 2.0))
                       ),
                     )
@@ -860,11 +949,64 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         ),
         Padding(
             padding: EdgeInsets.only(left: (MediaQuery.of(context).size.width * 0.075) + 8, bottom: 4),
-            child: Text(_activeSearchQuery == null ? 'Nearby Jobs' : (_displayedGigs.isNotEmpty ? 'Results for "$_activeSearchQuery"' : 'No Results Found'),
-                style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 18, fontWeight: FontWeight.bold)
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(_activeSearchQuery == null ? 'Nearby Jobs' : (_displayedGigs.isNotEmpty ? 'Results for "$_activeSearchQuery"' : 'No Results Found'),
+                      style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 18, fontWeight: FontWeight.bold)
+                  ),
+                ),
+                if (_activeSearchQuery == null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 24),
+                    child: GestureDetector(
+                      onTap: _showRadiusDialog,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.blue.withValues(alpha: 0.3))),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            HugeIcon(icon: HugeIcons.strokeRoundedRadar01, color: Colors.blue, size: 14, strokeWidth: 2.5),
+                            const SizedBox(width: 4),
+                            Text('${_searchRadiusKm.toStringAsFixed(0)} km', style: const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             )
         ),
-        SizedBox(height: 135, child: PageView.builder(controller: _pageController, onPageChanged: _onCarouselPageChanged, physics: const ClampingScrollPhysics(), itemCount: _displayedGigs.length, itemBuilder: (context, i) => _AnimatedPressable(onTap: () => _onMapPinTapped(_displayedGigs[i], i), child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: _buildCarouselCard(isDark, _displayedGigs[i]))))),
+        _displayedGigs.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: GlassContainer(
+                useOwnLayer: true, quality: GlassQuality.standard, shape: LiquidRoundedSuperellipse(borderRadius: 20.0), settings: _getGlassSettings(isDark),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedSearchArea, color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.3), size: 36, strokeWidth: 1.5),
+                      const SizedBox(height: 10),
+                      Text('No jobs within ${_searchRadiusKm.toStringAsFixed(0)} km', style: TextStyle(color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.5), fontSize: 14, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 4),
+                      GestureDetector(
+                        onTap: _showRadiusDialog,
+                        child: Text('Adjust radius', style: TextStyle(color: Colors.blue, fontSize: 13, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : SizedBox(height: 115, child: PageView.builder(controller: _pageController, onPageChanged: _onCarouselPageChanged, physics: const ClampingScrollPhysics(), itemCount: _displayedGigs.length, itemBuilder: (context, i) => _AnimatedPressable(onTap: () => _onMapPinTapped(_displayedGigs[i], i), child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: _buildCarouselCard(isDark, _displayedGigs[i]))))),
       ]);
 
   Widget _buildGigPopup(GigModel gig, bool isDark) {
@@ -938,33 +1080,35 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     final frostedGlow = [Shadow(color: Colors.white.withValues(alpha: 0.5), blurRadius: 8), Shadow(color: Colors.black.withValues(alpha: 0.2), offset: const Offset(0.5, 0.5), blurRadius: 0)];
 
     return GlassContainer(
-      useOwnLayer: true, quality: GlassQuality.standard, shape: LiquidRoundedSuperellipse(borderRadius: 24.0), settings: _getGlassSettings(isDark),
+      useOwnLayer: true, quality: GlassQuality.standard, shape: LiquidRoundedSuperellipse(borderRadius: 20.0), settings: _getGlassSettings(isDark),
       child: Container(
-        width: 285, padding: const EdgeInsets.all(16),
+        width: 270, padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+          borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4))],
         ),
         child: Row(
             children: [
               Container(
-                  width: 70, height: 70,
-                  decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-                  child: Center(child: Text(TaskCategory.icon(gig.category), style: const TextStyle(fontSize: 32)))
+                  width: 56, height: 56,
+                  decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+                  child: Center(child: Text(TaskCategory.icon(gig.category), style: const TextStyle(fontSize: 26)))
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(gig.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: isDark ? Colors.white : _lightModeGray, shadows: isDark ? frostedGlow : [])),
-                        const SizedBox(height: 6),
+                        Text(gig.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: isDark ? Colors.white : _lightModeGray, shadows: isDark ? frostedGlow : [])),
+                        const SizedBox(height: 4),
                         Row(children: [
-                          HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: isDark ? Colors.white : _lightModeGray, size: 14, strokeWidth: 2.5),
-                          const SizedBox(width: 4),
-                          Flexible(child: Text(_getDistanceString(gig), style: TextStyle(fontSize: 12, color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600, shadows: isDark ? frostedGlow : []), overflow: TextOverflow.ellipsis))
-                        ])
+                          HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: isDark ? Colors.white : _lightModeGray, size: 13, strokeWidth: 2.5),
+                          const SizedBox(width: 3),
+                          Flexible(child: Text(_getDistanceString(gig), style: TextStyle(fontSize: 11, color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600, shadows: isDark ? frostedGlow : []), overflow: TextOverflow.ellipsis))
+                        ]),
+                        const SizedBox(height: 2),
+                        Text(gig.formattedBounty, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue)),
                       ]
                   )
               )
@@ -1210,6 +1354,135 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
             ]
         ),
       ),
+    );
+  }
+
+  void _shareLocation() {
+    final lat = _currentLocation.latitude;
+    final lng = _currentLocation.longitude;
+    final url = 'https://www.google.com/maps/@$lat,$lng,15z';
+    Clipboard.setData(ClipboardData(text: url));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Location link copied!'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showRadiusDialog() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    double tempRadius = _searchRadiusKm;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Row(
+              children: [
+                HugeIcon(icon: HugeIcons.strokeRoundedRadar01, color: Colors.blue, size: 24, strokeWidth: 2.0),
+                const SizedBox(width: 12),
+                Text('Search Radius', style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('${tempRadius.toStringAsFixed(0)} km', style: TextStyle(color: Colors.blue, fontSize: 32, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: Colors.blue,
+                    inactiveTrackColor: Colors.blue.withValues(alpha: 0.2),
+                    thumbColor: Colors.blue,
+                    overlayColor: Colors.blue.withValues(alpha: 0.1),
+                    trackHeight: 4,
+                  ),
+                  child: Slider(
+                    value: tempRadius,
+                    min: 1,
+                    max: 50,
+                    divisions: 49,
+                    onChanged: (v) => setDialogState(() => tempRadius = v),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('1 km', style: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 12)),
+                    Text('50 km', style: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 12)),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.5))),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _searchRadiusKm = tempRadius;
+                    // Re-filter gigs based on new radius
+                    final currentUser = context.read<AuthProvider>().user;
+                    final gigProvider = context.read<GigProvider>();
+                    final available = gigProvider.filteredGigs.where((g) => g.customerId != currentUser?.id && g.latitude != null && g.longitude != null).toList();
+                    final withinRadius = available.where((g) {
+                      double distM = Geolocator.distanceBetween(
+                        _currentLocation.latitude, _currentLocation.longitude,
+                        g.latitude!, g.longitude!,
+                      );
+                      return distM <= _searchRadiusKm * 1000;
+                    }).toList();
+                    withinRadius.sort((a, b) {
+                      double distanceA = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, a.latitude!, a.longitude!);
+                      double distanceB = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, b.latitude!, b.longitude!);
+                      return distanceA.compareTo(distanceB);
+                    });
+                    _nearbyGigs = withinRadius;
+                    if (_searchController.text.isEmpty) {
+                      _displayedGigs = List.from(_nearbyGigs);
+                    }
+                  });
+                  Navigator.pop(context);
+                },
+                child: const Text('Apply', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  void _showReportDialog() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              HugeIcon(icon: HugeIcons.strokeRoundedAlert02, color: Colors.orange, size: 24, strokeWidth: 2.0),
+              const SizedBox(width: 12),
+              Text('Report', style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Text('If you notice any issues or suspicious activity, please contact support.', style: TextStyle(color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.7), fontSize: 14)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
