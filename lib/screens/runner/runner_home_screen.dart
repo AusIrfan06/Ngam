@@ -1624,7 +1624,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                   Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions'),
                   headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer \$apiKey',
+                    'Authorization': 'Bearer $apiKey',
                   },
                   body: jsonEncode({
                     "model": "meta/llama3-70b-instruct",
@@ -1647,7 +1647,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                   if (mounted) {
                     setState(() {
                       isTyping = false;
-                      chatHistory.add({"role": "ai", "message": "Maaf, pelayan AI ralat: \${response.statusCode}"});
+                      chatHistory.add({"role": "ai", "message": "Maaf, pelayan AI ralat: ${response.statusCode}"});
                     });
                   }
                 }
@@ -1661,11 +1661,13 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
               }
             }
 
-            return Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.75,
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(32),
               border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
@@ -1860,7 +1862,8 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
               ),
             ),
           ),
-        );
+        ),
+      );
           },
         );
       },
