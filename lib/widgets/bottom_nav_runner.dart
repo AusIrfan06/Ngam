@@ -24,8 +24,8 @@ class BottomNavRunner extends StatelessWidget {
       onTap: onTap,
       items: [
         NavItem(
-          icon: HugeIcons.strokeRoundedCompass,
-          title: 'Home',
+          icon: HugeIcons.strokeRoundedDiscoverCircle,
+          title: 'Discover',
         ),
         NavItem(
           icon: HugeIcons.strokeRoundedBriefcase02,
