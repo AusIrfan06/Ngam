@@ -703,10 +703,10 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
           ),
         ),
       ),
-      const SizedBox(width: 12),
+      const SizedBox(width: 6),
       GestureDetector(
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI Assistant coming soon!')));
+          _showAIPopup(context);
         },
         child: GlassContainer(
           useOwnLayer: true,
@@ -732,7 +732,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
           ),
         ),
       ),
-      const SizedBox(width: 12),
+      const SizedBox(width: 6),
       GlassContainer(
         useOwnLayer: true,
         quality: GlassQuality.standard,
@@ -1548,6 +1548,173 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
               child: Text('OK', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showAIPopup(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final TextEditingController aiTextController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1), blurRadius: 20, offset: const Offset(0, 10)),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const HugeIcon(icon: HugeIcons.strokeRoundedArtificialIntelligence08, color: Colors.blue, size: 28, strokeWidth: 2.0),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Ngam AI Assistant', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: isDark ? Colors.white : _lightModeGray)),
+                                Text('Powered by intelligence', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.6))),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.close, color: isDark ? Colors.white54 : Colors.black54),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey.shade100.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          "Hi there! I'm your AI gig assistant. Tell me what kind of jobs you're looking for, or how much time you have, and I'll find the perfect match for you.",
+                          style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.8)),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GlassContainer(
+                              useOwnLayer: true,
+                              quality: GlassQuality.standard,
+                              shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                              settings: _getGlassSettings(isDark),
+                              child: Container(
+                                height: 48,
+                                padding: const EdgeInsets.symmetric(horizontal: 18),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                                  boxShadow: [
+                                    BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4)),
+                                  ],
+                                ),
+                                child: Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: Theme.of(context).colorScheme.copyWith(primary: Colors.blue),
+                                    primaryColor: Colors.blue,
+                                  ),
+                                  child: TextField(
+                                    controller: aiTextController,
+                                    onChanged: (val) {
+                                      setState(() {});
+                                    },
+                                    style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600, fontSize: 15),
+                                    cursorColor: Colors.blue,
+                                    textAlignVertical: TextAlignVertical.center,
+                                    decoration: InputDecoration(
+                                      hintText: "e.g., 'Find me a 2-hour job nearby'",
+                                      hintStyle: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 14, fontWeight: FontWeight.w400),
+                                      border: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      errorBorder: InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                      isDense: true,
+                                      filled: false,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GlassContainer(
+                            useOwnLayer: true,
+                            quality: GlassQuality.standard,
+                            shape: LiquidRoundedSuperellipse(borderRadius: 100.0),
+                            settings: _getGlassSettings(isDark),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              height: 48, width: 48,
+                              decoration: BoxDecoration(
+                                color: aiTextController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100.withValues(alpha: 0.5)) : Colors.blue,
+                                borderRadius: BorderRadius.circular(100),
+                                border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4)),
+                                ],
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  aiTextController.text.isEmpty ? Icons.mic_none_rounded : Icons.send_rounded,
+                                  color: aiTextController.text.isEmpty ? (isDark ? Colors.white70 : _lightModeGray) : Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  if (aiTextController.text.isEmpty) {
+                                    // TODO: Voice input
+                                  } else {
+                                    // TODO: Send to AI
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+          },
         );
       },
     );
