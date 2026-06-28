@@ -704,6 +704,35 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         ),
       ),
       const SizedBox(width: 12),
+      GestureDetector(
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI Assistant coming soon!')));
+        },
+        child: GlassContainer(
+          useOwnLayer: true,
+          quality: GlassQuality.standard,
+          shape: LiquidRoundedSuperellipse(borderRadius: 100.0),
+          settings: _getGlassSettings(isDark),
+          child: Container(
+            height: 48, width: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: HugeIcon(icon: HugeIcons.strokeRoundedArtificialIntelligence08, color: Colors.blue, size: 22, strokeWidth: 2.0),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 12),
       GlassContainer(
         useOwnLayer: true,
         quality: GlassQuality.standard,
