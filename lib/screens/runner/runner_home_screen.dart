@@ -1627,7 +1627,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                     'Authorization': 'Bearer $apiKey',
                   },
                   body: jsonEncode({
-                    "model": "meta/llama3-70b-instruct",
+                    "model": "meta/llama-3.1-70b-instruct",
                     "messages": messages,
                     "temperature": 0.5,
                     "max_tokens": 256,
@@ -1914,11 +1914,11 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
             if (_locales.isEmpty && _speechEnabled) {
               _speechToText.locales().then((locales) {
                 if (locales.isNotEmpty) {
-                  // Filter to only Malay and English
-                  final filteredLocales = locales.where((l) => 
-                    l.localeId.toLowerCase().startsWith('ms') || 
-                    l.localeId.toLowerCase().startsWith('en')
-                  ).toList();
+                  // Filter to only Malay (Malaysia) and English (Malaysia)
+                  final filteredLocales = locales.where((l) {
+                    final normalized = l.localeId.toLowerCase().replaceAll('-', '_');
+                    return normalized == 'ms_my' || normalized == 'en_my';
+                  }).toList();
                   
                   setState(() {
                     _locales = filteredLocales.isNotEmpty ? filteredLocales : locales;
