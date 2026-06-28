@@ -24,6 +24,10 @@ import '../shared/chat_screen.dart';
 import '../../widgets/bottom_nav_runner.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 // ============================================================
 // Ngam App — Runner Home Screen
 // Discovery feed with glassmorphism map
@@ -83,6 +87,8 @@ class _RunnerExploreFeed extends StatefulWidget {
 class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+  final stt.SpeechToText _speechToText = stt.SpeechToText();
+  bool _speechEnabled = false;
   final MapController _mapController = MapController();
   final FocusNode _searchFocus = FocusNode();
   final TextEditingController _searchController = TextEditingController();
@@ -141,7 +147,13 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
        _updateGigs();
+       _initSpeech();
     });
+  }
+
+  void _initSpeech() async {
+    _speechEnabled = await _speechToText.initialize();
+    if (mounted) setState(() {});
   }
   Future<void> _loadCachedLocation() async {
     try {
@@ -1556,6 +1568,15 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   void _showAIPopup(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final TextEditingController aiTextController = TextEditingController();
+    
+    List<Map<String, dynamic>> chatHistory = [
+      {
+        "role": "ai",
+        "message": "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari, atau berapa banyak masa yang anda ada, dan saya akan carikan padanan yang 'ngam' untuk anda.",
+      }
+    ];
+    bool isTyping = false;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1563,6 +1584,83 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
+            
+            Future<void> _handleSend(String text) async {
+              if (text.trim().isEmpty) return;
+              setState(() {
+                chatHistory.add({"role": "user", "message": text});
+                isTyping = true;
+              });
+              aiTextController.clear();
+              
+              try {
+                await dotenv.load();
+                final apiKey = dotenv.env['NVIDIA_API_KEY'] ?? '';
+                if (apiKey.isEmpty) {
+                  setState(() {
+                    isTyping = false;
+                    chatHistory.add({"role": "ai", "message": "Maaf, API Key tidak dijumpai."});
+                  });
+                  return;
+                }
+                
+                final messages = [
+                  {
+                    "role": "system",
+                    "content": "You are a friendly AI gig assistant for the Ngam app. Your job is to help runners (users) find local part-time gigs or delivery jobs. Ask clarifying questions about time availability, distance willing to travel, and expected pay if not provided. ALWAYS reply in either Bahasa Melayu or English (whichever the user uses). Keep responses very concise, helpful, and conversational (under 3 sentences usually)."
+                  }
+                ];
+                
+                for (var msg in chatHistory) {
+                  if (msg['role'] == 'user' || msg['role'] == 'ai') {
+                    messages.add({
+                      "role": msg['role'] == 'ai' ? 'assistant' : 'user',
+                      "content": msg['message'],
+                    });
+                  }
+                }
+                
+                final response = await http.post(
+                  Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions'),
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer \$apiKey',
+                  },
+                  body: jsonEncode({
+                    "model": "meta/llama3-70b-instruct",
+                    "messages": messages,
+                    "temperature": 0.5,
+                    "max_tokens": 256,
+                  }),
+                );
+                
+                if (response.statusCode == 200) {
+                  final data = jsonDecode(response.body);
+                  final reply = data['choices'][0]['message']['content'];
+                  if (mounted) {
+                    setState(() {
+                      isTyping = false;
+                      chatHistory.add({"role": "ai", "message": reply});
+                    });
+                  }
+                } else {
+                  if (mounted) {
+                    setState(() {
+                      isTyping = false;
+                      chatHistory.add({"role": "ai", "message": "Maaf, pelayan AI ralat: \${response.statusCode}"});
+                    });
+                  }
+                }
+              } catch (e) {
+                if (mounted) {
+                  setState(() {
+                    isTyping = false;
+                    chatHistory.add({"role": "ai", "message": "Maaf, ralat rangkaian berlaku."});
+                  });
+                }
+              }
+            }
+
             return Padding(
               padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: Container(
@@ -1611,19 +1709,64 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey.shade100.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "Hi there! I'm your AI gig assistant. Tell me what kind of jobs you're looking for, or how much time you have, and I'll find the perfect match for you.",
-                          style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.8)),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: ListView.builder(
+                          reverse: false,
+                          itemCount: chatHistory.length + (isTyping ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == chatHistory.length && isTyping) {
+                              return Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 16, right: 60),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.grey.shade200,
+                                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20), bottomRight: Radius.circular(20), bottomLeft: Radius.circular(4)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.blue))),
+                                      const SizedBox(width: 12),
+                                      Text('AI sedang berfikir...', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                            
+                            final chat = chatHistory[index];
+                            final isAI = chat['role'] == 'ai';
+                            
+                            return Align(
+                              alignment: isAI ? Alignment.centerLeft : Alignment.centerRight,
+                              child: Container(
+                                margin: EdgeInsets.only(bottom: 16, left: isAI ? 0 : 60, right: isAI ? 60 : 0),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: isAI ? (isDark ? Colors.black.withValues(alpha: 0.3) : Colors.grey.shade100) : Colors.blue,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(20),
+                                    topRight: const Radius.circular(20),
+                                    bottomLeft: Radius.circular(isAI ? 4 : 20),
+                                    bottomRight: Radius.circular(isAI ? 20 : 4),
+                                  ),
+                                ),
+                                child: Text(
+                                  chat['message'],
+                                  style: TextStyle(
+                                    fontSize: 14, height: 1.4,
+                                    color: isAI ? (isDark ? Colors.white : _lightModeGray) : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -1634,6 +1777,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                               settings: _getGlassSettings(isDark),
                               child: Container(
                                 height: 48,
+                                alignment: Alignment.center,
                                 padding: const EdgeInsets.symmetric(horizontal: 18),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(24),
@@ -1652,11 +1796,12 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                                     onChanged: (val) {
                                       setState(() {});
                                     },
+                                    onSubmitted: (val) => _handleSend(val),
                                     style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600, fontSize: 15),
                                     cursorColor: Colors.blue,
                                     textAlignVertical: TextAlignVertical.center,
                                     decoration: InputDecoration(
-                                      hintText: "e.g., 'Find me a 2-hour job nearby'",
+                                      hintText: "Tulis mesej...",
                                       hintStyle: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 14, fontWeight: FontWeight.w400),
                                       border: InputBorder.none,
                                       focusedBorder: InputBorder.none,
@@ -1697,9 +1842,11 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                                 ),
                                 onPressed: () {
                                   if (aiTextController.text.isEmpty) {
-                                    // TODO: Voice input
+                                    _showVoiceSearchPopup(context, aiTextController, onResult: (text) {
+                                      _handleSend(text);
+                                    });
                                   } else {
-                                    // TODO: Send to AI
+                                    _handleSend(aiTextController.text);
                                   }
                                 },
                               ),
@@ -1714,6 +1861,159 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
             ),
           ),
         );
+          },
+        );
+      },
+    );
+  }
+
+  void _showVoiceSearchPopup(BuildContext context, TextEditingController targetController, {Function(String)? onResult}) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    String _recognizedWords = "";
+    bool _isListening = false;
+    String _selectedLocaleId = 'ms_MY'; // Default to Malay
+    List<stt.LocaleName> _locales = [];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void _startListening() async {
+              if (_speechEnabled) {
+                setState(() => _isListening = true);
+                await _speechToText.listen(
+                  onResult: (result) {
+                    setState(() => _recognizedWords = result.recognizedWords);
+                    if (result.finalResult) {
+                      setState(() => _isListening = false);
+                      targetController.text = _recognizedWords;
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        if (mounted && Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                          if (onResult != null && _recognizedWords.isNotEmpty) {
+                            onResult(_recognizedWords);
+                          }
+                        }
+                      });
+                    }
+                  },
+                  localeId: _selectedLocaleId,
+                );
+              }
+            }
+            void _stopListening() async {
+              await _speechToText.stop();
+              setState(() => _isListening = false);
+            }
+            if (_locales.isEmpty && _speechEnabled) {
+              _speechToText.locales().then((locales) {
+                if (locales.isNotEmpty) {
+                  // Filter to only Malay and English
+                  final filteredLocales = locales.where((l) => 
+                    l.localeId.toLowerCase().startsWith('ms') || 
+                    l.localeId.toLowerCase().startsWith('en')
+                  ).toList();
+                  
+                  setState(() {
+                    _locales = filteredLocales.isNotEmpty ? filteredLocales : locales;
+                    
+                    // Try to set default to Malay if it exists in the list
+                    try {
+                      _selectedLocaleId = _locales.firstWhere((l) => l.localeId.toLowerCase().startsWith('ms')).localeId;
+                    } catch (_) {
+                      if (_locales.isNotEmpty) _selectedLocaleId = _locales.first.localeId;
+                    }
+                  });
+                }
+              });
+            }
+            return Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1), blurRadius: 20, offset: const Offset(0, 10))],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _isListening ? 'Listening...' : 'Tap the mic to speak',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : _lightModeGray),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            _recognizedWords.isNotEmpty ? _recognizedWords : 'Say something like "Find me a delivery gig"',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.7)),
+                          ),
+                          const SizedBox(height: 32),
+                          GestureDetector(
+                            onTap: _isListening ? _stopListening : _startListening,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              width: _isListening ? 90 : 80,
+                              height: _isListening ? 90 : 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _isListening ? Colors.redAccent.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
+                                border: Border.all(color: _isListening ? Colors.red : Colors.blue, width: 2),
+                                boxShadow: [
+                                  if (_isListening) BoxShadow(color: Colors.redAccent.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 5)
+                                ],
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  _isListening ? Icons.mic : Icons.mic_none,
+                                  size: 40,
+                                  color: _isListening ? Colors.red : Colors.blue,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          if (_locales.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.1 : 0.3)),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _locales.any((l) => l.localeId == _selectedLocaleId) ? _selectedLocaleId : _locales.first.localeId,
+                                  dropdownColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+                                  icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : Colors.black54),
+                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                  items: _locales.map((l) => DropdownMenuItem(value: l.localeId, child: Text(l.name))).toList(),
+                                  onChanged: (val) {
+                                    if (val != null) setState(() => _selectedLocaleId = val);
+                                  },
+                                ),
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 48, child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
           },
         );
       },
