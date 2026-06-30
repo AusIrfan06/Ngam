@@ -2006,11 +2006,11 @@ RULES:
     final TextEditingController aiTextController = TextEditingController();
     final ScrollController scrollController = ScrollController();
     final FlutterTts flutterTts = FlutterTts();
-    flutterTts.setSpeechRate(0.4);
     bool isAIPopupOpen = true;
     bool shouldReopenMic = true;
     bool ttsInitialized = false;
     BuildContext? sheetContext;
+    flutterTts.setSpeechRate(0.4);
 
     List<Map<String, dynamic>> chatHistory = [
       {
