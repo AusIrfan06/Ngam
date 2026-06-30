@@ -90,7 +90,6 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   final MapController _mapController = MapController();
   final FocusNode _searchFocus = FocusNode();
   final TextEditingController _searchController = TextEditingController();
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   PersistentBottomSheetController? _bottomSheetController;
   final Color _lightModeGray = const Color(0xFF3A3A3C);
   bool _isSearchPanelOpen = false;
@@ -160,6 +159,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
 
   void _initAI() {
     _flutterTts = FlutterTts();
+    _flutterTts?.setSpeechRate(0.4);
   }
 
   void _initSpeech() async {
@@ -216,10 +216,13 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     }).toList();
     setState(() {
       _nearbyGigs = withinRadius;
-      if (_searchController.text.isEmpty) {
+      if (_searchController.text.isEmpty && _activeSearchQuery == null) {
         _displayedGigs = List.from(_nearbyGigs);
       }
     });
+    if (_activeSearchQuery != null) {
+      _aiSearchByKeyword(_activeSearchQuery!);
+    }
   }
   void _updateGigs() {
     final gigProvider = context.read<GigProvider>();
@@ -482,9 +485,12 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     final q = keyword.trim().toLowerCase();
     if (q.isEmpty) return '';
 
+    final gigProvider = context.read<GigProvider>();
+    final allOpenGigs = gigProvider.openGigs;
     List<GigModel> results = [];
-    // Match by title or category
-    for (var gig in _nearbyGigs) {
+
+    // Match by title or category across ALL open gigs
+    for (var gig in allOpenGigs) {
       if (gig.title.toLowerCase().contains(q) || gig.category.toLowerCase().contains(q)) {
         results.add(gig);
       }
@@ -494,12 +500,50 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       for (var group in _getCategoryTree(context)) {
         for (var sub in group['sub']) {
           if ((sub['label'] as String).toLowerCase().contains(q)) {
-            results.addAll(_nearbyGigs.where((g) => g.category.toLowerCase() == sub['id']));
+            results.addAll(allOpenGigs.where((g) => g.category.toLowerCase() == sub['id']));
           }
         }
       }
     }
+    
     results = results.toSet().toList();
+
+    // If we found results, ensure they are within the search radius
+    if (results.isNotEmpty) {
+      double maxDistanceKm = _searchRadiusKm;
+      bool expandedRadius = false;
+      for (var gig in results) {
+        if (gig.latitude != null && gig.longitude != null) {
+          double distM = Geolocator.distanceBetween(
+            _currentLocation.latitude, _currentLocation.longitude,
+            gig.latitude!, gig.longitude!
+          );
+          double distKm = distM / 1000.0;
+          if (distKm > maxDistanceKm) {
+            maxDistanceKm = distKm;
+            expandedRadius = true;
+          }
+        }
+      }
+
+      // Add a small buffer to the new radius (e.g. 5km) and update if expanded
+      if (expandedRadius) {
+        _searchRadiusKm = maxDistanceKm + 5.0;
+        if (_searchRadiusKm > 100.0) _searchRadiusKm = 100.0; // Cap at 100km
+        
+        // Populate _nearbyGigs using the new radius
+        List<GigModel> withinRadius = [];
+        for (var gig in allOpenGigs) {
+          if (gig.latitude == null || gig.longitude == null) continue;
+          double m = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, gig.latitude!, gig.longitude!);
+          if (m <= _searchRadiusKm * 1000) {
+            withinRadius.add(gig);
+          }
+        }
+        _nearbyGigs = withinRadius;
+      }
+    }
+
     _applySearchResults(results, keyword);
     if (results.isEmpty) return '';
     return results.length == 1 ? '1 job found' : '${results.length} jobs found';
@@ -694,10 +738,7 @@ RULES:
           FocusScope.of(context).unfocus();
           _killFocus();
         },
-        child: Scaffold(
-          key: _scaffoldKey,
-          resizeToAvoidBottomInset: false,
-          body: Stack(
+        child: Stack(
             children: [
               Listener(
                 onPointerDown: (_) => _onMapInteractionStart(),
@@ -831,8 +872,7 @@ RULES:
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildFloatingAIPanel(bool isDark) {
@@ -1103,7 +1143,7 @@ RULES:
                     ),
                   ),
                 ),
-                if (_searchController.text.isNotEmpty)
+                if (_searchController.text.isNotEmpty || _activeSearchQuery != null)
                   GestureDetector(onTap: _clearSearch, child: Icon(Icons.close, size: 18, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.6))),
               ],
             ),
@@ -1567,7 +1607,7 @@ RULES:
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
     final double screenHeight = MediaQuery.of(context).size.height;
     bool localIsDescExpanded = false;
-    _bottomSheetController = _scaffoldKey.currentState?.showBottomSheet(
+    _bottomSheetController = Scaffold.of(context).showBottomSheet(
       backgroundColor: Colors.transparent, elevation: 0,
       (context) {
         return LayoutBuilder(builder: (context, constraints) {
@@ -1966,6 +2006,7 @@ RULES:
     final TextEditingController aiTextController = TextEditingController();
     final ScrollController scrollController = ScrollController();
     final FlutterTts flutterTts = FlutterTts();
+    flutterTts.setSpeechRate(0.4);
     bool isAIPopupOpen = true;
     bool shouldReopenMic = true;
     bool ttsInitialized = false;
@@ -2032,7 +2073,6 @@ RULES:
               }
 
               try {
-                await dotenv.load();
                 final apiKey = dotenv.env['NVIDIA_API_KEY'] ?? '';
                 if (apiKey.isEmpty) {
                   setState(() {
@@ -2043,21 +2083,56 @@ RULES:
                   return;
                 }
 
+                // Build live job context for the AI
+                final gigProvider = context.read<GigProvider>();
+                final allGigs = gigProvider.openGigs;
+                final StringBuffer jobList = StringBuffer();
+                final currentLoc = _currentLocation;
+                int jobCount = 0;
+                for (var gig in allGigs) {
+                  double distKm = 0;
+                  if (gig.latitude != null && gig.longitude != null) {
+                    distKm = Geolocator.distanceBetween(
+                      currentLoc.latitude, currentLoc.longitude,
+                      gig.latitude!, gig.longitude!
+                    ) / 1000.0;
+                  }
+                  final dist = gig.latitude != null ? '${distKm.toStringAsFixed(1)}km away' : 'location unknown';
+                  jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | "${gig.location}"');
+                  jobCount++;
+                }
+                final jobContext = jobCount > 0
+                    ? 'There are $jobCount available jobs right now:\n${jobList.toString()}'
+                    : 'There are no available jobs listed right now.';
+
                 final messages = [
                   {
                     "role": "system",
-                    "content": """You are a friendly AI gig assistant for the Ngam app. Help users find local part-time gigs or delivery jobs.
+                    "content": """You are a smart, friendly AI gig assistant for the Ngam app — a local part-time gig marketplace in Malaysia.
 
-RESPONSE FORMAT: Always respond with a valid JSON object:
-{"message": "Your reply here", "search_keyword": "keyword or null"}
+LIVE JOB DATA (updated in real-time):
+$jobContext
+
+YOUR JOB:
+- Help the user find jobs that match what they're looking for.
+- You can suggest the highest-paying, closest, or best-matching job.
+- You understand both Malay and English (or mixed Manglish).
+- If the user is vague (e.g. "kerja senang"), suggest a good match and search for it.
+- If the user asks for highest pay, find the highest bounty job and search it.
+- If the user asks how many jobs there are, tell them.
+- If the user asks about a specific job, describe it.
+- You have FULL context about all jobs above. Use it wisely.
+
+RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no markdown):
+{"message": "Your reply (max 3 sentences)", "search_keyword": "keyword or null"}
 
 RULES:
-- Extract ONE search keyword from the user's message immediately (job type, e.g. delivery, driver, food, cleaning).
-- Do NOT ask many questions first — search immediately on first message.
-- search_keyword should be null only if no job search is intended.
-- Keep message under 2 sentences.
-- Always reply in the user's language (Malay or English).
-- If user says done/no more/goodbye, include [END] inside the message field."""
+- search_keyword: extract a keyword (job type/category/title word) to filter the map. Set to null only if no search is needed.
+- On first message about a job, search immediately — do NOT ask multiple questions first.
+- Keep message concise (max 3 sentences).
+- Reply in the same language as the user (Malay, English, or Manglish).
+- If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field.
+- When recommending a job, mention its title, pay, and distance."""
                   }
                 ];
 
@@ -2072,13 +2147,14 @@ RULES:
 
                 final response = await http.post(
                   Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions'),
-                  headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer \$apiKey'},
-                  body: jsonEncode({"model": "meta/llama-3.3-70b-instruct", "messages": messages, "temperature": 0.4, "max_tokens": 200}),
+                  headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'},
+                  body: jsonEncode({"model": "meta/llama-3.3-70b-instruct", "messages": messages, "temperature": 0.5, "max_tokens": 350}),
                 );
 
                 if (response.statusCode == 200) {
                   final data = jsonDecode(response.body);
                   String rawReply = data['choices'][0]['message']['content'];
+                  debugPrint("AI RAW REPLY: $rawReply");
 
                   // Parse JSON response from AI
                   String aiMessage = rawReply;
@@ -2093,9 +2169,12 @@ RULES:
                         searchKeyword = kw.trim();
                       }
                     }
-                  } catch (_) {
+                  } catch (e) {
+                    debugPrint("AI JSON PARSE ERROR: $e");
                     aiMessage = rawReply;
                   }
+
+                  debugPrint("AI EXTRACTED KEYWORD: $searchKeyword");
 
                   // Run app search immediately if keyword found
                   if (searchKeyword != null) {
