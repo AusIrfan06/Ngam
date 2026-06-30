@@ -1627,7 +1627,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                     'Authorization': 'Bearer $apiKey',
                   },
                   body: jsonEncode({
-                    "model": "meta/llama-3.1-70b-instruct",
+                    "model": "meta/llama-3.3-70b-instruct",
                     "messages": messages,
                     "temperature": 0.5,
                     "max_tokens": 256,
@@ -1667,20 +1667,22 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.75,
                   margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.85),
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1), blurRadius: 20, offset: const Offset(0, 10)),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  child: GlassContainer(
+                    useOwnLayer: true,
+                    quality: GlassQuality.standard,
+                    shape: LiquidRoundedSuperellipse(borderRadius: 32.0),
+                    settings: _getGlassSettings(isDark, blur: 12.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 20, offset: const Offset(0, 10)),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1874,8 +1876,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     String _recognizedWords = "";
     bool _isListening = false;
-    String _selectedLocaleId = 'ms_MY'; // Default to Malay
-    List<stt.LocaleName> _locales = [];
+    final String _selectedLocaleId = context.locale.languageCode == 'ms' ? 'ms_MY' : 'en_US';
 
     showModalBottomSheet(
       context: context,
@@ -1911,42 +1912,23 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
               await _speechToText.stop();
               setState(() => _isListening = false);
             }
-            if (_locales.isEmpty && _speechEnabled) {
-              _speechToText.locales().then((locales) {
-                if (locales.isNotEmpty) {
-                  // Filter to only Malay (Malaysia) and English (Malaysia)
-                  final filteredLocales = locales.where((l) {
-                    final normalized = l.localeId.toLowerCase().replaceAll('-', '_');
-                    return normalized == 'ms_my' || normalized == 'en_my';
-                  }).toList();
-                  
-                  setState(() {
-                    _locales = filteredLocales.isNotEmpty ? filteredLocales : locales;
-                    
-                    // Try to set default to Malay if it exists in the list
-                    try {
-                      _selectedLocaleId = _locales.firstWhere((l) => l.localeId.toLowerCase().startsWith('ms')).localeId;
-                    } catch (_) {
-                      if (_locales.isNotEmpty) _selectedLocaleId = _locales.first.localeId;
-                    }
-                  });
-                }
-              });
-            }
+
             return Padding(
               padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
               child: Container(
                 margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1E1E).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1), blurRadius: 20, offset: const Offset(0, 10))],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: GlassContainer(
+                  useOwnLayer: true,
+                  quality: GlassQuality.standard,
+                  shape: LiquidRoundedSuperellipse(borderRadius: 32.0),
+                  settings: _getGlassSettings(isDark, blur: 12.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 20, offset: const Offset(0, 10))],
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(32.0),
                       child: Column(
@@ -1957,10 +1939,16 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : _lightModeGray),
                           ),
                           const SizedBox(height: 24),
-                          Text(
-                            _recognizedWords.isNotEmpty ? _recognizedWords : 'Say something like "Find me a delivery gig"',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.7)),
+                          Container(
+                            height: 80,
+                            alignment: Alignment.center,
+                            child: SingleChildScrollView(
+                              child: Text(
+                                _recognizedWords.isNotEmpty ? _recognizedWords : 'Sebutkan apa sahaja yang anda cari...',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.7)),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 32),
                           GestureDetector(
@@ -1986,30 +1974,6 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                               ),
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          if (_locales.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.1 : 0.3)),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _locales.any((l) => l.localeId == _selectedLocaleId) ? _selectedLocaleId : _locales.first.localeId,
-                                  dropdownColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-                                  icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : Colors.black54),
-                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                                  items: _locales.map((l) => DropdownMenuItem(value: l.localeId, child: Text(l.name))).toList(),
-                                  onChanged: (val) {
-                                    if (val != null) setState(() => _selectedLocaleId = val);
-                                  },
-                                ),
-                              ),
-                            )
-                          else
-                            const SizedBox(height: 48, child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))),
                         ],
                       ),
                     ),
