@@ -889,9 +889,21 @@ RULES:
                   ],
                 ),
               ),
-              Positioned(top: MediaQuery.of(context).padding.top + 20, left: 0, right: 0, child: _buildSearchRow(isDark)),
               Positioned(
-                top: MediaQuery.of(context).padding.top + 90,
+                top: MediaQuery.of(context).padding.top + 20,
+                left: 0,
+                right: 0,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _isAIPanelOpen ? 0.0 : 1.0,
+                  child: IgnorePointer(
+                    ignoring: _isAIPanelOpen,
+                    child: _buildSearchRow(isDark),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 20,
                 left: 16,
                 right: 16,
                 child: _isAIPanelOpen || _aiChatHistory.isNotEmpty ? _buildFloatingAIPanel(isDark) : const SizedBox.shrink(),
@@ -919,65 +931,33 @@ RULES:
 
   Widget _buildFloatingAIPanel(bool isDark) {
     final isMalay = context.locale.languageCode == 'ms';
-    final lastAiMsg = _aiChatHistory.lastWhere((m) => m['role'] == 'ai', orElse: () => {'message': ''})['message'] as String;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOutCubic,
       alignment: Alignment.topCenter,
-      child: GlassContainer(
-        useOwnLayer: true,
-        quality: GlassQuality.standard,
-        shape: LiquidRoundedSuperellipse(borderRadius: _isAIPanelOpen ? 28.0 : 100.0),
-        settings: _getGlassSettings(isDark, blur: 14.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(_isAIPanelOpen ? 28 : 100),
-            border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.45), width: 1.0),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08), blurRadius: 20, offset: const Offset(0, 8))],
-          ),
-          child: _isAIPanelOpen ? _buildExpandedAIPanel(isDark, isMalay) : _buildCollapsedAIChip(isDark, isMalay, lastAiMsg),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCollapsedAIChip(bool isDark, bool isMalay, String lastMsg) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isAIPanelOpen = true;
-          if (_aiChatHistory.isEmpty) {
-            _aiChatHistory.add({
-              "role": "ai",
-              "message": isMalay
-                  ? "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari!"
-                  : "Hi! I'm your AI gig assistant. Tell me what kind of jobs you're looking for!",
-            });
-          }
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _AIPulsingIcon(),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                lastMsg.isNotEmpty ? lastMsg : (isMalay ? 'Tanya AI anda...' : 'Ask your AI...'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF3A3A3C)),
+      child: !_isAIPanelOpen
+          ? const SizedBox(width: double.infinity, height: 0)
+          : GlassContainer(
+              useOwnLayer: true,
+              quality: GlassQuality.standard,
+              shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+              settings: _getGlassSettings(isDark),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: _buildExpandedAIPanel(isDark, isMalay),
               ),
             ),
-            const SizedBox(width: 8),
-            Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: isDark ? Colors.white54 : Colors.black38),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1072,12 +1052,12 @@ RULES:
             children: [
               Expanded(
                 child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1),
+                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
                   ),
                   child: Theme(
                     data: Theme.of(context).copyWith(colorScheme: Theme.of(context).colorScheme.copyWith(primary: Colors.blue)),
@@ -1085,12 +1065,12 @@ RULES:
                       controller: _aiInputController,
                       onChanged: (_) => setState(() {}),
                       onSubmitted: _aiHandleSend,
-                      style: TextStyle(fontSize: 13, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 15, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w500),
                       cursorColor: Colors.blue,
                       textAlignVertical: TextAlignVertical.center,
                       decoration: InputDecoration(
-                        hintText: isMalay ? 'Tulis mesej...' : 'Write a message...',
-                        hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : Colors.black38),
+                        hintText: isMalay ? 'Tanya sesuatu...' : 'Ask me anything...',
+                        hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.black38),
                         border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -1108,15 +1088,16 @@ RULES:
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 40, height: 40,
+                  width: 48, height: 48,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _aiInputController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.12)) : Colors.blue,
-                    border: Border.all(color: Colors.blue.withValues(alpha: 0.4), width: 1),
+                    color: _aiInputController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1)) : Colors.blue,
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
+                    boxShadow: _aiInputController.text.isNotEmpty ? [BoxShadow(color: Colors.blue.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))] : [],
                   ),
                   child: Icon(
-                    _aiInputController.text.isEmpty ? Icons.mic_none_rounded : Icons.send_rounded,
-                    size: 18,
+                    _aiInputController.text.isEmpty ? Icons.mic_rounded : Icons.send_rounded,
+                    size: 22,
                     color: _aiInputController.text.isEmpty ? Colors.blue : Colors.white,
                   ),
                 ),
