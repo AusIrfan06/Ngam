@@ -572,6 +572,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     setState(() {
       _aiChatHistory.add({"role": "user", "message": text});
       _aiIsTyping = true;
+      _isAIPanelOpen = false;
     });
     _aiInputController.clear();
     _aiScrollToBottom(force: true);
@@ -638,7 +639,7 @@ RULES:
 - Keep message concise (max 3 sentences).
 - Reply in the same language as the user (Malay, English, or Manglish).
 - If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field.
-- When recommending a job, mention its title, pay, and distance."""
+- When you find jobs, ONLY mention the task name. Do NOT mention the price or other details. If there are many jobs, just say "dan lain-lain" (and others)."""
         }
       ];
 
@@ -694,11 +695,14 @@ RULES:
           setState(() {
             _aiIsTyping = false;
             _aiChatHistory.add({"role": "ai", "message": aiMessage});
+            if (searchKeyword != null) {
+              _isAIPanelOpen = false; // Collapse to let user see the map!
+            }
           });
           _aiScrollToBottom();
           _flutterTts?.setLanguage(isMalay ? "ms-MY" : "en-US");
           _flutterTts?.setCompletionHandler(() {
-            if (mounted && _isAIPanelOpen && _aiShouldReopenMic) {
+            if (mounted && _aiShouldReopenMic) {
               _showVoiceSearchPopup(context, _aiInputController, onResult: (recognizedText) {
                 _aiHandleSend(recognizedText);
               });
@@ -895,9 +899,9 @@ RULES:
                 right: 0,
                 child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
-                  opacity: _isAIPanelOpen ? 0.0 : 1.0,
+                  opacity: (_isAIPanelOpen || _aiChatHistory.isNotEmpty) ? 0.0 : 1.0,
                   child: IgnorePointer(
-                    ignoring: _isAIPanelOpen,
+                    ignoring: _isAIPanelOpen || _aiChatHistory.isNotEmpty,
                     child: _buildSearchRow(isDark),
                   ),
                 ),
@@ -931,33 +935,80 @@ RULES:
 
   Widget _buildFloatingAIPanel(bool isDark) {
     final isMalay = context.locale.languageCode == 'ms';
+    final lastAiMsg = _aiChatHistory.lastWhere((m) => m['role'] == 'ai', orElse: () => {'message': ''})['message'] as String;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOutCubic,
       alignment: Alignment.topCenter,
-      child: !_isAIPanelOpen
-          ? const SizedBox(width: double.infinity, height: 0)
-          : GlassContainer(
-              useOwnLayer: true,
-              quality: GlassQuality.standard,
-              shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
-              settings: _getGlassSettings(isDark),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+      child: GlassContainer(
+        useOwnLayer: true,
+        quality: GlassQuality.standard,
+        shape: LiquidRoundedSuperellipse(borderRadius: _isAIPanelOpen ? 24.0 : 100.0),
+        settings: _getGlassSettings(isDark),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.22),
+            borderRadius: BorderRadius.circular(_isAIPanelOpen ? 24 : 100),
+            border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.45), width: 1.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                blurRadius: _isAIPanelOpen ? 12 : 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: _isAIPanelOpen ? _buildExpandedAIPanel(isDark, isMalay) : _buildCollapsedAIChip(isDark, isMalay, lastAiMsg),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCollapsedAIChip(bool isDark, bool isMalay, String lastMsg) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 8, bottom: 8, right: 16),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                setState(() {
+                  _isAIPanelOpen = true;
+                });
+              },
+              child: Row(
+                children: [
+                  _AIPulsingIcon(),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      lastMsg.isNotEmpty ? lastMsg : (isMalay ? 'AI sedang berfikir...' : 'AI is thinking...'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF3A3A3C)),
                     ),
-                  ],
-                ),
-                child: _buildExpandedAIPanel(isDark, isMalay),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: isDark ? Colors.white54 : Colors.black38),
+                ],
               ),
             ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _aiChatHistory.clear();
+                _isAIPanelOpen = false;
+              });
+            },
+            child: Icon(Icons.close_rounded, size: 20, color: isDark ? Colors.white54 : Colors.black38),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1052,13 +1103,12 @@ RULES:
             children: [
               Expanded(
                 child: Container(
-                  height: 40,
+                  height: 48,
                   alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
                   ),
                   child: Theme(
                     data: Theme.of(context).copyWith(colorScheme: Theme.of(context).colorScheme.copyWith(primary: Colors.blue)),
@@ -1066,18 +1116,19 @@ RULES:
                       controller: _aiInputController,
                       onChanged: (_) => setState(() {}),
                       onSubmitted: _aiHandleSend,
-                      style: TextStyle(fontSize: 13, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 15, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w600),
                       cursorColor: Colors.blue,
                       textAlignVertical: TextAlignVertical.center,
                       decoration: InputDecoration(
                         hintText: isMalay ? 'Tulis mesej...' : 'Write a message...',
-                        hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : Colors.black38),
+                        hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.black38, fontWeight: FontWeight.w400),
                         border: InputBorder.none,
                         focusedBorder: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         errorBorder: InputBorder.none,
                         disabledBorder: InputBorder.none,
                         isDense: true,
+                        filled: false,
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -1095,7 +1146,7 @@ RULES:
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 40, height: 40,
+                  width: 48, height: 48,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _aiInputController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.12)) : Colors.blue,
@@ -1103,7 +1154,7 @@ RULES:
                   ),
                   child: Icon(
                     _aiInputController.text.isEmpty ? Icons.mic_none_rounded : Icons.send_rounded,
-                    size: 18,
+                    size: 20,
                     color: _aiInputController.text.isEmpty ? Colors.blue : Colors.white,
                   ),
                 ),
@@ -2037,7 +2088,8 @@ RULES:
     String _recognizedWords = "";
     bool _isListening = false;
     bool _autoStarted = false;
-    final String _selectedLocaleId = context.locale.languageCode == 'ms' ? 'ms_MY' : 'en_US';
+    // Force ms_MY locale because many Malaysians set their phone to English but speak Malay/Manglish
+    final String _selectedLocaleId = 'ms_MY';
 
     showModalBottomSheet(
       context: context,
