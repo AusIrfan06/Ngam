@@ -1053,6 +1053,7 @@ RULES:
               Expanded(
                 child: Container(
                   height: 40,
+                  alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
@@ -1071,7 +1072,13 @@ RULES:
                       decoration: InputDecoration(
                         hintText: isMalay ? 'Tulis mesej...' : 'Write a message...',
                         hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : Colors.black38),
-                        border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero,
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
                       ),
                     ),
                   ),
