@@ -1052,12 +1052,12 @@ RULES:
             children: [
               Expanded(
                 child: Container(
-                  height: 48,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1),
                   ),
                   child: Theme(
                     data: Theme.of(context).copyWith(colorScheme: Theme.of(context).colorScheme.copyWith(primary: Colors.blue)),
@@ -1065,12 +1065,12 @@ RULES:
                       controller: _aiInputController,
                       onChanged: (_) => setState(() {}),
                       onSubmitted: _aiHandleSend,
-                      style: TextStyle(fontSize: 15, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 13, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w500),
                       cursorColor: Colors.blue,
                       textAlignVertical: TextAlignVertical.center,
                       decoration: InputDecoration(
-                        hintText: isMalay ? 'Tanya sesuatu...' : 'Ask me anything...',
-                        hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.black38),
+                        hintText: isMalay ? 'Tulis mesej...' : 'Write a message...',
+                        hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : Colors.black38),
                         border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero,
                       ),
                     ),
@@ -1088,16 +1088,15 @@ RULES:
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  width: 48, height: 48,
+                  width: 40, height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _aiInputController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1)) : Colors.blue,
-                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 1),
-                    boxShadow: _aiInputController.text.isNotEmpty ? [BoxShadow(color: Colors.blue.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))] : [],
+                    color: _aiInputController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.12)) : Colors.blue,
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.4), width: 1),
                   ),
                   child: Icon(
-                    _aiInputController.text.isEmpty ? Icons.mic_rounded : Icons.send_rounded,
-                    size: 22,
+                    _aiInputController.text.isEmpty ? Icons.mic_none_rounded : Icons.send_rounded,
+                    size: 18,
                     color: _aiInputController.text.isEmpty ? Colors.blue : Colors.white,
                   ),
                 ),
