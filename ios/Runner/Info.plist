@@ -45,6 +45,10 @@
 		<string>This app needs access to your location so the customer can track your progress when you are running a gig.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
 		<string>This app needs access to your location so the customer can track your progress when you are running a gig.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>This app needs access to speech recognition for voice search.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>This app needs access to the microphone for voice search.</string>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>

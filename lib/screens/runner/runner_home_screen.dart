@@ -23,6 +23,7 @@ import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
 import '../../widgets/bottom_nav_runner.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'dart:convert';
@@ -1567,12 +1568,19 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
 
   void _showAIPopup(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isMalay = context.locale.languageCode == 'ms';
     final TextEditingController aiTextController = TextEditingController();
+    final ScrollController scrollController = ScrollController();
+    final FlutterTts flutterTts = FlutterTts();
+    bool isAIPopupOpen = true;
+    bool _ttsInitialized = false;
     
     List<Map<String, dynamic>> chatHistory = [
       {
         "role": "ai",
-        "message": "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari, atau berapa banyak masa yang anda ada, dan saya akan carikan padanan yang 'ngam' untuk anda.",
+        "message": isMalay 
+            ? "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari, atau berapa banyak masa yang anda ada, dan saya akan carikan padanan yang 'ngam' untuk anda."
+            : "Hi! I'm your AI gig assistant. Tell me what kind of jobs you're looking for, or how much time you have, and I'll find the perfect match for you.",
       }
     ];
     bool isTyping = false;
@@ -1585,6 +1593,23 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             
+            void _scrollToBottom({bool force = false}) {
+              bool nearBottom = false;
+              if (scrollController.hasClients) {
+                nearBottom = scrollController.position.maxScrollExtent - scrollController.offset <= 150;
+              }
+              if (force || nearBottom) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (scrollController.hasClients) {
+                    scrollController.animateTo(
+                      scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                });
+              }
+            }
             Future<void> _handleSend(String text) async {
               if (text.trim().isEmpty) return;
               setState(() {
@@ -1592,6 +1617,19 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                 isTyping = true;
               });
               aiTextController.clear();
+              _scrollToBottom(force: true);
+              
+              if (!_ttsInitialized) {
+                _ttsInitialized = true;
+                flutterTts.setLanguage(isMalay ? "ms-MY" : "en-US");
+                flutterTts.setCompletionHandler(() {
+                  if (isAIPopupOpen) {
+                    _showVoiceSearchPopup(context, aiTextController, onResult: (recognizedText) {
+                      _handleSend(recognizedText);
+                    });
+                  }
+                });
+              }
               
               try {
                 await dotenv.load();
@@ -1599,8 +1637,9 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                 if (apiKey.isEmpty) {
                   setState(() {
                     isTyping = false;
-                    chatHistory.add({"role": "ai", "message": "Maaf, API Key tidak dijumpai."});
+                    chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, API Key tidak dijumpai." : "Sorry, API Key not found."});
                   });
+                  _scrollToBottom();
                   return;
                 }
                 
@@ -1642,21 +1681,27 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                       isTyping = false;
                       chatHistory.add({"role": "ai", "message": reply});
                     });
+                    _scrollToBottom();
+                    if (isAIPopupOpen) {
+                      flutterTts.speak(reply);
+                    }
                   }
                 } else {
                   if (mounted) {
                     setState(() {
                       isTyping = false;
-                      chatHistory.add({"role": "ai", "message": "Maaf, pelayan AI ralat: ${response.statusCode}"});
+                      chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, pelayan AI ralat: ${response.statusCode}" : "Sorry, AI server error: ${response.statusCode}"});
                     });
+                    _scrollToBottom();
                   }
                 }
               } catch (e) {
                 if (mounted) {
                   setState(() {
                     isTyping = false;
-                    chatHistory.add({"role": "ai", "message": "Maaf, ralat rangkaian berlaku."});
+                    chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, ralat rangkaian berlaku." : "Sorry, a network error occurred."});
                   });
+                  _scrollToBottom();
                 }
               }
             }
@@ -1716,6 +1761,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                       const SizedBox(height: 16),
                       Expanded(
                         child: ListView.builder(
+                          controller: scrollController,
                           reverse: false,
                           itemCount: chatHistory.length + (isTyping ? 1 : 0),
                           itemBuilder: (context, index) {
@@ -1734,7 +1780,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                                     children: [
                                       const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.blue))),
                                       const SizedBox(width: 12),
-                                      Text('AI sedang berfikir...', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54)),
+                                      Text(isMalay ? 'AI sedang berfikir...' : 'AI is thinking...', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54)),
                                     ],
                                   ),
                                 ),
@@ -1805,7 +1851,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                                     cursorColor: Colors.blue,
                                     textAlignVertical: TextAlignVertical.center,
                                     decoration: InputDecoration(
-                                      hintText: "Tulis mesej...",
+                                      hintText: isMalay ? "Tulis mesej..." : "Write a message...",
                                       hintStyle: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 14, fontWeight: FontWeight.w400),
                                       border: InputBorder.none,
                                       focusedBorder: InputBorder.none,
@@ -1869,13 +1915,18 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
           },
         );
       },
-    );
+    ).then((_) {
+      isAIPopupOpen = false;
+      flutterTts.stop();
+    });
   }
 
   void _showVoiceSearchPopup(BuildContext context, TextEditingController targetController, {Function(String)? onResult}) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isMalay = context.locale.languageCode == 'ms';
     String _recognizedWords = "";
     bool _isListening = false;
+    bool _autoStarted = false;
     final String _selectedLocaleId = context.locale.languageCode == 'ms' ? 'ms_MY' : 'en_US';
 
     showModalBottomSheet(
@@ -1886,7 +1937,11 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         return StatefulBuilder(
           builder: (context, setState) {
             void _startListening() async {
-              if (_speechEnabled) {
+              bool ready = _speechEnabled;
+              if (!ready) {
+                ready = await _speechToText.initialize();
+              }
+              if (ready) {
                 setState(() => _isListening = true);
                 await _speechToText.listen(
                   onResult: (result) {
@@ -1913,6 +1968,13 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
               setState(() => _isListening = false);
             }
 
+            if (!_autoStarted) {
+              _autoStarted = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _startListening();
+              });
+            }
+
             return Padding(
               padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
               child: Container(
@@ -1935,7 +1997,9 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _isListening ? 'Listening...' : 'Tap the mic to speak',
+                            _isListening 
+                                ? (isMalay ? 'Mendengar...' : 'Listening...') 
+                                : (isMalay ? 'Tekan mikrofon untuk bercakap' : 'Tap the mic to speak'),
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : _lightModeGray),
                           ),
                           const SizedBox(height: 24),
@@ -1944,7 +2008,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
                             alignment: Alignment.center,
                             child: SingleChildScrollView(
                               child: Text(
-                                _recognizedWords.isNotEmpty ? _recognizedWords : 'Sebutkan apa sahaja yang anda cari...',
+                                _recognizedWords.isNotEmpty ? _recognizedWords : (isMalay ? 'Sebutkan apa sahaja yang anda cari...' : 'Say whatever you are looking for...'),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.7)),
                               ),
