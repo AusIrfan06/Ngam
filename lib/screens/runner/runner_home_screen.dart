@@ -590,7 +590,11 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
             }
           }
         },
-        localeId: 'ms_MY',
+        listenOptions: stt.SpeechListenOptions(
+          localeId: 'ms_MY',
+          pauseFor: const Duration(seconds: 5),
+          listenMode: stt.ListenMode.dictation,
+        ),
       );
     }
   }
@@ -1270,6 +1274,15 @@ RULES:
         onTap: () {
           setState(() {
             _isAIPanelOpen = !_isAIPanelOpen;
+            if (_isAIPanelOpen && _aiChatHistory.isEmpty) {
+              final isMalay = context.locale.languageCode == 'ms';
+              _aiChatHistory.add({
+                "role": "ai",
+                "message": isMalay
+                    ? "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari!"
+                    : "Hi! I'm your AI gig assistant. Tell me what kind of jobs you're looking for!",
+              });
+            }
           });
         },
         child: GlassContainer(
@@ -2156,7 +2169,11 @@ RULES:
                       });
                     }
                   },
-                  localeId: _selectedLocaleId,
+                  listenOptions: stt.SpeechListenOptions(
+                    localeId: 'ms_MY',
+                    pauseFor: const Duration(seconds: 5),
+                    listenMode: stt.ListenMode.dictation,
+                  ),
                 );
               }
             }
