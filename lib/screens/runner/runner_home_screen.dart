@@ -592,7 +592,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         },
         listenOptions: stt.SpeechListenOptions(
           localeId: 'ms_MY',
-          pauseFor: const Duration(seconds: 5),
+          pauseFor: const Duration(seconds: 3),
           listenMode: stt.ListenMode.dictation,
         ),
       );
@@ -1022,7 +1022,15 @@ RULES:
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
+              onTap: () async {
+                if (_aiInlineIsListening) {
+                  await _speechToText.stop();
+                  setState(() => _aiInlineIsListening = false);
+                  if (_aiInlineRecognizedWords.isNotEmpty) {
+                    _aiHandleSend(_aiInlineRecognizedWords);
+                  }
+                  return; 
+                }
                 setState(() {
                   _isAIPanelOpen = true;
                 });
@@ -2165,15 +2173,17 @@ RULES:
                 ready = await _speechToText.initialize();
               }
               if (ready) {
+                if (!context.mounted) return;
                 setState(() => _isListening = true);
                 await _speechToText.listen(
                   onResult: (result) {
+                    if (!context.mounted) return;
                     setState(() => _recognizedWords = result.recognizedWords);
                     if (result.finalResult) {
                       setState(() => _isListening = false);
                       targetController.text = _recognizedWords;
                       Future.delayed(const Duration(milliseconds: 500), () {
-                        if (mounted && Navigator.canPop(context)) {
+                        if (context.mounted && Navigator.canPop(context)) {
                           Navigator.pop(context);
                           if (onResult != null && _recognizedWords.isNotEmpty) {
                             onResult(_recognizedWords);
@@ -2184,7 +2194,7 @@ RULES:
                   },
                   listenOptions: stt.SpeechListenOptions(
                     localeId: 'ms_MY',
-                    pauseFor: const Duration(seconds: 5),
+                    pauseFor: const Duration(seconds: 3),
                     listenMode: stt.ListenMode.dictation,
                   ),
                 );
@@ -2192,7 +2202,17 @@ RULES:
             }
             void _stopListening() async {
               await _speechToText.stop();
+              if (!context.mounted) return;
               setState(() => _isListening = false);
+              if (_recognizedWords.isNotEmpty) {
+                targetController.text = _recognizedWords;
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (context.mounted && Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                    if (onResult != null) onResult(_recognizedWords);
+                  }
+                });
+              }
             }
 
             if (!_autoStarted) {
@@ -2275,7 +2295,9 @@ RULES:
           },
         );
       },
-    );
+    ).then((_) {
+      _speechToText.stop();
+    });
   }
 }
 class _AnimatedPressable extends StatefulWidget {
