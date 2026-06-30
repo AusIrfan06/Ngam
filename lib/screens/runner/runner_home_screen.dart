@@ -606,6 +606,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       _aiChatHistory.add({"role": "user", "message": text});
       _aiIsTyping = true;
       _isAIPanelOpen = false;
+      _aiInlineIsListening = false;
     });
     _aiInputController.clear();
     _aiScrollToBottom(force: true);
@@ -657,8 +658,7 @@ YOUR JOB:
 - Help the user find jobs that match what they're looking for.
 - You can suggest the highest-paying, closest, or best-matching job.
 - You understand both Malay and English (or mixed Manglish).
-- If the user is vague (e.g. "kerja senang"), suggest a good match and search for it.
-- If the user asks for highest pay, find the highest bounty job and search it.
+- If the user asks for nearest or highest pay, just answer them based on the context.
 - If the user asks how many jobs there are, tell them.
 - If the user asks about a specific job, describe it.
 - You have FULL context about all jobs above. Use it wisely.
@@ -667,19 +667,30 @@ RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no ma
 {"message": "Your reply (max 3 sentences)", "search_keyword": "keyword or null"}
 
 RULES:
-- search_keyword: extract a keyword (job type/category/title word) to filter the map. Set to null only if no search is needed.
-- On first message about a job, search immediately — do NOT ask multiple questions first.
-- Keep message concise (max 3 sentences).
+- search_keyword: ONLY extract a keyword if the user explicitly asks for a SPECIFIC category/type of job (e.g., 'food', 'cleaning'). For general queries like 'nearest', 'any', or 'highest pay', MUST set to null.
+- On first message about a job, search immediately if applicable.
+- Keep message EXTREMELY concise (max 1 short sentence). Be direct.
 - Reply in the same language as the user (Malay, English, or Manglish).
 - If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field.
-- When you find jobs, ONLY mention the task name. Do NOT mention the price or other details. If there are many jobs, just say "dan lain-lain" (and others)."""
+- When you find jobs, ONLY mention ONE task name. Do NOT mention price, details, or add phrases like "dan lain-lain"."""
         }
       ];
 
       for (var msg in _aiChatHistory) {
+        String role = 'user';
+        String content = msg['message'] as String;
+        
+        if (msg['role'] == 'ai') {
+          role = 'assistant';
+          String safeContent = content.replaceAll('"', '\\"').replaceAll('\n', ' ');
+          content = '{"message": "$safeContent", "search_keyword": null}';
+        } else if (msg['role'] == 'system_context') {
+          role = 'user'; 
+        }
+
         messages.add({
-          "role": msg['role'] == 'ai' ? 'assistant' : 'user',
-          "content": msg['message'] as String,
+          "role": role,
+          "content": content,
         });
       }
 
@@ -733,7 +744,7 @@ RULES:
             }
           });
           _aiScrollToBottom();
-          _flutterTts?.setLanguage(isMalay ? "ms-MY" : "en-US");
+          await _flutterTts?.setLanguage(isMalay ? "ms-MY" : "en-US");
           _flutterTts?.setCompletionHandler(() {
             if (mounted && _aiShouldReopenMic) {
               if (_isAIPanelOpen) {
@@ -745,7 +756,7 @@ RULES:
               }
             }
           });
-          _flutterTts?.speak(aiMessage);
+          await _flutterTts?.speak(aiMessage);
         }
       } else {
         if (mounted) {
@@ -996,7 +1007,7 @@ RULES:
               ),
             ],
           ),
-          child: _isAIPanelOpen ? _buildExpandedAIPanel(isDark, isMalay) : _buildCollapsedAIChip(isDark, isMalay, lastAiMsg),
+          child: _isAIPanelOpen ? _buildExpandedAIPanel(isDark, isMalay) : _buildCollapsedAIChip(isDark, isMalay, _aiIsTyping ? "" : lastAiMsg),
         ),
       ),
     );
@@ -1556,7 +1567,9 @@ RULES:
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: Text(_activeSearchQuery == null ? 'Nearby Jobs' : (_displayedGigs.isNotEmpty ? 'Results for "$_activeSearchQuery"' : 'No Results Found'),
+                  child: Text(_activeSearchQuery == null 
+                      ? (context.locale.languageCode == 'ms' ? 'Kerja Berdekatan' : 'Nearby Jobs') 
+                      : (_displayedGigs.isNotEmpty ? '${_displayedGigs.length} ${context.locale.languageCode == 'ms' ? 'kerja dijumpai' : 'jobs found'}' : (context.locale.languageCode == 'ms' ? 'Tiada kerja dijumpai' : 'No Results Found')),
                       style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 18, fontWeight: FontWeight.bold)
                   ),
                 ),
