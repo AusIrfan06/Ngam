@@ -124,6 +124,8 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   FlutterTts? _flutterTts;
   final TextEditingController _aiInputController = TextEditingController();
   final ScrollController _aiScrollController = ScrollController();
+  bool _aiInlineIsListening = false;
+  String _aiInlineRecognizedWords = "";
   List<Map<String, dynamic>> _getCategoryTree(BuildContext context) {
     return [
       {
@@ -566,6 +568,33 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     }
   }
 
+  void _startInlineVoiceListening() async {
+    bool ready = _speechEnabled;
+    if (!ready) ready = await _speechToText.initialize();
+    if (ready) {
+      setState(() {
+        _aiInlineIsListening = true;
+        _aiInlineRecognizedWords = "";
+      });
+      await _speechToText.listen(
+        onResult: (result) {
+          if (mounted) {
+            setState(() {
+              _aiInlineRecognizedWords = result.recognizedWords;
+            });
+            if (result.finalResult) {
+              setState(() => _aiInlineIsListening = false);
+              if (_aiInlineRecognizedWords.isNotEmpty) {
+                _aiHandleSend(_aiInlineRecognizedWords);
+              }
+            }
+          }
+        },
+        localeId: 'ms_MY',
+      );
+    }
+  }
+
   Future<void> _aiHandleSend(String text) async {
     if (text.trim().isEmpty) return;
     final isMalay = context.locale.languageCode == 'ms';
@@ -689,7 +718,7 @@ RULES:
         }
 
         _aiShouldReopenMic = !aiMessage.contains('[END]');
-        aiMessage = aiMessage.replaceAll('[END]', '').trim();
+        aiMessage = aiMessage.replaceAll('[END]', '').replaceAll(RegExp(r',\s*$'), '').trim();
 
         if (mounted) {
           setState(() {
@@ -703,9 +732,13 @@ RULES:
           _flutterTts?.setLanguage(isMalay ? "ms-MY" : "en-US");
           _flutterTts?.setCompletionHandler(() {
             if (mounted && _aiShouldReopenMic) {
-              _showVoiceSearchPopup(context, _aiInputController, onResult: (recognizedText) {
-                _aiHandleSend(recognizedText);
-              });
+              if (_isAIPanelOpen) {
+                _showVoiceSearchPopup(context, _aiInputController, onResult: (recognizedText) {
+                  _aiHandleSend(recognizedText);
+                });
+              } else {
+                _startInlineVoiceListening();
+              }
             }
           });
           _flutterTts?.speak(aiMessage);
@@ -981,11 +1014,13 @@ RULES:
               },
               child: Row(
                 children: [
-                  _AIPulsingIcon(),
+                  _AIPulsingIcon(isListening: _aiInlineIsListening),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      lastMsg.isNotEmpty ? lastMsg : (isMalay ? 'AI sedang berfikir...' : 'AI is thinking...'),
+                      _aiInlineIsListening 
+                          ? (_aiInlineRecognizedWords.isEmpty ? (isMalay ? 'Mendengar...' : 'Listening...') : _aiInlineRecognizedWords)
+                          : (lastMsg.isNotEmpty ? lastMsg : (isMalay ? 'AI sedang berfikir...' : 'AI is thinking...')),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF3A3A3C)),
@@ -2249,6 +2284,9 @@ class _PulsingUserMarkerState extends State<_PulsingUserMarker> with SingleTicke
 }
 
 class _AIPulsingIcon extends StatefulWidget {
+  final bool isListening;
+  const _AIPulsingIcon({this.isListening = false});
+
   @override
   State<_AIPulsingIcon> createState() => _AIPulsingIconState();
 }
@@ -2265,16 +2303,25 @@ class _AIPulsingIconState extends State<_AIPulsingIcon> with SingleTickerProvide
   void dispose() { _c.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) {
+    final colors = widget.isListening 
+        ? const [Color(0xFFFF5252), Color(0xFFD32F2F)] 
+        : const [Color(0xFF5BB8FF), Color(0xFF0066FF)];
+    final shadowColor = widget.isListening ? Colors.red.withValues(alpha: 0.4) : Colors.blue.withValues(alpha: 0.4);
+
     return ScaleTransition(
       scale: _pulse,
       child: Container(
         width: 32, height: 32,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: const RadialGradient(colors: [Color(0xFF5BB8FF), Color(0xFF0066FF)]),
-          boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.4), blurRadius: 8, spreadRadius: 1)],
+          gradient: RadialGradient(colors: colors),
+          boxShadow: [BoxShadow(color: shadowColor, blurRadius: 8, spreadRadius: 1)],
         ),
-        child: const Center(child: HugeIcon(icon: HugeIcons.strokeRoundedArtificialIntelligence08, color: Colors.white, size: 18, strokeWidth: 2.0)),
+        child: Center(
+          child: widget.isListening 
+              ? const Icon(Icons.mic, color: Colors.white, size: 18)
+              : const HugeIcon(icon: HugeIcons.strokeRoundedArtificialIntelligence08, color: Colors.white, size: 18, strokeWidth: 2.0),
+        ),
       ),
     );
   }
