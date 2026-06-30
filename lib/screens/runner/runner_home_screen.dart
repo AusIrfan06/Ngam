@@ -29,10 +29,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-// ============================================================
-// Ngam App — Runner Home Screen
-// Discovery feed with glassmorphism map
-// ============================================================
+
 class RunnerHomeScreen extends StatefulWidget {
   const RunnerHomeScreen({super.key});
   @override
@@ -2129,7 +2126,7 @@ RULES:
                   if (mounted) {
                     setState(() {
                       isTyping = false;
-                      chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, ralat pelayan: \${response.statusCode}" : "Sorry, server error: \${response.statusCode}"});
+                      chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, ralat pelayan: ${response.statusCode}" : "Sorry, server error: ${response.statusCode}"});
                     });
                     scrollToBottom();
                   }
@@ -2555,4 +2552,4 @@ class _AIPulsingIconState extends State<_AIPulsingIcon> with SingleTickerProvide
       ),
     );
   }
-}
+}
