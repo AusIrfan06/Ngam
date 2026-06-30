@@ -815,7 +815,12 @@ RULES:
                   ],
                 ),
               ),
-              Positioned(top: MediaQuery.of(context).padding.top + 12, left: 16, right: 16, child: _buildFloatingAIPanel(isDark)),
+              Positioned(top: MediaQuery.of(context).padding.top + 20, left: 0, right: 0, child: _buildSearchRow(isDark)),
+              Positioned(top: MediaQuery.of(context).padding.top + 80, left: 24, right: 24,
+                  child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      opacity: isSearchActive ? 1.0 : 0.0,
+                      child: isSearchActive ? _buildResultsGlass(isDark) : const SizedBox.shrink())),
               AnimatedPositioned(
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOutBack,
@@ -1965,15 +1970,16 @@ RULES:
     final ScrollController scrollController = ScrollController();
     final FlutterTts flutterTts = FlutterTts();
     bool isAIPopupOpen = true;
-    bool _shouldReopenMic = true;
-    bool _ttsInitialized = false;
-    
+    bool shouldReopenMic = true;
+    bool ttsInitialized = false;
+    BuildContext? sheetContext;
+
     List<Map<String, dynamic>> chatHistory = [
       {
         "role": "ai",
-        "message": isMalay 
-            ? "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari, atau berapa banyak masa yang anda ada, dan saya akan carikan padanan yang 'ngam' untuk anda."
-            : "Hi! I'm your AI gig assistant. Tell me what kind of jobs you're looking for, or how much time you have, and I'll find the perfect match for you.",
+        "message": isMalay
+            ? "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari!"
+            : "Hi! I'm your AI gig assistant. Tell me what kind of jobs you're looking for!",
       }
     ];
     bool isTyping = false;
@@ -1981,12 +1987,15 @@ RULES:
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      elevation: 0,
+      barrierColor: Colors.black.withValues(alpha: 0.1),
       isScrollControlled: true,
-      builder: (context) {
+      builder: (ctx) {
+        sheetContext = ctx;
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            
-            void _scrollToBottom({bool force = false}) {
+
+            void scrollToBottom({bool force = false}) {
               bool nearBottom = false;
               if (scrollController.hasClients) {
                 nearBottom = scrollController.position.maxScrollExtent - scrollController.offset <= 150;
@@ -2003,27 +2012,28 @@ RULES:
                 });
               }
             }
-            Future<void> _handleSend(String text) async {
+
+            Future<void> handleSend(String text) async {
               if (text.trim().isEmpty) return;
               setState(() {
                 chatHistory.add({"role": "user", "message": text});
                 isTyping = true;
               });
               aiTextController.clear();
-              _scrollToBottom(force: true);
-              
-              if (!_ttsInitialized) {
-                _ttsInitialized = true;
+              scrollToBottom(force: true);
+
+              if (!ttsInitialized) {
+                ttsInitialized = true;
                 flutterTts.setLanguage(isMalay ? "ms-MY" : "en-US");
                 flutterTts.setCompletionHandler(() {
-                  if (isAIPopupOpen && _shouldReopenMic) {
+                  if (isAIPopupOpen && shouldReopenMic) {
                     _showVoiceSearchPopup(context, aiTextController, onResult: (recognizedText) {
-                      _handleSend(recognizedText);
+                      handleSend(recognizedText);
                     });
                   }
                 });
               }
-              
+
               try {
                 await dotenv.load();
                 final apiKey = dotenv.env['NVIDIA_API_KEY'] ?? '';
@@ -2032,64 +2042,96 @@ RULES:
                     isTyping = false;
                     chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, API Key tidak dijumpai." : "Sorry, API Key not found."});
                   });
-                  _scrollToBottom();
+                  scrollToBottom();
                   return;
                 }
-                
+
                 final messages = [
                   {
                     "role": "system",
-                    "content": "You are a friendly AI gig assistant for the Ngam app. Your job is to help runners (users) find local part-time gigs or delivery jobs. Ask clarifying questions about time availability, distance willing to travel, and expected pay if not provided. ALWAYS reply in either Bahasa Melayu or English (whichever the user uses). Keep responses very concise, helpful, and conversational (under 3 sentences usually). IMPORTANT: Always end your response by asking if they have any other questions. However, if the user explicitly indicates they have no more questions or the conversation is naturally concluding, say goodbye and append the exact word [END] at the very end of your response."
+                    "content": """You are a friendly AI gig assistant for the Ngam app. Help users find local part-time gigs or delivery jobs.
+
+RESPONSE FORMAT: Always respond with a valid JSON object:
+{"message": "Your reply here", "search_keyword": "keyword or null"}
+
+RULES:
+- Extract ONE search keyword from the user's message immediately (job type, e.g. delivery, driver, food, cleaning).
+- Do NOT ask many questions first — search immediately on first message.
+- search_keyword should be null only if no job search is intended.
+- Keep message under 2 sentences.
+- Always reply in the user's language (Malay or English).
+- If user says done/no more/goodbye, include [END] inside the message field."""
                   }
                 ];
-                
+
                 for (var msg in chatHistory) {
                   if (msg['role'] == 'user' || msg['role'] == 'ai') {
                     messages.add({
                       "role": msg['role'] == 'ai' ? 'assistant' : 'user',
-                      "content": msg['message'],
+                      "content": msg['message'] as String,
                     });
                   }
                 }
-                
+
                 final response = await http.post(
                   Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions'),
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer $apiKey',
-                  },
-                  body: jsonEncode({
-                    "model": "meta/llama-3.3-70b-instruct",
-                    "messages": messages,
-                    "temperature": 0.5,
-                    "max_tokens": 256,
-                  }),
+                  headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer \$apiKey'},
+                  body: jsonEncode({"model": "meta/llama-3.3-70b-instruct", "messages": messages, "temperature": 0.4, "max_tokens": 200}),
                 );
-                
+
                 if (response.statusCode == 200) {
                   final data = jsonDecode(response.body);
-                  String reply = data['choices'][0]['message']['content'];
-                  
-                  _shouldReopenMic = !reply.contains('[END]');
-                  reply = reply.replaceAll('[END]', '').trim();
+                  String rawReply = data['choices'][0]['message']['content'];
+
+                  // Parse JSON response from AI
+                  String aiMessage = rawReply;
+                  String? searchKeyword;
+                  try {
+                    final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(rawReply);
+                    if (jsonMatch != null) {
+                      final parsed = jsonDecode(jsonMatch.group(0)!);
+                      aiMessage = (parsed['message'] as String? ?? rawReply);
+                      final kw = parsed['search_keyword'];
+                      if (kw != null && kw != 'null' && (kw as String).trim().isNotEmpty) {
+                        searchKeyword = kw.trim();
+                      }
+                    }
+                  } catch (_) {
+                    aiMessage = rawReply;
+                  }
+
+                  // Run app search immediately if keyword found
+                  if (searchKeyword != null) {
+                    _aiSearchByKeyword(searchKeyword);
+                  }
+
+                  shouldReopenMic = !aiMessage.contains('[END]');
+                  aiMessage = aiMessage.replaceAll('[END]', '').trim();
 
                   if (mounted) {
                     setState(() {
                       isTyping = false;
-                      chatHistory.add({"role": "ai", "message": reply});
+                      chatHistory.add({"role": "ai", "message": aiMessage});
                     });
-                    _scrollToBottom();
-                    if (isAIPopupOpen) {
-                      flutterTts.speak(reply);
-                    }
+                    scrollToBottom();
+
+                    // Speak the response, then auto-close popup
+                    flutterTts.setLanguage(isMalay ? "ms-MY" : "en-US");
+                    flutterTts.setCompletionHandler(() {
+                      isAIPopupOpen = false;
+                      if (sheetContext != null) {
+                        Navigator.of(sheetContext!).pop();
+                      }
+                    });
+                    flutterTts.speak(aiMessage);
                   }
                 } else {
                   if (mounted) {
                     setState(() {
                       isTyping = false;
-                      chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, pelayan AI ralat: ${response.statusCode}" : "Sorry, AI server error: ${response.statusCode}"});
+                      chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, ralat pelayan: \${response.statusCode}" : "Sorry, server error: \${response.statusCode}"});
                     });
-                    _scrollToBottom();
+                    scrollToBottom();
                   }
                 }
               } catch (e) {
@@ -2098,7 +2140,7 @@ RULES:
                     isTyping = false;
                     chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, ralat rangkaian berlaku." : "Sorry, a network error occurred."});
                   });
-                  _scrollToBottom();
+                  scrollToBottom();
                 }
               }
             }
@@ -2243,7 +2285,7 @@ RULES:
                                     onChanged: (val) {
                                       setState(() {});
                                     },
-                                    onSubmitted: (val) => _handleSend(val),
+                                    onSubmitted: (val) => handleSend(val),
                                     style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600, fontSize: 15),
                                     cursorColor: Colors.blue,
                                     textAlignVertical: TextAlignVertical.center,
@@ -2290,10 +2332,10 @@ RULES:
                                 onPressed: () {
                                   if (aiTextController.text.isEmpty) {
                                     _showVoiceSearchPopup(context, aiTextController, onResult: (text) {
-                                      _handleSend(text);
+                                      handleSend(text);
                                     });
                                   } else {
-                                    _handleSend(aiTextController.text);
+                                    handleSend(aiTextController.text);
                                   }
                                 },
                               ),
