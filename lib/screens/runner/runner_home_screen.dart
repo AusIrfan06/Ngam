@@ -486,7 +486,8 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     if (q.isEmpty) return '';
 
     final gigProvider = context.read<GigProvider>();
-    final allOpenGigs = gigProvider.openGigs;
+    final currentUser = context.read<AuthProvider>().user;
+    final allOpenGigs = gigProvider.openGigs.where((g) => g.customerId != currentUser?.id).toList();
     List<GigModel> results = [];
 
     // Match by title or category across ALL open gigs
@@ -587,22 +588,57 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         return;
       }
 
+      // Build live job context for the AI
+      final gigProvider = context.read<GigProvider>();
+      final currentUser = context.read<AuthProvider>().user;
+      final allGigs = gigProvider.openGigs.where((g) => g.customerId != currentUser?.id).toList();
+      final StringBuffer jobList = StringBuffer();
+      final currentLoc = _currentLocation;
+      int jobCount = 0;
+      for (var gig in allGigs) {
+        double distKm = 0;
+        if (gig.latitude != null && gig.longitude != null) {
+          distKm = Geolocator.distanceBetween(
+            currentLoc.latitude, currentLoc.longitude,
+            gig.latitude!, gig.longitude!
+          ) / 1000.0;
+        }
+        final dist = gig.latitude != null ? '${distKm.toStringAsFixed(1)}km away' : 'location unknown';
+        jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | "${gig.location}"');
+        jobCount++;
+      }
+      final jobContext = jobCount > 0
+          ? 'There are $jobCount available jobs right now:\n${jobList.toString()}'
+          : 'There are no available jobs listed right now.';
+
       final messages = [
         {
           "role": "system",
-          "content": """You are a friendly AI gig assistant for the Ngam app. Help users find local part-time gigs or delivery jobs.
+          "content": """You are a smart, friendly AI gig assistant for the Ngam app — a local part-time gig marketplace in Malaysia.
 
-RESPONSE FORMAT: Always respond with a valid JSON object like this:
-{"message": "Your reply here", "search_keyword": "keyword or null"}
+LIVE JOB DATA (updated in real-time):
+$jobContext
+
+YOUR JOB:
+- Help the user find jobs that match what they're looking for.
+- You can suggest the highest-paying, closest, or best-matching job.
+- You understand both Malay and English (or mixed Manglish).
+- If the user is vague (e.g. "kerja senang"), suggest a good match and search for it.
+- If the user asks for highest pay, find the highest bounty job and search it.
+- If the user asks how many jobs there are, tell them.
+- If the user asks about a specific job, describe it.
+- You have FULL context about all jobs above. Use it wisely.
+
+RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no markdown):
+{"message": "Your reply (max 3 sentences)", "search_keyword": "keyword or null"}
 
 RULES:
-- Extract a search keyword from the user's first message (job type, category, or title).
-- Trigger search immediately on first user message. Do NOT ask many questions first.
-- After showing results (you'll be told how many were found), ask ONE short follow-up.
-- If user says no more questions / done / goodbye: append [END] in the message field.
-- Always reply in Bahasa Melayu or English (match user's language).
-- search_keyword must be a single keyword/phrase or null if no search needed.
-- Keep message under 2 sentences."""
+- search_keyword: extract a keyword (job type/category/title word) to filter the map. Set to null only if no search is needed.
+- On first message about a job, search immediately — do NOT ask multiple questions first.
+- Keep message concise (max 3 sentences).
+- Reply in the same language as the user (Malay, English, or Manglish).
+- If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field.
+- When recommending a job, mention its title, pay, and distance."""
         }
       ];
 
@@ -854,6 +890,12 @@ RULES:
                 ),
               ),
               Positioned(top: MediaQuery.of(context).padding.top + 20, left: 0, right: 0, child: _buildSearchRow(isDark)),
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 90,
+                left: 16,
+                right: 16,
+                child: _isAIPanelOpen || _aiChatHistory.isNotEmpty ? _buildFloatingAIPanel(isDark) : const SizedBox.shrink(),
+              ),
               Positioned(top: MediaQuery.of(context).padding.top + 80, left: 24, right: 24,
                   child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 300),
@@ -1153,7 +1195,9 @@ RULES:
       const SizedBox(width: 6),
       GestureDetector(
         onTap: () {
-          _showAIPopup(context);
+          setState(() {
+            _isAIPanelOpen = !_isAIPanelOpen;
+          });
         },
         child: GlassContainer(
           useOwnLayer: true,
@@ -1998,442 +2042,6 @@ RULES:
         );
       },
     );
-  }
-
-  void _showAIPopup(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final bool isMalay = context.locale.languageCode == 'ms';
-    final TextEditingController aiTextController = TextEditingController();
-    final ScrollController scrollController = ScrollController();
-    final FlutterTts flutterTts = FlutterTts();
-    bool isAIPopupOpen = true;
-    bool shouldReopenMic = true;
-    bool ttsInitialized = false;
-    BuildContext? sheetContext;
-    flutterTts.setSpeechRate(0.4);
-
-    List<Map<String, dynamic>> chatHistory = [
-      {
-        "role": "ai",
-        "message": isMalay
-            ? "Hai! Saya AI pembantu gig anda. Beritahu saya apa jenis kerja yang anda cari!"
-            : "Hi! I'm your AI gig assistant. Tell me what kind of jobs you're looking for!",
-      }
-    ];
-    bool isTyping = false;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      barrierColor: Colors.black.withValues(alpha: 0.1),
-      isScrollControlled: true,
-      builder: (ctx) {
-        sheetContext = ctx;
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-
-            void scrollToBottom({bool force = false}) {
-              bool nearBottom = false;
-              if (scrollController.hasClients) {
-                nearBottom = scrollController.position.maxScrollExtent - scrollController.offset <= 150;
-              }
-              if (force || nearBottom) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (scrollController.hasClients) {
-                    scrollController.animateTo(
-                      scrollController.position.maxScrollExtent,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                    );
-                  }
-                });
-              }
-            }
-
-            Future<void> handleSend(String text) async {
-              if (text.trim().isEmpty) return;
-              setState(() {
-                chatHistory.add({"role": "user", "message": text});
-                isTyping = true;
-              });
-              aiTextController.clear();
-              scrollToBottom(force: true);
-
-              if (!ttsInitialized) {
-                ttsInitialized = true;
-                flutterTts.setLanguage(isMalay ? "ms-MY" : "en-US");
-                flutterTts.setCompletionHandler(() {
-                  if (isAIPopupOpen && shouldReopenMic) {
-                    _showVoiceSearchPopup(context, aiTextController, onResult: (recognizedText) {
-                      handleSend(recognizedText);
-                    });
-                  }
-                });
-              }
-
-              try {
-                final apiKey = dotenv.env['NVIDIA_API_KEY'] ?? '';
-                if (apiKey.isEmpty) {
-                  setState(() {
-                    isTyping = false;
-                    chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, API Key tidak dijumpai." : "Sorry, API Key not found."});
-                  });
-                  scrollToBottom();
-                  return;
-                }
-
-                // Build live job context for the AI
-                final gigProvider = context.read<GigProvider>();
-                final allGigs = gigProvider.openGigs;
-                final StringBuffer jobList = StringBuffer();
-                final currentLoc = _currentLocation;
-                int jobCount = 0;
-                for (var gig in allGigs) {
-                  double distKm = 0;
-                  if (gig.latitude != null && gig.longitude != null) {
-                    distKm = Geolocator.distanceBetween(
-                      currentLoc.latitude, currentLoc.longitude,
-                      gig.latitude!, gig.longitude!
-                    ) / 1000.0;
-                  }
-                  final dist = gig.latitude != null ? '${distKm.toStringAsFixed(1)}km away' : 'location unknown';
-                  jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | "${gig.location}"');
-                  jobCount++;
-                }
-                final jobContext = jobCount > 0
-                    ? 'There are $jobCount available jobs right now:\n${jobList.toString()}'
-                    : 'There are no available jobs listed right now.';
-
-                final messages = [
-                  {
-                    "role": "system",
-                    "content": """You are a smart, friendly AI gig assistant for the Ngam app — a local part-time gig marketplace in Malaysia.
-
-LIVE JOB DATA (updated in real-time):
-$jobContext
-
-YOUR JOB:
-- Help the user find jobs that match what they're looking for.
-- You can suggest the highest-paying, closest, or best-matching job.
-- You understand both Malay and English (or mixed Manglish).
-- If the user is vague (e.g. "kerja senang"), suggest a good match and search for it.
-- If the user asks for highest pay, find the highest bounty job and search it.
-- If the user asks how many jobs there are, tell them.
-- If the user asks about a specific job, describe it.
-- You have FULL context about all jobs above. Use it wisely.
-
-RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no markdown):
-{"message": "Your reply (max 3 sentences)", "search_keyword": "keyword or null"}
-
-RULES:
-- search_keyword: extract a keyword (job type/category/title word) to filter the map. Set to null only if no search is needed.
-- On first message about a job, search immediately — do NOT ask multiple questions first.
-- Keep message concise (max 3 sentences).
-- Reply in the same language as the user (Malay, English, or Manglish).
-- If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field.
-- When recommending a job, mention its title, pay, and distance."""
-                  }
-                ];
-
-                for (var msg in chatHistory) {
-                  if (msg['role'] == 'user' || msg['role'] == 'ai') {
-                    messages.add({
-                      "role": msg['role'] == 'ai' ? 'assistant' : 'user',
-                      "content": msg['message'] as String,
-                    });
-                  }
-                }
-
-                final response = await http.post(
-                  Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions'),
-                  headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'},
-                  body: jsonEncode({"model": "meta/llama-3.3-70b-instruct", "messages": messages, "temperature": 0.5, "max_tokens": 350}),
-                );
-
-                if (response.statusCode == 200) {
-                  final data = jsonDecode(response.body);
-                  String rawReply = data['choices'][0]['message']['content'];
-                  debugPrint("AI RAW REPLY: $rawReply");
-
-                  // Parse JSON response from AI
-                  String aiMessage = rawReply;
-                  String? searchKeyword;
-                  try {
-                    final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(rawReply);
-                    if (jsonMatch != null) {
-                      final parsed = jsonDecode(jsonMatch.group(0)!);
-                      aiMessage = (parsed['message'] as String? ?? rawReply);
-                      final kw = parsed['search_keyword'];
-                      if (kw != null && kw != 'null' && (kw as String).trim().isNotEmpty) {
-                        searchKeyword = kw.trim();
-                      }
-                    }
-                  } catch (e) {
-                    debugPrint("AI JSON PARSE ERROR: $e");
-                    aiMessage = rawReply;
-                  }
-
-                  debugPrint("AI EXTRACTED KEYWORD: $searchKeyword");
-
-                  // Run app search immediately if keyword found
-                  if (searchKeyword != null) {
-                    _aiSearchByKeyword(searchKeyword);
-                  }
-
-                  shouldReopenMic = !aiMessage.contains('[END]');
-                  aiMessage = aiMessage.replaceAll('[END]', '').trim();
-
-                  if (mounted) {
-                    setState(() {
-                      isTyping = false;
-                      chatHistory.add({"role": "ai", "message": aiMessage});
-                    });
-                    scrollToBottom();
-
-                    // Speak the response, then auto-close popup
-                    flutterTts.setLanguage(isMalay ? "ms-MY" : "en-US");
-                    flutterTts.setCompletionHandler(() {
-                      isAIPopupOpen = false;
-                      if (sheetContext != null) {
-                        Navigator.of(sheetContext!).pop();
-                      }
-                    });
-                    flutterTts.speak(aiMessage);
-                  }
-                } else {
-                  if (mounted) {
-                    setState(() {
-                      isTyping = false;
-                      chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, ralat pelayan: ${response.statusCode}" : "Sorry, server error: ${response.statusCode}"});
-                    });
-                    scrollToBottom();
-                  }
-                }
-              } catch (e) {
-                if (mounted) {
-                  setState(() {
-                    isTyping = false;
-                    chatHistory.add({"role": "ai", "message": isMalay ? "Maaf, ralat rangkaian berlaku." : "Sorry, a network error occurred."});
-                  });
-                  scrollToBottom();
-                }
-              }
-            }
-
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                child: Container(
-                  height: MediaQuery.of(context).size.height * 0.75,
-                  margin: const EdgeInsets.all(16),
-                  child: GlassContainer(
-                    useOwnLayer: true,
-                    quality: GlassQuality.standard,
-                    shape: LiquidRoundedSuperellipse(borderRadius: 32.0),
-                    settings: _getGlassSettings(isDark, blur: 12.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 20, offset: const Offset(0, 10)),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const HugeIcon(icon: HugeIcons.strokeRoundedArtificialIntelligence08, color: Colors.blue, size: 28, strokeWidth: 2.0),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Ngam AI Assistant', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: isDark ? Colors.white : _lightModeGray)),
-                                Text('Powered by intelligence', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.6))),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close, color: isDark ? Colors.white54 : Colors.black54),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: ListView.builder(
-                          controller: scrollController,
-                          reverse: false,
-                          itemCount: chatHistory.length + (isTyping ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index == chatHistory.length && isTyping) {
-                              return Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  margin: const EdgeInsets.only(bottom: 16, right: 60),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.grey.shade200,
-                                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20), bottomRight: Radius.circular(20), bottomLeft: Radius.circular(4)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.blue))),
-                                      const SizedBox(width: 12),
-                                      Text(isMalay ? 'AI sedang berfikir...' : 'AI is thinking...', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54)),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }
-                            
-                            final chat = chatHistory[index];
-                            final isAI = chat['role'] == 'ai';
-                            
-                            return Align(
-                              alignment: isAI ? Alignment.centerLeft : Alignment.centerRight,
-                              child: Container(
-                                margin: EdgeInsets.only(bottom: 16, left: isAI ? 0 : 60, right: isAI ? 60 : 0),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                decoration: BoxDecoration(
-                                  color: isAI ? (isDark ? Colors.black.withValues(alpha: 0.3) : Colors.grey.shade100) : Colors.blue,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: const Radius.circular(20),
-                                    topRight: const Radius.circular(20),
-                                    bottomLeft: Radius.circular(isAI ? 4 : 20),
-                                    bottomRight: Radius.circular(isAI ? 20 : 4),
-                                  ),
-                                ),
-                                child: Text(
-                                  chat['message'],
-                                  style: TextStyle(
-                                    fontSize: 14, height: 1.4,
-                                    color: isAI ? (isDark ? Colors.white : _lightModeGray) : Colors.white,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GlassContainer(
-                              useOwnLayer: true,
-                              quality: GlassQuality.standard,
-                              shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
-                              settings: _getGlassSettings(isDark),
-                              child: Container(
-                                height: 48,
-                                alignment: Alignment.center,
-                                padding: const EdgeInsets.symmetric(horizontal: 18),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-                                  boxShadow: [
-                                    BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4)),
-                                  ],
-                                ),
-                                child: Theme(
-                                  data: Theme.of(context).copyWith(
-                                    colorScheme: Theme.of(context).colorScheme.copyWith(primary: Colors.blue),
-                                    primaryColor: Colors.blue,
-                                  ),
-                                  child: TextField(
-                                    controller: aiTextController,
-                                    onChanged: (val) {
-                                      setState(() {});
-                                    },
-                                    onSubmitted: (val) => handleSend(val),
-                                    style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600, fontSize: 15),
-                                    cursorColor: Colors.blue,
-                                    textAlignVertical: TextAlignVertical.center,
-                                    decoration: InputDecoration(
-                                      hintText: isMalay ? "Tulis mesej..." : "Write a message...",
-                                      hintStyle: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 14, fontWeight: FontWeight.w400),
-                                      border: InputBorder.none,
-                                      focusedBorder: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      disabledBorder: InputBorder.none,
-                                      isDense: true,
-                                      filled: false,
-                                      contentPadding: EdgeInsets.zero,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          GlassContainer(
-                            useOwnLayer: true,
-                            quality: GlassQuality.standard,
-                            shape: LiquidRoundedSuperellipse(borderRadius: 100.0),
-                            settings: _getGlassSettings(isDark),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              height: 48, width: 48,
-                              decoration: BoxDecoration(
-                                color: aiTextController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100.withValues(alpha: 0.5)) : Colors.blue,
-                                borderRadius: BorderRadius.circular(100),
-                                border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-                                boxShadow: [
-                                  BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05), blurRadius: 12, offset: const Offset(0, 4)),
-                                ],
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  aiTextController.text.isEmpty ? Icons.mic_none_rounded : Icons.send_rounded,
-                                  color: aiTextController.text.isEmpty ? (isDark ? Colors.white70 : _lightModeGray) : Colors.white,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  if (aiTextController.text.isEmpty) {
-                                    _showVoiceSearchPopup(context, aiTextController, onResult: (text) {
-                                      handleSend(text);
-                                    });
-                                  } else {
-                                    handleSend(aiTextController.text);
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-          },
-        );
-      },
-    ).then((_) {
-      isAIPopupOpen = false;
-      flutterTts.stop();
-    });
   }
 
   void _showVoiceSearchPopup(BuildContext context, TextEditingController targetController, {Function(String)? onResult}) {
