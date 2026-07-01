@@ -508,27 +508,42 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     final allOpenGigs = gigProvider.openGigs.where((g) => g.customerId != currentUser?.id).toList();
     List<GigModel> results = [];
 
-    // Match by title or category across ALL open gigs
-    for (var gig in allOpenGigs) {
-      if (gig.title.toLowerCase().contains(q) || gig.category.toLowerCase().contains(q)) {
-        results.add(gig);
+    if (q.isNotEmpty) {
+      // Match by title or category across ALL open gigs
+      for (var gig in allOpenGigs) {
+        if (gig.title.toLowerCase().contains(q) || gig.category.toLowerCase().contains(q)) {
+          results.add(gig);
+        }
       }
-    }
-    // Also try category tree match
-    if (results.isEmpty) {
-      for (var group in _getCategoryTree(context)) {
-        for (var sub in group['sub']) {
-          if ((sub['label'] as String).toLowerCase().contains(q)) {
-            results.addAll(allOpenGigs.where((g) => g.category.toLowerCase() == sub['id']));
+      // Also try category tree match
+      if (results.isEmpty) {
+        for (var group in _getCategoryTree(context)) {
+          for (var sub in group['sub']) {
+            if ((sub['label'] as String).toLowerCase().contains(q)) {
+              results.addAll(allOpenGigs.where((g) => g.category.toLowerCase() == sub['id']));
+            }
           }
         }
       }
+      results = results.toSet().toList();
+    } else {
+      results = List.from(_nearbyGigs);
+      if (results.isEmpty && allOpenGigs.isNotEmpty) {
+        // Fallback: AI sees the nearest global jobs. If nearby is empty, sync the top 5 nearest global jobs to the carousel!
+        var sortedAll = List<GigModel>.from(allOpenGigs);
+        sortedAll.sort((a, b) {
+          if (a.latitude == null || a.longitude == null) return 1;
+          if (b.latitude == null || b.longitude == null) return -1;
+          double distA = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, a.latitude!, a.longitude!);
+          double distB = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, b.latitude!, b.longitude!);
+          return distA.compareTo(distB);
+        });
+        results = sortedAll.take(5).toList();
+      }
     }
-    
-    results = results.toSet().toList();
 
-    // If we found results by keyword, ensure they are within the search radius
-    if (q.isNotEmpty && results.isNotEmpty) {
+    // Ensure results are within the search radius (expand if necessary)
+    if (results.isNotEmpty) {
       double maxDistanceKm = _searchRadiusKm;
       bool expandedRadius = false;
       for (var gig in results) {
@@ -566,8 +581,6 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         });
         _nearbyGigs = withinRadius;
       }
-    } else if (q.isEmpty) {
-      results = List.from(_nearbyGigs);
     }
 
     _applySearchResults(results, keyword ?? (sortBy == 'bounty' ? 'Highest Pay' : 'Nearest'), sortBy: sortBy);
