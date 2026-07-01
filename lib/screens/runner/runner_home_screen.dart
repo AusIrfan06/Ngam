@@ -251,21 +251,27 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     _aiInputController.dispose();
     _aiScrollController.dispose();
     _flutterTts?.stop();
+    _mapAnimationController?.dispose();
     super.dispose();
   }
+  AnimationController? _mapAnimationController;
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     final latTween = Tween<double>(begin: _mapController.camera.center.latitude, end: destLocation.latitude);
     final lngTween = Tween<double>(begin: _mapController.camera.center.longitude, end: destLocation.longitude);
     final zoomTween = Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
-    var controller = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
-    Animation<double> animation = CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
-    controller.addListener(() {
+    _mapAnimationController?.dispose(); // Clear previous
+    _mapAnimationController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
+    Animation<double> animation = CurvedAnimation(parent: _mapAnimationController!, curve: Curves.fastOutSlowIn);
+    _mapAnimationController!.addListener(() {
       _mapController.move(LatLng(latTween.evaluate(animation), lngTween.evaluate(animation)), zoomTween.evaluate(animation));
     });
     animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed) controller.dispose();
+      if (status == AnimationStatus.completed) {
+        _mapAnimationController?.dispose();
+        _mapAnimationController = null;
+      }
     });
-    controller.forward();
+    _mapAnimationController!.forward();
   }
   void _killFocus() {
     FocusManager.instance.primaryFocus?.unfocus();
@@ -661,7 +667,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         }
         final dist = gig.latitude != null ? '${distKm.toStringAsFixed(1)}km away' : 'location unknown';
         final radiusLabel = (distKm <= _searchRadiusKm) ? '[INSIDE RADIUS]' : '[OUTSIDE RADIUS]';
-        jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | $radiusLabel | "${gig.location}"');
+        jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | $radiusLabel | ID: ${gig.id} | "${gig.location}"');
         jobCount++;
       }
       final jobContext = jobCount > 0
@@ -689,11 +695,14 @@ YOUR JOB:
 RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no markdown):
 {
   "message": "Your reply (max 3 sentences)", 
-  "search_keyword": "One exact substring/root word from the job's title or category (e.g. 'print' not 'printing'), or null"
+  "search_keyword": "One exact substring/root word from the job's title or category (e.g. 'print' not 'printing'), or null",
+  "accept_job_id": "Job ID if user wants to accept a specific job, or null"
 }
 
 RULES:
 - search_keyword: ONLY extract a keyword if the user explicitly asks for a SPECIFIC job (e.g. 'food', 'print'). Look at the LIVE JOB DATA and pick a 1-word exact substring from the title or category so the app's text search won't fail. For general queries ('nearest', 'highest pay'), MUST set to null.
+- accept_job_id: ONLY set this if the user explicitly says they want to ACCEPT, TAKE, or DO a specific job. Extract the exact ID string from the LIVE JOB DATA. Otherwise, null.
+- If the user asks for nearest or highest pay, just answer them based on the context.
 - On first message about a job, search immediately if applicable.
 - Keep message EXTREMELY concise (max 1 short sentence). Be direct.
 - Reply in the same language as the user (Malay, English, or Manglish).
@@ -733,6 +742,7 @@ RULES:
         // Parse JSON response
         String aiMessage = rawReply;
         String? searchKeyword;
+        String? aiAcceptJobId;
         try {
           // Extract JSON even if wrapped in markdown
           final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(rawReply);
@@ -742,6 +752,10 @@ RULES:
             final kw = parsed['search_keyword'];
             if (kw is String && kw.toLowerCase() != 'null' && kw.trim().isNotEmpty) {
               searchKeyword = kw.trim();
+            }
+            final acceptId = parsed['accept_job_id'];
+            if (acceptId is String && acceptId.toLowerCase() != 'null' && acceptId.trim().isNotEmpty) {
+              aiAcceptJobId = acceptId.trim();
             }
           }
         } catch (_) {
@@ -769,6 +783,23 @@ RULES:
               _isAIPanelOpen = false; // Collapse to let user see the map!
             }
           });
+          if (aiAcceptJobId != null) {
+            final currentUser = context.read<AuthProvider>().user;
+            if (currentUser != null) {
+               final provider = context.read<GigProvider>();
+               try {
+                 final gig = provider.openGigs.firstWhere((g) => g.id == aiAcceptJobId);
+                 final success = await provider.acceptGig(gig.id, currentUser.id);
+                 if (success && mounted) {
+                   _searchFocus.unfocus();
+                   _isAIPanelOpen = false;
+                   Navigator.pushNamed(context, '/active-job', arguments: gig);
+                 }
+               } catch (e) {
+                 // Gig not found in openGigs, might have been accepted already
+               }
+            }
+          }
           _aiScrollToBottom();
           await _flutterTts?.setLanguage(isMalay ? "ms-MY" : "en-US");
           await _flutterTts?.setSpeechRate(isMalay ? 0.55 : 0.4);
@@ -785,7 +816,8 @@ RULES:
           });
           await _flutterTts?.stop();
           final suffix = DateTime.now().millisecondsSinceEpoch % 2 == 0 ? '\u200B' : '\u200C';
-          await _flutterTts?.speak(aiMessage + suffix);
+          String ttsMessage = aiMessage.replaceAll(RegExp(r'[.,!?:;]'), ' ');
+          await _flutterTts?.speak(ttsMessage + suffix);
         }
       } else {
         if (mounted) {
