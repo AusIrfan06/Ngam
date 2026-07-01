@@ -639,10 +639,19 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       final gigProvider = context.read<GigProvider>();
       final currentUser = context.read<AuthProvider>().user;
       final allGigs = gigProvider.openGigs.where((g) => g.customerId != currentUser?.id).toList();
-      final StringBuffer jobList = StringBuffer();
       final currentLoc = _currentLocation;
+      
+      allGigs.sort((a, b) {
+        if (a.latitude == null || a.longitude == null) return 1;
+        if (b.latitude == null || b.longitude == null) return -1;
+        double distA = Geolocator.distanceBetween(currentLoc.latitude, currentLoc.longitude, a.latitude!, a.longitude!);
+        double distB = Geolocator.distanceBetween(currentLoc.latitude, currentLoc.longitude, b.latitude!, b.longitude!);
+        return distA.compareTo(distB);
+      });
+
+      final StringBuffer jobList = StringBuffer();
       int jobCount = 0;
-      for (var gig in allGigs) {
+      for (var gig in allGigs.take(20)) { // Limit to top 20 nearest to avoid context overflow
         double distKm = 0;
         if (gig.latitude != null && gig.longitude != null) {
           distKm = Geolocator.distanceBetween(
@@ -655,8 +664,8 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         jobCount++;
       }
       final jobContext = jobCount > 0
-          ? 'There are $jobCount available jobs right now:\n${jobList.toString()}'
-          : 'There are no available jobs listed right now.';
+          ? 'User current search radius: ${_searchRadiusKm.toStringAsFixed(1)}km\nThere are $jobCount available jobs right now:\n${jobList.toString()}'
+          : 'User current search radius: ${_searchRadiusKm.toStringAsFixed(1)}km\nThere are no available jobs listed right now.';
 
       final messages = [
         {
@@ -671,12 +680,16 @@ YOUR JOB:
 - You can suggest the highest-paying, closest, or best-matching job.
 - You understand both Malay and English (or mixed Manglish).
 - If the user asks for nearest or highest pay, just answer them based on the context.
+- IMPORTANT: If the nearest matching job is further than the user's search radius, explicitly say "Tiada kerja berhampiran dalam radius carian anda, tapi ada kerja [X]km dari anda..."
 - If the user asks how many jobs there are, tell them.
 - If the user asks about a specific job, describe it.
 - You have FULL context about all jobs above. Use it wisely.
 
 RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no markdown):
-{"message": "Your reply (max 3 sentences)", "search_keyword": "keyword or null"}
+{
+  "message": "Your reply (max 3 sentences)", 
+  "search_keyword": "extract one single word to search (e.g. food, cleaning), or set to null if general query"
+}
 
 RULES:
 - search_keyword: ONLY extract a keyword if the user explicitly asks for a SPECIFIC category/type of job (e.g., 'food', 'cleaning'). For general queries like 'nearest', 'any', or 'highest pay', MUST set to null.
