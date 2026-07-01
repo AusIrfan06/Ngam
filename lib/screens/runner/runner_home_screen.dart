@@ -701,7 +701,7 @@ RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no ma
 
 RULES:
 - search_keyword: ONLY extract a keyword if the user explicitly asks for a SPECIFIC job (e.g. 'food', 'print'). Look at the LIVE JOB DATA and pick a 1-word exact substring from the title or category so the app's text search won't fail. For general queries ('nearest', 'highest pay'), MUST set to null.
-- accept_job_id: ONLY set this if the user explicitly says they want to ACCEPT, TAKE, or DO a specific job. Extract the exact ID string from the LIVE JOB DATA. Otherwise, null.
+- accept_job_id: CRITICAL - MUST BE null UNLESS the user explicitly commands you to accept the job using action words like "terima", "accept", "nak buat", or "sahkan". If the user is just asking questions (e.g. "apa kerja tu?", "kat mana?"), this MUST be null.
 - If the user asks for nearest or highest pay, just answer them based on the context.
 - On first message about a job, search immediately if applicable.
 - Keep message EXTREMELY concise (max 1 short sentence). Be direct.
