@@ -22,7 +22,7 @@ void main() async {
       'Authorization': 'Bearer ' + apiKey,
     },
     body: jsonEncode({
-      "model": "meta/llama-3.1-70b-instruct",
+      "model": "meta/llama-3.1-8b-instruct",
       "messages": [
         {"role": "user", "content": "Hi"}
       ],

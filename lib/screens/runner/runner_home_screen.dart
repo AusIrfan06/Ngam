@@ -697,7 +697,7 @@ RULES:
       final response = await http.post(
         Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions'),
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'},
-        body: jsonEncode({"model": "meta/llama-3.3-70b-instruct", "messages": messages, "temperature": 0.4, "max_tokens": 200}),
+        body: jsonEncode({"model": "meta/llama-3.1-8b-instruct", "messages": messages, "temperature": 0.4, "max_tokens": 200}),
       );
 
       if (response.statusCode == 200) {
