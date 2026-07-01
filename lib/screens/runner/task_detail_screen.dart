@@ -122,6 +122,7 @@ class TaskDetailScreen extends StatelessWidget {
                                   ? 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
                                   : 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                               userAgentPackageName: 'com.example.ngam',
+                              errorTileCallback: (tile, error, stackTrace) {},
                             ),
                             MarkerLayer(
                               markers: [

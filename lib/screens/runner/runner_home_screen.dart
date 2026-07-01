@@ -709,7 +709,7 @@ RULES:
       final response = await http.post(
         Uri.parse('https://integrate.api.nvidia.com/v1/chat/completions'),
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiKey'},
-        body: jsonEncode({"model": "meta/llama-3.1-8b-instruct", "messages": messages, "temperature": 0.4, "max_tokens": 200}),
+        body: jsonEncode({"model": "meta/llama-3.1-8b-instruct", "messages": messages, "temperature": 0.4, "max_tokens": 200, "response_format": {"type": "json_object"}}),
       );
 
       if (response.statusCode == 200) {
@@ -724,10 +724,10 @@ RULES:
           final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(rawReply);
           if (jsonMatch != null) {
             final parsed = jsonDecode(jsonMatch.group(0)!);
-            aiMessage = (parsed['message'] as String? ?? rawReply);
+            aiMessage = (parsed['message']?.toString() ?? rawReply);
             final kw = parsed['search_keyword'];
-            if (kw != null && kw != 'null' && (kw as String).isNotEmpty) {
-              searchKeyword = kw;
+            if (kw is String && kw.toLowerCase() != 'null' && kw.trim().isNotEmpty) {
+              searchKeyword = kw.trim();
             }
           }
         } catch (_) {
@@ -875,6 +875,7 @@ RULES:
                         child: TileLayer(
                           urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png',
                           userAgentPackageName: 'com.example.ngam',
+                          errorTileCallback: (tile, error, stackTrace) {},
                           keepBuffer: 5,
                           panBuffer: 3,
                           maxNativeZoom: 19,
@@ -884,6 +885,7 @@ RULES:
                       TileLayer(
                         urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                         userAgentPackageName: 'com.example.ngam',
+                        errorTileCallback: (tile, error, stackTrace) {},
                         keepBuffer: 5,
                         panBuffer: 3,
                         maxNativeZoom: 19,

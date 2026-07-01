@@ -61,6 +61,7 @@ class _MapPickerState extends State<MapPicker> {
                     ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png'
                     : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.ngam.app',
+                errorTileCallback: (tile, error, stackTrace) {},
                 keepBuffer: 5,
                 panBuffer: 3,
                 maxNativeZoom: 19,
