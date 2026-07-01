@@ -660,7 +660,8 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
           ) / 1000.0;
         }
         final dist = gig.latitude != null ? '${distKm.toStringAsFixed(1)}km away' : 'location unknown';
-        jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | "${gig.location}"');
+        final radiusLabel = (distKm <= _searchRadiusKm) ? '[INSIDE RADIUS]' : '[OUTSIDE RADIUS]';
+        jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | $radiusLabel | "${gig.location}"');
         jobCount++;
       }
       final jobContext = jobCount > 0
@@ -680,7 +681,7 @@ YOUR JOB:
 - You can suggest the highest-paying, closest, or best-matching job.
 - You understand both Malay and English (or mixed Manglish).
 - If the user asks for nearest or highest pay, just answer them based on the context.
-- IMPORTANT: If the nearest matching job is further than the user's search radius, explicitly say "Tiada kerja berhampiran dalam radius carian anda, tapi ada kerja [X]km dari anda..."
+- IMPORTANT: If ALL matching jobs are labeled [OUTSIDE RADIUS], you MUST explicitly say "Tiada kerja berhampiran dalam radius carian anda, tapi ada kerja [X]km dari anda...". If there is at least one matching job [INSIDE RADIUS], do NOT say this.
 - If the user asks how many jobs there are, tell them.
 - If the user asks about a specific job, describe it.
 - You have FULL context about all jobs above. Use it wisely.
