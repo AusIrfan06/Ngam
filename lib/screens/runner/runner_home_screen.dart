@@ -354,13 +354,17 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     List<GigModel> results = _nearbyGigs.where((gig) => targetIds.contains(gig.category.toLowerCase())).toList();
     _applySearchResults(results, categoryLabel);
   }
-  void _applySearchResults(List<GigModel> results, String queryLabel) {
+  void _applySearchResults(List<GigModel> results, String queryLabel, {String sortBy = 'distance'}) {
     results.sort((a, b) {
-      if (a.latitude == null || a.longitude == null) return 1;
-      if (b.latitude == null || b.longitude == null) return -1;
-      double distA = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, a.latitude!, a.longitude!);
-      double distB = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, b.latitude!, b.longitude!);
-      return distA.compareTo(distB);
+      if (sortBy == 'bounty') {
+        return b.bountyAmount.compareTo(a.bountyAmount);
+      } else {
+        if (a.latitude == null || a.longitude == null) return 1;
+        if (b.latitude == null || b.longitude == null) return -1;
+        double distA = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, a.latitude!, a.longitude!);
+        double distB = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, b.latitude!, b.longitude!);
+        return distA.compareTo(distB);
+      }
     });
     setState(() {
       _displayedGigs = results;
@@ -496,9 +500,8 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   }
 
   /// Searches gig database by keyword and returns a result summary string
-  String _aiSearchByKeyword(String keyword) {
-    final q = keyword.trim().toLowerCase();
-    if (q.isEmpty) return '';
+  String _aiSearchByKeyword(String? keyword, {String sortBy = 'distance'}) {
+    final q = keyword?.trim().toLowerCase() ?? '';
 
     final gigProvider = context.read<GigProvider>();
     final currentUser = context.read<AuthProvider>().user;
@@ -524,8 +527,8 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     
     results = results.toSet().toList();
 
-    // If we found results, ensure they are within the search radius
-    if (results.isNotEmpty) {
+    // If we found results by keyword, ensure they are within the search radius
+    if (q.isNotEmpty && results.isNotEmpty) {
       double maxDistanceKm = _searchRadiusKm;
       bool expandedRadius = false;
       for (var gig in results) {
@@ -563,9 +566,11 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         });
         _nearbyGigs = withinRadius;
       }
+    } else if (q.isEmpty) {
+      results = List.from(_nearbyGigs);
     }
 
-    _applySearchResults(results, keyword);
+    _applySearchResults(results, keyword ?? (sortBy == 'bounty' ? 'Highest Pay' : 'Nearest'), sortBy: sortBy);
     if (results.isEmpty) return '';
     return results.length == 1 ? '1 job found' : '${results.length} jobs found';
   }
@@ -696,18 +701,17 @@ RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no ma
 {
   "message": "Your reply (max 3 sentences)", 
   "search_keyword": "One exact substring/root word from the job's title or category (e.g. 'print' not 'printing'), or null",
-  "accept_job_id": "Job ID if user wants to accept a specific job, or null"
+  "accept_job_id": "Job ID if user wants to accept a specific job, or null",
+  "sort_by": "Either 'distance' or 'bounty'"
 }
 
 RULES:
 - search_keyword: ONLY extract a keyword if the user explicitly asks for a SPECIFIC job (e.g. 'food', 'print'). Look at the LIVE JOB DATA and pick a 1-word exact substring from the title or category so the app's text search won't fail. For general queries ('nearest', 'highest pay'), MUST set to null.
 - accept_job_id: CRITICAL - MUST BE null UNLESS the user explicitly commands you to accept the job using action words like "terima", "accept", "nak buat", or "sahkan". If the user is just asking questions (e.g. "apa kerja tu?", "kat mana?"), this MUST be null.
-- If the user asks for nearest or highest pay, just answer them based on the context.
-- On first message about a job, search immediately if applicable.
-- Keep message EXTREMELY concise (max 1 short sentence). Be direct.
+- sort_by: If the user asks for highest pay/mahal/bounty, set to 'bounty'. Otherwise, always set to 'distance'.
+- Keep message EXTREMELY concise (max 2 short sentences). You can list multiple jobs if requested, but be brief.
 - Reply in the same language as the user (Malay, English, or Manglish).
-- If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field.
-- When you find jobs, ONLY mention ONE task name. Do NOT mention price, details, or add phrases like "dan lain-lain"."""
+- If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field."""
         }
       ];
 
@@ -743,6 +747,7 @@ RULES:
         String aiMessage = rawReply;
         String? searchKeyword;
         String? aiAcceptJobId;
+        String sortBy = 'distance';
         try {
           // Extract JSON even if wrapped in markdown
           final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(rawReply);
@@ -757,19 +762,19 @@ RULES:
             if (acceptId is String && acceptId.toLowerCase() != 'null' && acceptId.trim().isNotEmpty) {
               aiAcceptJobId = acceptId.trim();
             }
+            final sort = parsed['sort_by'];
+            if (sort is String && sort == 'bounty') {
+              sortBy = 'bounty';
+            }
           }
         } catch (_) {
           aiMessage = rawReply;
         }
 
-        // Run search if keyword provided
-        String resultSummary = '';
-        if (searchKeyword != null) {
-          resultSummary = _aiSearchByKeyword(searchKeyword);
-          if (resultSummary.isNotEmpty) {
-            // Inject result count into next AI context
-            _aiChatHistory.add({"role": "system_context", "message": "[App result: $resultSummary for '$searchKeyword']"});
-          }
+        // Run search and sorting
+        String resultSummary = _aiSearchByKeyword(searchKeyword, sortBy: sortBy);
+        if (resultSummary.isNotEmpty) {
+          _aiChatHistory.add({"role": "system_context", "message": "[App result: $resultSummary (Sorted by $sortBy)]"});
         }
 
         _aiShouldReopenMic = !aiMessage.contains('[END]');
