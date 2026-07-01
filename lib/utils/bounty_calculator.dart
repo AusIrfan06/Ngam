@@ -13,6 +13,11 @@ class BountyCalculator {
     TaskCategory.print: 2.00,
     TaskCategory.heavy: 8.00,
     TaskCategory.parcel: 4.00,
+    TaskCategory.cleaning: 15.00,
+    TaskCategory.petCare: 10.00,
+    TaskCategory.errands: 5.00,
+    TaskCategory.automotive: 10.00,
+    TaskCategory.others: 5.00,
   };
 
   /// Returns the minimum bounty for a given category

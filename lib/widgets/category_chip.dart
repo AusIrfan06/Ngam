@@ -33,6 +33,16 @@ class CategoryChip extends StatelessWidget {
         return const Color(0xFFFF8C94);
       case 'Parcel':
         return const Color(0xFFA78BFA);
+      case 'Cleaning':
+        return const Color(0xFF4FACFE);
+      case 'Pet Care':
+        return const Color(0xFFFFB347);
+      case 'Errands':
+        return const Color(0xFF5D9CEC);
+      case 'Automotive':
+        return const Color(0xFFFC6E51);
+      case 'Others':
+        return const Color(0xFFCCD1D9);
       case 'All':
         return AppTheme.primary;
       default:
@@ -53,6 +63,16 @@ class CategoryChip extends StatelessWidget {
         return '📦';
       case 'Parcel':
         return '📮';
+      case 'Cleaning':
+        return '🧹';
+      case 'Pet Care':
+        return '🐕';
+      case 'Errands':
+        return '🚶‍♂️';
+      case 'Automotive':
+        return '🚗';
+      case 'Others':
+        return '✨';
       case 'All':
         return '✨';
       default:

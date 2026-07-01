@@ -66,22 +66,32 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
 
   List<Color> _getCategoryGradient() {
     switch (widget.gig.category) {
-      case 'Delivery': return [const Color(0xFFFF9A9E), const Color(0xFFFECFEF)];
-      case 'Cleaning': return [const Color(0xFF4FACFE), const Color(0xFF00F2FE)];
-      case 'Assembly': return [const Color(0xFFFCCB90), const Color(0xFFD57EEB)];
+      case 'Food': return [const Color(0xFFFF9A9E), const Color(0xFFFECFEF)];
       case 'Shopping': return [const Color(0xFFE0C3FC), const Color(0xFF8EC5FC)];
-      case 'Moving': return [const Color(0xFF84FAB0), const Color(0xFF8FD3F4)];
+      case 'Print': return [const Color(0xFF84FAB0), const Color(0xFF8FD3F4)];
+      case 'Heavy': return [const Color(0xFFFCCB90), const Color(0xFFD57EEB)];
+      case 'Parcel': return [const Color(0xFFA78BFA), const Color(0xFFD57EEB)];
+      case 'Cleaning': return [const Color(0xFF4FACFE), const Color(0xFF00F2FE)];
+      case 'Pet Care': return [const Color(0xFFFFB347), const Color(0xFFFFD194)];
+      case 'Errands': return [const Color(0xFF5D9CEC), const Color(0xFF4A89DC)];
+      case 'Automotive': return [const Color(0xFFFC6E51), const Color(0xFFE9573F)];
+      case 'Others': return [const Color(0xFFCCD1D9), const Color(0xFFAAB2BD)];
       default: return [const Color(0xFF43E97B), const Color(0xFF38F9D7)];
     }
   }
 
   IconData _getCategoryIcon() {
     switch (widget.gig.category) {
-      case 'Delivery': return Icons.local_shipping_rounded;
-      case 'Cleaning': return Icons.cleaning_services_rounded;
-      case 'Assembly': return Icons.build_circle_rounded;
+      case 'Food': return Icons.fastfood_rounded;
       case 'Shopping': return Icons.shopping_cart_rounded;
-      case 'Moving': return Icons.inventory_2_rounded;
+      case 'Print': return Icons.print_rounded;
+      case 'Heavy': return Icons.fitness_center_rounded;
+      case 'Parcel': return Icons.local_shipping_rounded;
+      case 'Cleaning': return Icons.cleaning_services_rounded;
+      case 'Pet Care': return Icons.pets_rounded;
+      case 'Errands': return Icons.directions_run_rounded;
+      case 'Automotive': return Icons.directions_car_rounded;
+      case 'Others': return Icons.category_rounded;
       default: return Icons.task_alt_rounded;
     }
   }

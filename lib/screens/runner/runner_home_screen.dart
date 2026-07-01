@@ -349,6 +349,13 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     _applySearchResults(results, categoryLabel);
   }
   void _applySearchResults(List<GigModel> results, String queryLabel) {
+    results.sort((a, b) {
+      if (a.latitude == null || a.longitude == null) return 1;
+      if (b.latitude == null || b.longitude == null) return -1;
+      double distA = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, a.latitude!, a.longitude!);
+      double distB = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, b.latitude!, b.longitude!);
+      return distA.compareTo(distB);
+    });
     setState(() {
       _displayedGigs = results;
       _activeSearchQuery = queryLabel;
@@ -543,6 +550,11 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
             withinRadius.add(gig);
           }
         }
+        withinRadius.sort((a, b) {
+          double distA = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, a.latitude!, a.longitude!);
+          double distB = Geolocator.distanceBetween(_currentLocation.latitude, _currentLocation.longitude, b.latitude!, b.longitude!);
+          return distA.compareTo(distB);
+        });
         _nearbyGigs = withinRadius;
       }
     }
@@ -745,6 +757,7 @@ RULES:
           });
           _aiScrollToBottom();
           await _flutterTts?.setLanguage(isMalay ? "ms-MY" : "en-US");
+          await _flutterTts?.setSpeechRate(isMalay ? 0.55 : 0.4);
           _flutterTts?.setCompletionHandler(() {
             if (mounted && _aiShouldReopenMic) {
               if (_isAIPanelOpen) {
@@ -756,7 +769,9 @@ RULES:
               }
             }
           });
-          await _flutterTts?.speak(aiMessage);
+          await _flutterTts?.stop();
+          final suffix = DateTime.now().millisecondsSinceEpoch % 2 == 0 ? '\u200B' : '\u200C';
+          await _flutterTts?.speak(aiMessage + suffix);
         }
       } else {
         if (mounted) {

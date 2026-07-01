@@ -15,8 +15,24 @@ class TaskCategory {
   static const String print = 'Print';
   static const String heavy = 'Heavy';
   static const String parcel = 'Parcel';
+  static const String cleaning = 'Cleaning';
+  static const String petCare = 'Pet Care';
+  static const String errands = 'Errands';
+  static const String automotive = 'Automotive';
+  static const String others = 'Others';
 
-  static const List<String> all = [food, shopping, print, heavy, parcel];
+  static const List<String> all = [
+    food,
+    shopping,
+    print,
+    heavy,
+    parcel,
+    cleaning,
+    petCare,
+    errands,
+    automotive,
+    others
+  ];
 
   /// Returns an icon for each category
   static String icon(String category) {
@@ -31,6 +47,16 @@ class TaskCategory {
         return '📦';
       case parcel:
         return '📮';
+      case cleaning:
+        return '🧹';
+      case petCare:
+        return '🐕';
+      case errands:
+        return '🚶‍♂️';
+      case automotive:
+        return '🚗';
+      case others:
+        return '✨';
       default:
         return '📋';
     }
@@ -68,8 +94,18 @@ class SlaDuration {
         return 90;
       case TaskCategory.parcel:
         return 45;
+      case TaskCategory.cleaning:
+        return 120;
+      case TaskCategory.petCare:
+        return 60;
+      case TaskCategory.errands:
+        return 60;
+      case TaskCategory.automotive:
+        return 120;
+      case TaskCategory.others:
+        return 60;
       default:
-        return 30;
+        return 60;
     }
   }
 }
