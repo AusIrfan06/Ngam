@@ -1023,7 +1023,7 @@ RULES:
                 ),
               ),
               Positioned(
-                top: MediaQuery.of(context).padding.top + 20,
+                top: MediaQuery.of(context).padding.top + 10,
                 left: 0,
                 right: 0,
                 child: AnimatedOpacity(
@@ -1036,12 +1036,12 @@ RULES:
                 ),
               ),
               Positioned(
-                top: MediaQuery.of(context).padding.top + 20,
+                top: MediaQuery.of(context).padding.top + 10,
                 left: 16,
                 right: 16,
                 child: _isAIPanelOpen || _aiChatHistory.isNotEmpty ? _buildFloatingAIPanel(isDark) : const SizedBox.shrink(),
               ),
-              Positioned(top: MediaQuery.of(context).padding.top + 80, left: 24, right: 24,
+              Positioned(top: MediaQuery.of(context).padding.top + 70, left: 24, right: 24,
                   child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 300),
                       opacity: isSearchActive ? 1.0 : 0.0,
