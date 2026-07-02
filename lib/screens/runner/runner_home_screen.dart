@@ -677,13 +677,19 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       int jobCount = 0;
       for (var gig in allGigs.take(20)) { // Limit to top 20 nearest to avoid context overflow
         double distKm = 0;
+        String dist = 'location unknown';
         if (gig.latitude != null && gig.longitude != null) {
-          distKm = Geolocator.distanceBetween(
+          double distMeters = Geolocator.distanceBetween(
             currentLoc.latitude, currentLoc.longitude,
             gig.latitude!, gig.longitude!
-          ) / 1000.0;
+          );
+          distKm = distMeters / 1000.0;
+          if (distMeters < 1000) {
+            dist = '${distMeters.round()} meter';
+          } else {
+            dist = '${distKm.toStringAsFixed(1)} kilometer';
+          }
         }
-        final dist = gig.latitude != null ? '${distKm.toStringAsFixed(1)}km away' : 'location unknown';
         final radiusLabel = (distKm <= _searchRadiusKm) ? '[INSIDE RADIUS]' : '[OUTSIDE RADIUS]';
         jobList.writeln('- [${gig.category}] ${gig.title} | ${gig.formattedBounty} | $dist | $radiusLabel | ID: ${gig.id} | "${gig.location}"');
         jobCount++;
@@ -723,6 +729,8 @@ RULES:
 - accept_job_id: CRITICAL - MUST BE null UNLESS the user explicitly commands you to accept the job using action words like "terima", "accept", "nak buat", or "sahkan". If the user is just asking questions (e.g. "apa kerja tu?", "kat mana?"), this MUST be null.
 - sort_by: If the user asks for highest pay/mahal/bounty, set to 'bounty'. Otherwise, always set to 'distance'.
 - Keep message EXTREMELY concise (max 2 short sentences). You can list multiple jobs if requested, but be brief.
+- CRITICAL: NEVER output the raw Job ID, the pipe (|) separators, or the raw tags. Present the information naturally and conversationally.
+- When stating distances, always use the exact spelled-out units provided (e.g. "50 meter" or "1.5 kilometer") so the text-to-speech engine pronounces it perfectly.
 - Reply in the same language as the user (Malay, English, or Manglish).
 - If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field."""
         }
@@ -1041,7 +1049,7 @@ RULES:
                 right: 16,
                 child: _isAIPanelOpen || _aiChatHistory.isNotEmpty ? _buildFloatingAIPanel(isDark) : const SizedBox.shrink(),
               ),
-              Positioned(top: MediaQuery.of(context).padding.top + 70, left: 24, right: 24,
+              Positioned(top: MediaQuery.of(context).padding.top + 70, left: 16, right: 16,
                   child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 300),
                       opacity: isSearchActive ? 1.0 : 0.0,
@@ -1077,7 +1085,9 @@ RULES:
         settings: _getGlassSettings(isDark),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.22),
+            color: _isAIPanelOpen 
+                ? (isDark ? Colors.black.withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.85))
+                : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.22)),
             borderRadius: BorderRadius.circular(_isAIPanelOpen ? 24 : 100),
             border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.45), width: 1.0),
             boxShadow: [
@@ -1306,7 +1316,7 @@ RULES:
   }
 
   Widget _buildSearchRow(bool isDark) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 24),
+    padding: const EdgeInsets.symmetric(horizontal: 16),
     child: Row(children: [
       Expanded(
         child: GlassContainer(
@@ -1720,6 +1730,7 @@ RULES:
           : SizedBox(height: 115, child: PageView.builder(controller: _pageController, onPageChanged: _onCarouselPageChanged, physics: const ClampingScrollPhysics(), itemCount: _displayedGigs.length, itemBuilder: (context, i) => _AnimatedPressable(onTap: () => _onMapPinTapped(_displayedGigs[i], i), child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: _buildCarouselCard(isDark, _displayedGigs[i]))))),
       ]);
   Widget _buildGigPopup(GigModel gig, bool isDark) {
+    if (_isAIPanelOpen) return const SizedBox.shrink();
     final frostedGlow = [Shadow(color: Colors.white.withValues(alpha: 0.5), blurRadius: 8), Shadow(color: Colors.black.withValues(alpha: 0.2), offset: const Offset(0.5, 0.5), blurRadius: 0)];
     return TweenAnimationBuilder<double>(
       key: ValueKey("popup_${gig.id}"),
