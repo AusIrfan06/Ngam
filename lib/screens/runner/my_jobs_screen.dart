@@ -142,7 +142,6 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                     padding: const EdgeInsets.all(20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
