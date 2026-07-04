@@ -251,6 +251,45 @@ class GigService {
     await _logStatus(gigId, GigStatus.cancelled);
   }
 
+  // ─── TASK MANAGEMENT ─────────────────────────────────────────
+
+  /// Update the bounty amount of a gig
+  static Future<void> updateBounty(String gigId, double newAmount) async {
+    await _client
+        .from(DbTable.gigs)
+        .update({'bounty_amount': newAmount})
+        .eq('id', gigId);
+  }
+
+  /// Delete a gig permanently
+  static Future<void> deleteGig(String gigId) async {
+    await _client.from(DbTable.gigs).delete().eq('id', gigId);
+  }
+
+  /// Toggle a gig between active and disabled
+  static Future<String> toggleGigStatus(String gigId, String currentStatus) async {
+    String newStatus;
+    if (currentStatus == GigStatus.open) {
+      newStatus = GigStatus.disabled;
+    } else if (currentStatus == GigStatus.disabled) {
+      newStatus = GigStatus.open;
+    } else if (currentStatus == GigStatus.service) {
+      newStatus = GigStatus.disabledService;
+    } else if (currentStatus == GigStatus.disabledService) {
+      newStatus = GigStatus.service;
+    } else {
+      return currentStatus;
+    }
+
+    await _client
+        .from(DbTable.gigs)
+        .update({'status': newStatus})
+        .eq('id', gigId);
+
+    await _logStatus(gigId, newStatus);
+    return newStatus;
+  }
+
   // ─── REAL-TIME STREAMS ─────────────────────────────────────
 
   /// Subscribe to real-time changes for a specific gig

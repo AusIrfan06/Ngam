@@ -249,6 +249,56 @@ class GigProvider extends ChangeNotifier {
     }
   }
 
+  // ─── TASK MANAGEMENT ─────────────────────────────────────────
+
+  Future<bool> updateGigBounty(String gigId, double newAmount) async {
+    try {
+      await GigService.updateBounty(gigId, newAmount);
+      // Update local state
+      final index = _myGigs.indexWhere((g) => g.id == gigId);
+      if (index != -1) {
+        _myGigs[index] = _myGigs[index].copyWith(bountyAmount: newAmount);
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to update bounty';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteGig(String gigId) async {
+    try {
+      await GigService.deleteGig(gigId);
+      _myGigs.removeWhere((g) => g.id == gigId);
+      _services.removeWhere((g) => g.id == gigId);
+      _openGigs.removeWhere((g) => g.id == gigId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to delete task';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> toggleGigStatus(String gigId, String currentStatus) async {
+    try {
+      final newStatus = await GigService.toggleGigStatus(gigId, currentStatus);
+      final index = _myGigs.indexWhere((g) => g.id == gigId);
+      if (index != -1) {
+        _myGigs[index] = _myGigs[index].copyWith(status: newStatus);
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to toggle status';
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Runner takes down their service post
   Future<bool> takeDownService(String gigId) async {
     try {
