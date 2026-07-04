@@ -364,7 +364,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     List<GigModel> results = _nearbyGigs.where((gig) => targetIds.contains(gig.category.toLowerCase())).toList();
     _applySearchResults(results, categoryLabel);
   }
-  void _applySearchResults(List<GigModel> results, String queryLabel, {String sortBy = 'distance'}) {
+  void _applySearchResults(List<GigModel> results, String queryLabel, {String sortBy = 'distance', String? focusedJobId}) {
     results.sort((a, b) {
       if (sortBy == 'bounty') {
         return b.bountyAmount.compareTo(a.bountyAmount);
@@ -376,22 +376,27 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
         return distA.compareTo(distB);
       }
     });
+    int targetIndex = 0;
+    if (focusedJobId != null && results.isNotEmpty) {
+      final index = results.indexWhere((g) => g.id == focusedJobId);
+      if (index != -1) targetIndex = index;
+    }
     setState(() {
       _displayedGigs = results;
       _activeSearchQuery = queryLabel;
       _searchMatchedCategories = [];
       _searchMatchedGigs = [];
       _isSearching = false;
-      _selectedGig = results.isNotEmpty ? results.first : null;
-      _currentCarouselIndex = 0;
+      _selectedGig = results.isNotEmpty ? results[targetIndex] : null;
+      _currentCarouselIndex = targetIndex;
     });
     if (results.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_pageController.hasClients) _pageController.jumpToPage(0);
+        if (_pageController.hasClients) _pageController.jumpToPage(targetIndex);
       });
       Future.delayed(const Duration(milliseconds: 50), () {
         if (!mounted) return;
-        final gig = results.first;
+        final gig = results[targetIndex];
         if (gig.latitude != null && gig.longitude != null) {
           _animatedMapMove(LatLng(gig.latitude!, gig.longitude!), 15.0);
         }
@@ -510,11 +515,10 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
   }
 
   /// Searches gig database by keyword and returns a result summary string
-  String _aiSearchByKeyword(String? keyword, {String sortBy = 'distance'}) {
+  String _aiSearchByKeyword(String? keyword, {String sortBy = 'distance', String? focusedJobId}) {
     final q = keyword?.trim().toLowerCase() ?? '';
 
     final gigProvider = context.read<GigProvider>();
-    final currentUser = context.read<AuthProvider>().user;
     final allOpenGigs = gigProvider.myGigs.where((g) => g.status != 'completed').toList();
     List<GigModel> results = [];
 
@@ -593,7 +597,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
       }
     }
 
-    _applySearchResults(results, keyword ?? (sortBy == 'bounty' ? 'Highest Pay' : 'Nearest'), sortBy: sortBy);
+    _applySearchResults(results, keyword ?? (sortBy == 'bounty' ? 'Highest Pay' : 'Nearest'), sortBy: sortBy, focusedJobId: focusedJobId);
     if (results.isEmpty) return '';
     return results.length == 1 ? '1 job found' : '${results.length} jobs found';
   }

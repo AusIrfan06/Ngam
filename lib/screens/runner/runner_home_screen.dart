@@ -365,7 +365,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     List<GigModel> results = _nearbyGigs.where((gig) => targetIds.contains(gig.category.toLowerCase())).toList();
     _applySearchResults(results, categoryLabel);
   }
-  void _applySearchResults(List<GigModel> results, String queryLabel, {String sortBy = 'distance'}) {
+  void _applySearchResults(List<GigModel> results, String queryLabel, {String sortBy = 'distance', String? focusedJobId}) {
     results.sort((a, b) {
       if (sortBy == 'bounty') {
         return b.bountyAmount.compareTo(a.bountyAmount);
@@ -377,22 +377,27 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         return distA.compareTo(distB);
       }
     });
+    int targetIndex = 0;
+    if (focusedJobId != null && results.isNotEmpty) {
+      final index = results.indexWhere((g) => g.id == focusedJobId);
+      if (index != -1) targetIndex = index;
+    }
     setState(() {
       _displayedGigs = results;
       _activeSearchQuery = queryLabel;
       _searchMatchedCategories = [];
       _searchMatchedGigs = [];
       _isSearching = false;
-      _selectedGig = results.isNotEmpty ? results.first : null;
-      _currentCarouselIndex = 0;
+      _selectedGig = results.isNotEmpty ? results[targetIndex] : null;
+      _currentCarouselIndex = targetIndex;
     });
     if (results.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_pageController.hasClients) _pageController.jumpToPage(0);
+        if (_pageController.hasClients) _pageController.jumpToPage(targetIndex);
       });
       Future.delayed(const Duration(milliseconds: 50), () {
         if (!mounted) return;
-        final gig = results.first;
+        final gig = results[targetIndex];
         if (gig.latitude != null && gig.longitude != null) {
           _animatedMapMove(LatLng(gig.latitude!, gig.longitude!), 15.0);
         }
@@ -511,7 +516,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   }
 
   /// Searches gig database by keyword and returns a result summary string
-  String _aiSearchByKeyword(String? keyword, {String sortBy = 'distance'}) {
+  String _aiSearchByKeyword(String? keyword, {String sortBy = 'distance', String? focusedJobId}) {
     final q = keyword?.trim().toLowerCase() ?? '';
 
     final gigProvider = context.read<GigProvider>();
@@ -594,7 +599,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       }
     }
 
-    _applySearchResults(results, keyword ?? (sortBy == 'bounty' ? 'Highest Pay' : 'Nearest'), sortBy: sortBy);
+    _applySearchResults(results, keyword ?? (sortBy == 'bounty' ? 'Highest Pay' : 'Nearest'), sortBy: sortBy, focusedJobId: focusedJobId);
     if (results.isEmpty) return '';
     return results.length == 1 ? '1 job found' : '${results.length} jobs found';
   }
@@ -729,6 +734,7 @@ YOUR JOB:
 - You understand both Malay and English (or mixed Manglish).
 - If the user asks for nearest or highest pay, just answer them based on the context.
 - IMPORTANT: If ALL matching jobs are labeled [OUTSIDE RADIUS], you MUST explicitly say "Tiada kerja berhampiran dalam radius carian anda, tapi ada kerja [X]km dari anda...". If there is at least one matching job [INSIDE RADIUS], do NOT say this.
+- If there are multiple jobs, you may list up to 3 jobs. If there are more than 3 jobs, list up to 3 and then say "dan banyak lagi" (or "and many more"). DO NOT say "dan lain-lain lagi" or "and others" if there are 3 or fewer jobs.
 - If the user asks how many jobs there are, tell them.
 - If the user asks about a specific job, describe it.
 - You have FULL context about all jobs above. Use it wisely.
@@ -738,15 +744,17 @@ RESPONSE FORMAT — Always return ONLY a valid JSON object (no extra text, no ma
   "message": "Your reply (max 3 sentences)", 
   "search_keyword": "One exact substring/root word from the job's title or category (e.g. 'print' not 'printing'), or null",
   "accept_job_id": "Job ID if user wants to accept a specific job, or null",
+  "focused_job_id": "Job ID of the specific job you are talking about or highlighting, or null if discussing generally.",
   "sort_by": "Either 'distance' or 'bounty'"
 }
 
 RULES:
 - search_keyword: ONLY extract a keyword if the user explicitly asks for a SPECIFIC job (e.g. 'food', 'print'). Look at the LIVE JOB DATA and pick a 1-word exact substring from the title or category so the app's text search won't fail. For general queries ('nearest', 'highest pay'), MUST set to null.
 - accept_job_id: CRITICAL - MUST BE null UNLESS the user explicitly commands you to accept the job using action words like "terima", "accept", "nak buat", or "sahkan". If the user is just asking questions (e.g. "apa kerja tu?", "kat mana?"), this MUST be null.
+- focused_job_id: If you are specifically talking about, describing, or answering a question about one particular job in your message, set this to that job's ID. This tells the UI to scroll to that job.
 - sort_by: If the user asks for highest pay/mahal/bounty, set to 'bounty'. Otherwise, always set to 'distance'.
 - Keep message EXTREMELY concise (max 2 short sentences). You can list multiple jobs if requested, but be brief.
-- CRITICAL: NEVER output the raw Job ID, the pipe (|) separators, or the raw tags. Present the information naturally and conversationally.
+- CRITICAL: NEVER output the raw Job ID, the pipe (|) separators, or the raw tags in the "message". Present the information naturally and conversationally.
 - When stating distances, always use the exact spelled-out units provided (e.g. "50 meter" or "1.5 kilometer") so the text-to-speech engine pronounces it perfectly.
 - Reply in the same language as the user (Malay, English, or Manglish).
 - If the user says they're done / goodbye / terima kasih / ok dah, include [END] in the message field."""
@@ -785,6 +793,7 @@ RULES:
         String aiMessage = rawReply;
         String? searchKeyword;
         String? aiAcceptJobId;
+        String? focusedJobId;
         String sortBy = 'distance';
         try {
           // Extract JSON even if wrapped in markdown
@@ -800,6 +809,10 @@ RULES:
             if (acceptId is String && acceptId.toLowerCase() != 'null' && acceptId.trim().isNotEmpty) {
               aiAcceptJobId = acceptId.trim();
             }
+            final focusId = parsed['focused_job_id'];
+            if (focusId is String && focusId.toLowerCase() != 'null' && focusId.trim().isNotEmpty) {
+              focusedJobId = focusId.trim();
+            }
             final sort = parsed['sort_by'];
             if (sort is String && sort == 'bounty') {
               sortBy = 'bounty';
@@ -810,7 +823,7 @@ RULES:
         }
 
         // Run search and sorting
-        String resultSummary = _aiSearchByKeyword(searchKeyword, sortBy: sortBy);
+        String resultSummary = _aiSearchByKeyword(searchKeyword, sortBy: sortBy, focusedJobId: focusedJobId);
         if (resultSummary.isNotEmpty) {
           _aiChatHistory.add({"role": "system_context", "message": "[App result: $resultSummary (Sorted by $sortBy)]"});
         }
