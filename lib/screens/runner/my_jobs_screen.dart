@@ -251,7 +251,10 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                                     gig: gig,
                                     isDark: isDark,
                                     onTap: () {
-                                      if (gig.status == 'SERVICE') return;
+                                      if (gig.status == 'SERVICE') {
+                                        Navigator.pushNamed(context, '/task-detail', arguments: gig);
+                                        return;
+                                      }
                                       final currentUserId = context.read<AuthProvider>().user?.id;
                                       if (gig.customerId == currentUserId) {
                                         Navigator.pushNamed(context, '/order-status', arguments: gig);

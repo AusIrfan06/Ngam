@@ -234,7 +234,11 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       }
     });
     if (_activeSearchQuery != null) {
-      _aiSearchByKeyword(_activeSearchQuery!);
+      if (_activeSearchQuery == 'Nearest' || _activeSearchQuery == 'Highest Pay') {
+        _aiSearchByKeyword(null, sortBy: _activeSearchQuery == 'Highest Pay' ? 'bounty' : 'distance');
+      } else {
+        _aiSearchByKeyword(_activeSearchQuery!);
+      }
     }
   }
   void _updateGigs() {

@@ -233,7 +233,11 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
       }
     });
     if (_activeSearchQuery != null) {
-      _aiSearchByKeyword(_activeSearchQuery!);
+      if (_activeSearchQuery == 'Nearest' || _activeSearchQuery == 'Highest Pay') {
+        _aiSearchByKeyword(null, sortBy: _activeSearchQuery == 'Highest Pay' ? 'bounty' : 'distance');
+      } else {
+        _aiSearchByKeyword(_activeSearchQuery!);
+      }
     }
   }
   void _updateGigs() {
