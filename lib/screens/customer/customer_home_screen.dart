@@ -18,7 +18,7 @@ import '../../providers/gig_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
 import 'my_tasks_screen.dart';
-import 'stats_screen.dart';
+
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
 import '../../widgets/bottom_nav_customer.dart';
@@ -43,17 +43,16 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gigProvider = context.read<GigProvider>();
       if (context.read<AuthProvider>().user != null) { await gigProvider.loadCustomerGigs(context.read<AuthProvider>().user!.id); }
-      gigProvider.subscribeToOpenGigs();
+      
       FlutterNativeSplash.remove();
     });
   }
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _RunnerExploreFeed(),
+      _CustomerHomeFeed(),
       const MyTasksScreen(),
       const ChatScreen(),
-      const StatsScreen(),
       const ProfileScreen(),
     ];
     return Scaffold(
@@ -78,11 +77,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     );
   }
 }
-class _RunnerExploreFeed extends StatefulWidget {
+class _CustomerHomeFeed extends StatefulWidget {
   @override
-  State<_RunnerExploreFeed> createState() => _RunnerExploreFeedState();
+  State<_CustomerHomeFeed> createState() => _CustomerHomeFeedState();
 }
-class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
   final stt.SpeechToText _speechToText = stt.SpeechToText();
@@ -195,7 +194,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     if (!mounted) return;
     final currentUser = context.read<AuthProvider>().user;
     final gigProvider = context.read<GigProvider>();
-    final available = gigProvider.filteredGigs.where((g) => g.customerId != currentUser?.id && g.latitude != null && g.longitude != null).toList();
+    final available = gigProvider.myGigs.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
     
     available.sort((a, b) {
       double distanceA = Geolocator.distanceBetween(
@@ -641,7 +640,6 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     setState(() {
       _aiChatHistory.add({"role": "user", "message": text});
       _aiIsTyping = true;
-      _isAIPanelOpen = false;
       _aiInlineIsListening = false;
     });
     _aiInputController.clear();
@@ -675,7 +673,13 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
 
       final StringBuffer jobList = StringBuffer();
       int jobCount = 0;
-      for (var gig in allGigs.take(20)) { // Limit to top 20 nearest to avoid context overflow
+      List<GigModel> contextGigs = List.from(_nearbyGigs);
+      if (contextGigs.isEmpty && allGigs.isNotEmpty) {
+        contextGigs = allGigs.take(5).toList();
+      } else {
+        contextGigs = contextGigs.take(20).toList();
+      }
+      for (var gig in contextGigs) {
         double distKm = 0;
         String dist = 'location unknown';
         if (gig.latitude != null && gig.longitude != null) {
@@ -814,7 +818,7 @@ RULES:
             if (currentUser != null) {
                final provider = context.read<GigProvider>();
                try {
-                 final gig = provider.openGigs.firstWhere((g) => g.id == aiAcceptJobId);
+                 final gig = provider.myGigs.firstWhere((g) => g.id == aiAcceptJobId);
                  final success = await provider.acceptGig(gig.id, currentUser.id);
                  if (success && mounted) {
                    _searchFocus.unfocus();
@@ -891,7 +895,7 @@ RULES:
     super.build(context);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isSearchActive = _isSearchPanelOpen;
-    final bool hideBottomPanel = isSearchActive || _isProfileOpen;
+    final bool hideBottomPanel = isSearchActive || _isProfileOpen || (_isAIPanelOpen && MediaQuery.of(context).viewInsets.bottom > 0);
     final double bottomPosition = hideBottomPanel ? -500 : (MediaQuery.of(context).viewInsets.bottom > 0 ? MediaQuery.of(context).viewInsets.bottom + 20 : 110);
     
     final double desiredFraction = _displayedGigs.length == 1 ? 0.95 : 0.85;
@@ -1086,8 +1090,8 @@ RULES:
         child: Container(
           decoration: BoxDecoration(
             color: _isAIPanelOpen 
-                ? (isDark ? Colors.black.withValues(alpha: 0.75) : Colors.white.withValues(alpha: 0.85))
-                : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white.withValues(alpha: 0.22)),
+                ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.25))
+                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.25)),
             borderRadius: BorderRadius.circular(_isAIPanelOpen ? 24 : 100),
             border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.45), width: 1.0),
             boxShadow: [
@@ -1251,34 +1255,40 @@ RULES:
           Row(
             children: [
               Expanded(
-                child: Container(
-                  height: 48,
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
-                  ),
-                  child: Theme(
-                    data: Theme.of(context).copyWith(colorScheme: Theme.of(context).colorScheme.copyWith(primary: Colors.blue)),
-                    child: TextField(
-                      controller: _aiInputController,
-                      onChanged: (_) => setState(() {}),
-                      onSubmitted: _aiHandleSend,
-                      style: TextStyle(fontSize: 15, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w600),
-                      cursorColor: Colors.blue,
-                      textAlignVertical: TextAlignVertical.center,
-                      decoration: InputDecoration(
-                        hintText: isMalay ? 'Tulis mesej...' : 'Write a message...',
-                        hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.black38, fontWeight: FontWeight.w400),
-                        border: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        errorBorder: InputBorder.none,
-                        disabledBorder: InputBorder.none,
-                        isDense: true,
-                        filled: false,
-                        contentPadding: EdgeInsets.zero,
+                child: GlassContainer(
+                  useOwnLayer: true,
+                  quality: GlassQuality.standard,
+                  shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                  settings: _getGlassSettings(isDark),
+                  child: Container(
+                    height: 48,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), width: 1.0),
+                    ),
+                    child: Theme(
+                      data: Theme.of(context).copyWith(colorScheme: Theme.of(context).colorScheme.copyWith(primary: Colors.blue)),
+                      child: TextField(
+                        controller: _aiInputController,
+                        onChanged: (_) => setState(() {}),
+                        onSubmitted: _aiHandleSend,
+                        style: TextStyle(fontSize: 15, color: isDark ? Colors.white : const Color(0xFF3A3A3C), fontWeight: FontWeight.w600),
+                        cursorColor: Colors.blue,
+                        textAlignVertical: TextAlignVertical.center,
+                        decoration: InputDecoration(
+                          hintText: isMalay ? 'Tulis mesej...' : 'Write a message...',
+                          hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.black38, fontWeight: FontWeight.w400),
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          isDense: true,
+                          filled: false,
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
                     ),
                   ),
@@ -1293,18 +1303,24 @@ RULES:
                     _aiHandleSend(_aiInputController.text);
                   }
                 },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 48, height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _aiInputController.text.isEmpty ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.12)) : Colors.blue,
-                    border: Border.all(color: Colors.blue.withValues(alpha: 0.4), width: 1),
-                  ),
-                  child: Icon(
-                    _aiInputController.text.isEmpty ? Icons.mic_none_rounded : Icons.send_rounded,
-                    size: 20,
-                    color: _aiInputController.text.isEmpty ? Colors.blue : Colors.white,
+                child: GlassContainer(
+                  useOwnLayer: true,
+                  quality: GlassQuality.standard,
+                  shape: LiquidRoundedSuperellipse(borderRadius: 100.0),
+                  settings: _getGlassSettings(isDark),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      color: _aiInputController.text.isEmpty ? Colors.transparent : Colors.blue,
+                      border: Border.all(color: _aiInputController.text.isEmpty ? Colors.white.withValues(alpha: isDark ? 0.15 : 0.4) : Colors.blue.withValues(alpha: 0.4), width: 1),
+                    ),
+                    child: Icon(
+                      _aiInputController.text.isEmpty ? Icons.mic_none_rounded : Icons.send_rounded,
+                      size: 20,
+                      color: _aiInputController.text.isEmpty ? Colors.blue : Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -2183,7 +2199,7 @@ RULES:
                     // Re-filter gigs based on new radius
                     final currentUser = context.read<AuthProvider>().user;
                     final gigProvider = context.read<GigProvider>();
-                    final available = gigProvider.filteredGigs.where((g) => g.customerId != currentUser?.id && g.latitude != null && g.longitude != null).toList();
+                    final available = gigProvider.myGigs.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
                     final withinRadius = available.where((g) {
                       double distM = Geolocator.distanceBetween(
                         _currentLocation.latitude, _currentLocation.longitude,
