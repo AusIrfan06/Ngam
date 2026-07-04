@@ -72,6 +72,8 @@ class GigStatus {
   static const String completed = 'COMPLETED';
   static const String cancelled = 'CANCELLED';
   static const String service = 'SERVICE';
+  static const String disabled = 'DISABLED';
+  static const String disabledService = 'DISABLED_SERVICE';
 }
 
 // ─── User Roles ──────────────────────────────────────────────
