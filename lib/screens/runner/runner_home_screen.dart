@@ -165,7 +165,18 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   }
 
   void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
+    _speechEnabled = await _speechToText.initialize(
+      onStatus: (status) {
+        if (status == 'done' || status == 'notListening') {
+          if (mounted && _aiInlineIsListening) {
+            setState(() => _aiInlineIsListening = false);
+            if (_aiInlineRecognizedWords.isNotEmpty) {
+              _aiHandleSend(_aiInlineRecognizedWords);
+            }
+          }
+        }
+      },
+    );
     if (mounted) setState(() {});
   }
   Future<void> _loadCachedLocation() async {
@@ -641,6 +652,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     setState(() {
       _aiChatHistory.add({"role": "user", "message": text});
       _aiIsTyping = true;
+      _isAIPanelOpen = false;
       _aiInlineIsListening = false;
     });
     _aiInputController.clear();
