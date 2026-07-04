@@ -2265,6 +2265,7 @@ RULES:
     String _recognizedWords = "";
     bool _isListening = false;
     bool _autoStarted = false;
+    bool _resultHandled = false;
     // Force ms_MY locale because many Malaysians set their phone to English but speak Malay/Manglish
     final String _selectedLocaleId = 'ms_MY';
 
@@ -2287,7 +2288,8 @@ RULES:
                   onResult: (result) {
                     if (!context.mounted) return;
                     setState(() => _recognizedWords = result.recognizedWords);
-                    if (result.finalResult) {
+                    if (result.finalResult && !_resultHandled) {
+                      _resultHandled = true;
                       setState(() => _isListening = false);
                       targetController.text = _recognizedWords;
                       Future.delayed(const Duration(milliseconds: 500), () {
@@ -2312,7 +2314,8 @@ RULES:
               await _speechToText.stop();
               if (!context.mounted) return;
               setState(() => _isListening = false);
-              if (_recognizedWords.isNotEmpty) {
+              if (_recognizedWords.isNotEmpty && !_resultHandled) {
+                _resultHandled = true;
                 targetController.text = _recognizedWords;
                 Future.delayed(const Duration(milliseconds: 300), () {
                   if (context.mounted && Navigator.canPop(context)) {
@@ -2405,6 +2408,11 @@ RULES:
       },
     ).then((_) {
       _speechToText.stop();
+      if (!_resultHandled && _recognizedWords.isNotEmpty) {
+        _resultHandled = true;
+        targetController.text = _recognizedWords;
+        if (onResult != null) onResult(_recognizedWords);
+      }
     });
   }
 }
