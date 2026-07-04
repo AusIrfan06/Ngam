@@ -17,13 +17,30 @@ import 'package:url_launcher/url_launcher.dart';
 // Detailed view of a gig before accepting
 // ============================================================
 
-class TaskDetailScreen extends StatelessWidget {
+class TaskDetailScreen extends StatefulWidget {
   const TaskDetailScreen({super.key});
+
+  @override
+  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+}
+
+class _TaskDetailScreenState extends State<TaskDetailScreen> {
+  GigModel? _gig;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_gig == null) {
+      _gig = ModalRoute.of(context)?.settings.arguments as GigModel?;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final currentUserId = context.read<AuthProvider>().user?.id;
-    final gig = ModalRoute.of(context)?.settings.arguments as GigModel;
+    final gig = _gig;
+    
+    if (gig == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
       body: CustomScrollView(
@@ -353,11 +370,130 @@ class TaskDetailScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                      )
+                    else
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: OutlinedButton.icon(
+                          onPressed: _showManageServiceMenu,
+                          icon: const Icon(Icons.settings_outlined),
+                          label: const Text('Manage Service'),
+                          style: OutlinedButton.styleFrom(
+                            textStyle: GoogleFonts.outfit(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
                       ),
                   ],
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManageServiceMenu() {
+    final gig = _gig!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Manage Service', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Icon(Icons.attach_money, color: isDark ? Colors.white70 : Colors.black87),
+                title: Text('Adjust Bounty', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAdjustBountyDialog();
+                },
+              ),
+              ListTile(
+                leading: Icon(gig.status == 'DISABLED_SERVICE' ? Icons.play_arrow : Icons.pause, color: isDark ? Colors.white70 : Colors.black87),
+                title: Text(gig.status == 'DISABLED_SERVICE' ? 'Resume Service' : 'Pause Service', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                  setState(() {
+                    _gig = _gig!.copyWith(status: gig.status == 'DISABLED_SERVICE' ? 'SERVICE' : 'DISABLED_SERVICE');
+                  });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Delete Service', style: TextStyle(color: Colors.red)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (c) => AlertDialog(
+                      title: const Text('Delete Service?'),
+                      content: const Text('Are you sure you want to permanently delete this service?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await context.read<GigProvider>().deleteGig(gig.id);
+                    if (mounted) Navigator.pop(context);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAdjustBountyDialog() {
+    final TextEditingController controller = TextEditingController(text: _gig!.bountyAmount.toStringAsFixed(2));
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Adjust Bounty'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'New Amount (RM)',
+            prefixText: 'RM ',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final val = double.tryParse(controller.text);
+              if (val != null && val > 0) {
+                await context.read<GigProvider>().updateGigBounty(_gig!.id, val);
+                setState(() {
+                  _gig = _gig!.copyWith(bountyAmount: val);
+                });
+                if (mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
           ),
         ],
       ),

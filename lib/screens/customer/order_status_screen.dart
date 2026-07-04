@@ -120,6 +120,13 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           'order_status.title'.tr(),
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
+        actions: [
+          if (gig.status == 'OPEN' || gig.status == 'DISABLED')
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: _showManageTaskMenu,
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -421,6 +428,101 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
             ],
           ],
         ),
+      ),
+    );
+  void _showManageTaskMenu() {
+    final gig = _gig!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Manage Task', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Icon(Icons.attach_money, color: isDark ? Colors.white70 : Colors.black87),
+                title: Text('Adjust Bounty', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAdjustBountyDialog();
+                },
+              ),
+              ListTile(
+                leading: Icon(gig.status == 'DISABLED' ? Icons.play_arrow : Icons.pause, color: isDark ? Colors.white70 : Colors.black87),
+                title: Text(gig.status == 'DISABLED' ? 'Resume Task' : 'Pause Task', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Delete Task', style: TextStyle(color: Colors.red)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (c) => AlertDialog(
+                      title: const Text('Delete Task?'),
+                      content: const Text('Are you sure you want to permanently delete this task?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await context.read<GigProvider>().deleteGig(gig.id);
+                    if (mounted) Navigator.pop(context);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAdjustBountyDialog() {
+    final TextEditingController controller = TextEditingController(text: _gig!.bountyAmount.toStringAsFixed(2));
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Adjust Bounty'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(
+            labelText: 'New Amount (RM)',
+            prefixText: 'RM ',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final val = double.tryParse(controller.text);
+              if (val != null && val > 0) {
+                await context.read<GigProvider>().updateGigBounty(_gig!.id, val);
+                if (mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }
