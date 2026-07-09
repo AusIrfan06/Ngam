@@ -53,6 +53,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             pinned: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
+            actions: [
+              if (gig.customerId == currentUserId)
+                IconButton(
+                  icon: const Icon(Icons.settings_outlined),
+                  onPressed: _showManageServiceMenu,
+                ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               title: Text(
@@ -471,7 +478,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (sheetContext) {
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -487,7 +494,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 leading: Icon(Icons.attach_money, color: isDark ? Colors.white70 : Colors.black87),
                 title: Text('task_detail.adjust_bounty'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   _showAdjustBountyDialog();
                 },
               ),
@@ -495,7 +502,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 leading: Icon(gig.status == 'DISABLED_SERVICE' ? Icons.play_arrow : Icons.pause, color: isDark ? Colors.white70 : Colors.black87),
                 title: Text(gig.status == 'DISABLED_SERVICE' ? 'Resume Service' : 'Pause Service', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   final isPausing = gig.status != 'DISABLED_SERVICE';
                   final confirm = await showDialog<bool>(
                     context: context,
@@ -509,7 +516,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                   );
                   if (confirm == true) {
-                    if (!context.mounted) return;
+                    if (!mounted) return;
                     await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
                     if (!mounted) return;
                     setState(() {
@@ -522,7 +529,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: Text('task_detail.delete_service'.tr(), style: TextStyle(color: Colors.red)),
                 onTap: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (c) => AlertDialog(
@@ -535,6 +542,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                   );
                   if (confirm == true) {
+                    if (!mounted) return;
                     await context.read<GigProvider>().deleteGig(gig.id);
                     if (mounted) Navigator.pop(context);
                   }
