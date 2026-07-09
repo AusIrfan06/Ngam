@@ -93,7 +93,7 @@
     "post_first_task": "Terbitkan tugasan pertama anda sekarang!"
   },
   "order_status": {
-    "title": "Status Pesanan",
+    "title": "Butiran Tugasan",
     "task_id": "ID Tugasan: #GIG-{}",
     "status_label": "Status",
     "runner_assigned": "Runner: {}",
@@ -418,5 +418,17 @@
     "retry": "Cuba Semula",
     "no_data": "Tiada data",
     "log_out": "Log Keluar"
+  },
+  "task_detail": {
+    "navigate": "Navigasi ke Lokasi",
+    "manage_service": "Urus Servis",
+    "adjust_bounty": "Ubah Ganjaran",
+    "delete_service": "Padam Servis",
+    "delete_service_title": "Padam Servis?",
+    "delete_service_desc": "Adakah anda pasti mahu memadam servis ini secara kekal?",
+    "cancel": "Batal",
+    "delete": "Padam",
+    "save": "Simpan",
+    "error_chat": "Ralat memulakan perbualan: {}"
   }
 }

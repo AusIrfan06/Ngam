@@ -175,7 +175,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               }
                             },
                             icon: const Icon(Icons.navigation_rounded),
-                            label: const Text('Navigate to Location'),
+                            label: Text('task_detail.navigate'.tr()),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: const BorderSide(color: AppTheme.primary),
@@ -481,11 +481,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Manage Service', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+              Text('task_detail.manage_service'.tr(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
               const SizedBox(height: 16),
               ListTile(
                 leading: Icon(Icons.attach_money, color: isDark ? Colors.white70 : Colors.black87),
-                title: Text('Adjust Bounty', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                title: Text('task_detail.adjust_bounty'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
                   Navigator.pop(context);
                   _showAdjustBountyDialog();
@@ -496,25 +496,39 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 title: Text(gig.status == 'DISABLED_SERVICE' ? 'Resume Service' : 'Pause Service', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () async {
                   Navigator.pop(context);
-                  await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
-                  setState(() {
-                    _gig = _gig!.copyWith(status: gig.status == 'DISABLED_SERVICE' ? 'SERVICE' : 'DISABLED_SERVICE');
-                  });
+                  final isPausing = gig.status != 'DISABLED_SERVICE';
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (c) => AlertDialog(
+                      title: Text(isPausing ? 'Pause Service?' : 'Resume Service?'),
+                      content: Text(isPausing ? 'Are you sure you want to pause this service? It will not be visible to customers.' : 'Are you sure you want to resume this service?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                        TextButton(onPressed: () => Navigator.pop(c, true), child: Text(isPausing ? 'Pause' : 'Resume', style: const TextStyle(color: Colors.blue))),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                    setState(() {
+                      _gig = _gig!.copyWith(status: gig.status == 'DISABLED_SERVICE' ? 'SERVICE' : 'DISABLED_SERVICE');
+                    });
+                  }
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete Service', style: TextStyle(color: Colors.red)),
+                title: Text('task_detail.delete_service'.tr(), style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(context);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (c) => AlertDialog(
-                      title: const Text('Delete Service?'),
-                      content: const Text('Are you sure you want to permanently delete this service?'),
+                      title: Text('task_detail.delete_service_title'.tr()),
+                      content: Text('task_detail.delete_service_desc'.tr()),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: Text('task_detail.cancel'.tr())),
+                        TextButton(onPressed: () => Navigator.pop(c, true), child: Text('task_detail.delete'.tr(), style: TextStyle(color: Colors.red))),
                       ],
                     ),
                   );
@@ -536,7 +550,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Adjust Bounty'),
+        title: Text('task_detail.adjust_bounty'.tr()),
         content: TextField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -548,7 +562,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('task_detail.cancel'.tr()),
           ),
           TextButton(
             onPressed: () async {
@@ -561,7 +575,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 if (mounted) Navigator.pop(context);
               }
             },
-            child: const Text('Save'),
+            child: Text('task_detail.save'.tr()),
           ),
         ],
       ),

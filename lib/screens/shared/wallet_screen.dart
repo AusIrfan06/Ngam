@@ -418,7 +418,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
 
                 // BOTTOM ROW 1: Embossed Number (12 Stars + 4 Digits)
                 Text(
-                    "**** **** **** ${method["number"].toString().length >= 4 ? method["number"].toString().substring(method["number"].toString().length - 4) : "0000"}",
+                    "**** **** **** ${method["last4"] ?? "0000"}",
                     style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 3.0, shadows: [Shadow(color: Colors.black45, offset: Offset(1, 1), blurRadius: 2)])
                 ),
                 const SizedBox(height: 8),
@@ -485,9 +485,16 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             ],
           ),
           const Spacer(),
-          Text(method["name"].toString().toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+          Text((method["name"] ?? method["bankName"] ?? "UNKNOWN BANK").toString().toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
           const SizedBox(height: 8),
-          Text("**** ${method["accountNumber"] != null && method["accountNumber"].toString().length >= 4 ? method["accountNumber"].toString().substring(method["accountNumber"].toString().length - 4) : "0000"}", style: const TextStyle(color: Colors.white70, fontSize: 16, letterSpacing: 2.0, fontFamily: 'monospace')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(method["accountNumber"]?.toString() ?? "**** 0000", style: const TextStyle(color: Colors.white70, fontSize: 16, letterSpacing: 2.0, fontFamily: 'monospace')),
+              if (method["holder"] != null) 
+                Expanded(child: Text(method["holder"].toString().toUpperCase(), textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold))),
+            ],
+          ),
         ],
       ),
     );
@@ -598,13 +605,31 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          Expanded(child: _buildActionBtn(icon: HugeIcons.strokeRoundedStar, label: "wallet.set_primary".tr(), isDark: isDark, onTap: () => PaymentData.setPrimaryPaymentMethod(method["id"]))),
+          Expanded(
+            child: _buildActionBtn(
+              icon: HugeIcons.strokeRoundedStar,
+              label: "wallet.set_primary".tr(),
+              isDark: isDark,
+              onTap: () async {
+                await PaymentService.setPrimaryPaymentMethod(method["id"]);
+                await _loadMethods();
+              },
+            ),
+          ),
           const SizedBox(width: 12),
-          Expanded(child: _buildActionBtn(icon: HugeIcons.strokeRoundedDelete02, label: "wallet.remove".tr(), isDark: isDark, color: Colors.redAccent, onTap: () {
-             await PaymentService.deletePaymentMethod(method["id"]);
-                                    await _loadMethods();
-             setState(() => _frontCardIndex = 0); // Return to Ngam Pay
-          })),
+          Expanded(
+            child: _buildActionBtn(
+              icon: HugeIcons.strokeRoundedDelete02,
+              label: "wallet.remove".tr(),
+              isDark: isDark,
+              color: Colors.redAccent,
+              onTap: () async {
+                await PaymentService.deletePaymentMethod(method["id"]);
+                await _loadMethods();
+                setState(() => _frontCardIndex = 0); // Return to Ngam Pay
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -875,21 +900,23 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                         const SizedBox(height: 24),
 
                         _AnimatedPressable(
-                          onTap: () {
+                          onTap: () async {
                             if (formKey.currentState!.validate()) {
                               final rawDigits = numberController.text.replaceAll(' ', '');
                               final detectedBrand = _detectCardBrand(rawDigits);
 
-                              PaymentData.addPaymentMethod({
+                              await PaymentService.addPaymentMethod({
                                 "id": DateTime.now().millisecondsSinceEpoch.toString(),
                                 "type": "card",
                                 "name": detectedBrand,
-                                "number": "**** ${rawDigits.substring(rawDigits.length - 4)}",
-                                "holder": nameController.text.toUpperCase(),
+                                "holder": nameController.text,
+                                "last4": rawDigits.substring(rawDigits.length - 4),
                                 "expiry": expiryController.text,
                                 "isPrimary": false,
+                                "color": 0,
                               });
-                              Navigator.pop(context);
+                              await _loadMethods();
+                              if (mounted) Navigator.pop(context);
                             }
                           },
                           child: Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 16), decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))]), child: Center(child: Text("wallet.save_card".tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)))),
@@ -980,21 +1007,22 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                               const SizedBox(height: 24),
 
                               _AnimatedPressable(
-                                onTap: () {
+                                onTap: () async {
                                   if (formKey.currentState!.validate()) {
                                     String accRaw = accountController.text;
-                                    String masked = "â€¢â€¢â€¢â€¢ ${accRaw.substring(accRaw.length - 4)}";
+                                    String masked = "•••• ${accRaw.substring(accRaw.length - 4)}";
 
-                                    PaymentData.addPaymentMethod({
+                                    await PaymentService.addPaymentMethod({
                                       "id": DateTime.now().millisecondsSinceEpoch.toString(),
                                       "type": "bank",
                                       "name": selectedBank,
-                                      "number": masked,
-                                      "holder": nameController.text.toUpperCase(),
-                                      "expiry": null,
+                                      "holder": nameController.text,
+                                      "accountNumber": masked,
                                       "isPrimary": false,
+                                      "color": 0,
                                     });
-                                    Navigator.pop(context);
+                                    await _loadMethods();
+                                    if (mounted) Navigator.pop(context);
                                   }
                                 },
                                 child: Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 16), decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.green.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))]), child: Center(child: Text("wallet.link_account".tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)))),
@@ -1135,21 +1163,22 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
 
                           // Save button
                           _AnimatedPressable(
-                            onTap: () {
+                            onTap: () async {
                               if (pickedQr == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text("wallet.upload_qr_first".tr())),
                                 );
                                 return;
                               }
-                              PaymentData.addPaymentMethod({
+                              await PaymentService.addPaymentMethod({
                                 "id": DateTime.now().millisecondsSinceEpoch.toString(),
                                 "type": "duitnow_qr",
-                                "name": "DuitNow QR",
                                 "qrPath": pickedQr!.path,
                                 "isPrimary": false,
+                                "color": 0,
                               });
-                              Navigator.pop(context);
+                              await _loadMethods();
+                              if (mounted) Navigator.pop(context);
                             },
                             child: Container(
                               width: double.infinity,
@@ -1222,23 +1251,20 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   }
 
   Widget _buildBankLogo(String bankName, {double size = 42}) {
-    Color bgColor; String initials; Color textColor = Colors.white;
-
-    switch (bankName) {
-      case "Maybank": bgColor = const Color(0xFFFFCC00); initials = "M"; textColor = Colors.black; break;
-      case "CIMB Bank": bgColor = const Color(0xFF7A0010); initials = "CIMB"; break;
-      case "Public Bank": bgColor = const Color(0xFFE3000F); initials = "PB"; break;
-      case "RHB Bank": bgColor = const Color(0xFF0067B1); initials = "RHB"; break;
-      case "Hong Leong Bank": bgColor = const Color(0xFF00387B); initials = "HLB"; break;
-      case "AmBank": bgColor = const Color(0xFFED1A3B); initials = "Am"; break;
-      case "Bank Islam": bgColor = const Color(0xFF4A2556); initials = "BI"; break;
-      default: bgColor = Colors.blueGrey; initials = "B"; break;
-    }
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: size, height: size,
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))]),
-      child: Center(child: Text(initials, style: TextStyle(color: textColor, fontSize: size * 0.35, fontWeight: FontWeight.bold, letterSpacing: -0.5))),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.account_balance, 
+          size: size * 0.5, 
+          color: isDark ? Colors.white70 : Colors.black87
+        ),
+      ),
     );
   }
 

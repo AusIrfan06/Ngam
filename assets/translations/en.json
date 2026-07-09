@@ -93,7 +93,7 @@
     "post_first_task": "Post your first task to get started!"
   },
   "order_status": {
-    "title": "Order Status",
+    "title": "Task Details",
     "task_id": "Task ID: #GIG-{}",
     "status_label": "Status",
     "runner_assigned": "Runner: {}",
@@ -418,5 +418,17 @@
     "retry": "Retry",
     "no_data": "No data available",
     "log_out": "Log Out"
+  },
+  "task_detail": {
+    "navigate": "Navigate to Location",
+    "manage_service": "Manage Service",
+    "adjust_bounty": "Adjust Bounty",
+    "delete_service": "Delete Service",
+    "delete_service_title": "Delete Service?",
+    "delete_service_desc": "Are you sure you want to permanently delete this service?",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "error_chat": "Error starting chat: {}"
   }
 }

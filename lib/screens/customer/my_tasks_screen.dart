@@ -143,25 +143,27 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'nav.my_tasks'.tr(),
-                              style: GoogleFonts.outfit(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w800,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'nav.my_tasks'.tr(),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'my_tasks.tasks_posted'.tr(args: [gigProvider.myGigs.length.toString()]),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark ? Colors.white70 : Colors.black87,
+                              const SizedBox(height: 4),
+                              Text(
+                                'my_tasks.tasks_posted'.tr(args: [gigProvider.myGigs.length.toString()]),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark ? Colors.white70 : Colors.black87,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         _buildSystemGlass(
                           borderRadius: 16,
@@ -263,25 +265,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                         }
                                       }
                                     },
-                                    actionWidget: gig.status == 'SERVICE'
-                                        ? TextButton(
-                                            onPressed: () async {
-                                              final success = await context.read<GigProvider>().takeDownService(gig.id);
-                                              if (success && context.mounted) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text('runner.service_taken_down'.tr())),
-                                                );
-                                              }
-                                            },
-                                            style: TextButton.styleFrom(
-                                              foregroundColor: Colors.redAccent,
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                              minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            ),
-                                            child: Text('runner.take_down'.tr(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                                          )
-                                        : null,
+                                    actionWidget: null,
                                   );
                                 },
                               ),

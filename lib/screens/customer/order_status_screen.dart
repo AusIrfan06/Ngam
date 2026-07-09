@@ -464,7 +464,24 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 title: Text(gig.status == 'DISABLED' ? 'Resume Task' : 'Pause Task', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () async {
                   Navigator.pop(context);
-                  await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                  final isPausing = gig.status != 'DISABLED';
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (c) => AlertDialog(
+                      title: Text(isPausing ? 'Pause Task?' : 'Resume Task?'),
+                      content: Text(isPausing ? 'Are you sure you want to pause this task? It will not be visible to runners.' : 'Are you sure you want to resume this task?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                        TextButton(onPressed: () => Navigator.pop(c, true), child: Text(isPausing ? 'Pause' : 'Resume', style: const TextStyle(color: Colors.blue))),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                    setState(() {
+                      _gig = _gig!.copyWith(status: gig.status == 'DISABLED' ? 'OPEN' : 'DISABLED');
+                    });
+                  }
                 },
               ),
               ListTile(

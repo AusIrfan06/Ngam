@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/gig_model.dart';
 import 'category_chip.dart';
 
@@ -148,6 +149,30 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                         _getCategoryIcon(),
                         size: 64,
                         color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: (widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE')
+                              ? Colors.purple.withOpacity(0.9)
+                              : Colors.blue.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          (widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE')
+                              ? 'SERVICE OFFER'
+                              : 'TASK REQUEST',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
                       ),
                     ),
                     if (widget.showStatus)

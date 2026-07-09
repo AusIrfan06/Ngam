@@ -266,25 +266,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                                         }
                                       }
                                     },
-                                    actionWidget: gig.status == 'SERVICE'
-                                        ? TextButton(
-                                            onPressed: () async {
-                                              final success = await context.read<GigProvider>().takeDownService(gig.id);
-                                              if (success && context.mounted) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text('runner.service_taken_down'.tr())),
-                                                );
-                                              }
-                                            },
-                                            style: TextButton.styleFrom(
-                                              foregroundColor: Colors.redAccent,
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                              minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            ),
-                                            child: Text('runner.take_down'.tr(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                                          )
-                                        : null,
+                                    actionWidget: null,
                                   );
                                 },
                               ),

@@ -23,6 +23,7 @@ class PaymentService {
         'type': type,
         'isPrimary': row['is_primary'] ?? false,
         'color': row['color_index'] ?? 0,
+        'holder': row['holder_name'], // Newly added
       };
 
       if (type == 'card') {
@@ -51,6 +52,7 @@ class PaymentService {
       'type': methodData['type'],
       'is_primary': methodData['isPrimary'] ?? false,
       'color_index': methodData['color'] ?? 0,
+      'holder_name': methodData['holder'], // Newly added
     };
 
     if (methodData['type'] == 'card') {
@@ -58,7 +60,7 @@ class PaymentService {
       row['details'] = methodData['last4'];
       row['expiry'] = methodData['expiry'];
     } else if (methodData['type'] == 'bank') {
-      row['name'] = methodData['bankName'];
+      row['name'] = methodData['name'] ?? methodData['bankName'];
       row['details'] = methodData['accountNumber'];
     } else if (methodData['type'] == 'duitnow_qr') {
       row['details'] = methodData['qrPath'];
