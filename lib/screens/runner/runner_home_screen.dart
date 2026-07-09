@@ -1083,6 +1083,7 @@ RULES:
                 right: 16,
                 child: _isAIPanelOpen || _aiChatHistory.isNotEmpty ? _buildFloatingAIPanel(isDark) : const SizedBox.shrink(),
               ),
+
               Positioned(top: MediaQuery.of(context).padding.top + 70, left: 16, right: 16,
                   child: AnimatedOpacity(
                       duration: const Duration(milliseconds: 300),

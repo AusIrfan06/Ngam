@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../utils/glass_toast.dart';
@@ -172,7 +173,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Text("Butiran Akaun", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: isDark ? Colors.white : Colors.black87)),
+        title: Text("account.title".tr(), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: isDark ? Colors.white : Colors.black87)),
         leading: IconButton(icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isDark ? Colors.white70 : Colors.black54, size: 24), onPressed: () => Navigator.pop(context)),
       ),
       body: Stack(
@@ -189,7 +190,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("PUBLIC PROFILE", style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    Text("account.public_profile".tr(), style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     const SizedBox(height: 12),
 
                     GlassContainer(
@@ -199,20 +200,20 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(24.0), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.6), width: 1.0)),
                         child: Column(
                           children: [
-                            _buildPremiumInput(isDark: isDark, label: "Full Name", controller: _nameController, icon: HugeIcons.strokeRoundedUser),
+                            _buildPremiumInput(isDark: isDark, label: "account.full_name".tr(), controller: _nameController, icon: HugeIcons.strokeRoundedUser),
                             const SizedBox(height: 16),
-                            _buildPremiumInput(isDark: isDark, label: "Email Address (Read Only)", controller: _emailController, icon: HugeIcons.strokeRoundedMail01, keyboardType: TextInputType.emailAddress, readOnly: true),
+                            _buildPremiumInput(isDark: isDark, label: "account.email_readonly".tr(), controller: _emailController, icon: HugeIcons.strokeRoundedMail01, keyboardType: TextInputType.emailAddress, readOnly: true),
                             const SizedBox(height: 16),
-                            _buildPremiumInput(isDark: isDark, label: "Phone Number", controller: _phoneController, icon: HugeIcons.strokeRoundedCall02, keyboardType: TextInputType.phone),
+                            _buildPremiumInput(isDark: isDark, label: "account.phone".tr(), controller: _phoneController, icon: HugeIcons.strokeRoundedCall02, keyboardType: TextInputType.phone),
                             const SizedBox(height: 16),
-                            _buildPremiumInput(isDark: isDark, label: "Date of Birth", controller: _dobController, icon: HugeIcons.strokeRoundedCalendar01, readOnly: true, onTap: _pickDate),
+                            _buildPremiumInput(isDark: isDark, label: "account.dob".tr(), controller: _dobController, icon: HugeIcons.strokeRoundedCalendar01, readOnly: true, onTap: _pickDate),
                           ],
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 32),
-                    Text("SHIPPING DETAILS", style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    Text("account.shipping_details".tr(), style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     const SizedBox(height: 12),
 
                     GlassContainer(
@@ -222,14 +223,14 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(24.0), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.6), width: 1.0)),
                         child: Column(
                           children: [
-                            _buildPremiumInput(isDark: isDark, label: "Primary Delivery Address", controller: _addressController, icon: HugeIcons.strokeRoundedLocation01, keyboardType: TextInputType.streetAddress),
+                            _buildPremiumInput(isDark: isDark, label: "account.address".tr(), controller: _addressController, icon: HugeIcons.strokeRoundedLocation01, keyboardType: TextInputType.streetAddress),
                           ],
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 32),
-                    Text("SECURITY", style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    Text("account.security".tr(), style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     const SizedBox(height: 12),
 
                     GlassContainer(
@@ -240,13 +241,13 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         child: Column(
                           children: [
                             _buildPremiumInput(
-                              isDark: isDark, label: "Current Password", controller: _currentPasswordController, icon: HugeIcons.strokeRoundedLockPassword,
+                              isDark: isDark, label: "account.current_password".tr(), controller: _currentPasswordController, icon: HugeIcons.strokeRoundedLockPassword,
                               isPassword: true, obscureText: _obscureCurrentPass, onToggleObscure: () => setState(() => _obscureCurrentPass = !_obscureCurrentPass),
                               validator: _validateCurrentPassword,
                             ),
                             const SizedBox(height: 16),
                             _buildPremiumInput(
-                              isDark: isDark, label: "New Password", controller: _newPasswordController, icon: HugeIcons.strokeRoundedLockKey,
+                              isDark: isDark, label: "account.new_password".tr(), controller: _newPasswordController, icon: HugeIcons.strokeRoundedLockKey,
                               isPassword: true, obscureText: _obscureNewPass, onToggleObscure: () => setState(() => _obscureNewPass = !_obscureNewPass),
                               validator: _validateNewPassword,
                             ),
@@ -265,7 +266,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                         child: Center(
                           child: _isLoading
                               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                              : const Text("Save Changes", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                              : Text("account.save_changes".tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),

@@ -11,6 +11,7 @@ import '../../widgets/sla_countdown.dart';
 import '../../widgets/status_timeline.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/gig_provider.dart';
 import '../../services/chat_service.dart';
 import '../shared/chat_screen.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -430,6 +431,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
         ),
       ),
     );
+  }
+
   void _showManageTaskMenu() {
     final gig = _gig!;
     final isDark = Theme.of(context).brightness == Brightness.dark;

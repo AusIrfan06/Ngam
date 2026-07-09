@@ -12,6 +12,7 @@ import '../../utils/app_theme.dart';
 import '../../services/chat_service.dart';
 import '../../widgets/chat/user_group_conversation_card.dart';
 import '../../widgets/chat/conversation_sub_tile.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../models/chat_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/gig_model.dart';
@@ -129,7 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Messages',
+                          'chat.messages'.tr(),
                           style: GoogleFonts.outfit(
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
@@ -184,7 +185,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 fontSize: 15,
                               ),
                               decoration: InputDecoration(
-                                hintText: 'Search conversations...',
+                                hintText: 'chat.search_conversations'.tr(),
                                 hintStyle: TextStyle(
                                   fontSize: 15,
                                   color: isDark ? Colors.white54 : Colors.grey.shade500,
@@ -234,7 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'RECENT',
+                      'chat.recent'.tr(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -254,7 +255,7 @@ class _ChatScreenState extends State<ChatScreen> {
                          return const Center(child: CircularProgressIndicator());
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                         return const Center(child: Text("No conversations yet."));
+                         return Center(child: Text("chat.no_conversations".tr()));
                       }
                       final allConversations = snapshot.data!;
                       final conversations = _searchQuery.isEmpty 
@@ -274,7 +275,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       final groupedList = groupedConversations.values.toList();
                       
                       if (groupedList.isEmpty) {
-                         return const Center(child: Text("No matching conversations."));
+                         return Center(child: Text("chat.no_matching_conversations".tr()));
                       }
                       
                       return ListView.separated(
@@ -323,14 +324,14 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          "Delete Chat?",
+          "chat.delete_chat".tr(),
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.bold,
             color: isDark ? Colors.white : Colors.black,
           ),
         ),
         content: Text(
-          "This will permanently delete the conversation for both of you.",
+          "chat.delete_chat_desc".tr(),
           style: GoogleFonts.outfit(
             color: isDark ? Colors.white70 : Colors.black87,
           ),
@@ -338,7 +339,7 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text("Cancel", style: TextStyle(color: Colors.grey.shade500)),
+            child: Text("wallet.cancel".tr(), style: TextStyle(color: Colors.grey.shade500)),
           ),
           TextButton(
             onPressed: () async {
@@ -353,7 +354,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
               }
             },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+            child: Text("chat.delete".tr(), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -471,9 +472,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     final msgDate = DateTime(date.year, date.month, date.day);
 
     if (msgDate == today) {
-      return 'Today';
+      return 'chat.today'.tr();
     } else if (msgDate == yesterday) {
-      return 'Yesterday';
+      return 'chat.yesterday'.tr();
     } else {
       final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       if (date.year == now.year) {
@@ -886,7 +887,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 children: [
               ListTile(
                 leading: const HugeIcon(icon: HugeIcons.strokeRoundedCamera01, color: AppTheme.primary, size: 24),
-                title: Text('Camera', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                title: Text('chat.camera'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);
@@ -894,7 +895,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               ),
               ListTile(
                 leading: const HugeIcon(icon: HugeIcons.strokeRoundedImage01, color: AppTheme.primary, size: 24),
-                title: Text('Gallery', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                title: Text('chat.gallery'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
@@ -902,7 +903,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               ),
               ListTile(
                 leading: const HugeIcon(icon: HugeIcons.strokeRoundedFile01, color: AppTheme.primary, size: 24),
-                title: Text('File', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                title: Text('chat.file'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickFile();
@@ -911,7 +912,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               if (_sharedGigs.isNotEmpty)
                 ListTile(
                   leading: const HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, color: AppTheme.primary, size: 24),
-                  title: Text('Task Card', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('chat.task_card'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                   onTap: () {
                     Navigator.pop(context);
                     _showTaskSelectorBottomSheet(isAttachMode: true);
@@ -925,7 +926,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 ),
                 ListTile(
                   leading: const HugeIcon(icon: HugeIcons.strokeRoundedInvoice01, color: AppTheme.primary, size: 24),
-                  title: Text('Send Quote', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('chat.send_quote'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                   onTap: () {
                     Navigator.pop(context);
                     _showCreateQuoteDialog();
@@ -934,7 +935,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 if (_sharedGigs.isNotEmpty)
                   ListTile(
                     leading: const HugeIcon(icon: HugeIcons.strokeRoundedMoney04, color: AppTheme.primary, size: 24),
-                    title: Text('Counter-Offer', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                    title: Text('chat.counter_offer'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                     onTap: () {
                       Navigator.pop(context);
                       _showCounterOfferDialog();
@@ -942,7 +943,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                   ),
                 ListTile(
                   leading: const HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: AppTheme.primary, size: 24),
-                  title: Text('Request Location', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                  title: Text('chat.request_location'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                   onTap: () {
                     Navigator.pop(context);
                     _sendRequestLocation();
@@ -980,7 +981,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Send Custom Quote'),
+          title: Text('chat.send_quote'.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -998,7 +999,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('wallet.cancel'.tr())),
             ElevatedButton(
               onPressed: () async {
                 if (priceController.text.isEmpty) return;
@@ -1019,7 +1020,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 setState(() { _messages.insert(0, newMsg); });
                 await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
               },
-              child: const Text('Send Quote'),
+              child: Text('chat.send_quote'.tr()),
             ),
           ],
         );
@@ -1034,7 +1035,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Send Counter-Offer'),
+          title: Text('chat.counter_offer'.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1048,7 +1049,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('wallet.cancel'.tr())),
             ElevatedButton(
               onPressed: () async {
                 if (priceController.text.isEmpty) return;
@@ -1068,7 +1069,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 setState(() { _messages.insert(0, newMsg); });
                 await ChatService.sendMessage(newMsg, contextGigId: _linkedGig?.id);
               },
-              child: const Text('Send Counter'),
+              child: Text('chat.counter_offer_btn'.tr()),
             ),
           ],
         );
@@ -2676,7 +2677,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                                   children: [
                                     HugeIcon(icon: HugeIcons.strokeRoundedInvoice01, color: isMe ? Colors.white : AppTheme.primary, size: 20),
                                     const SizedBox(width: 8),
-                                    Text('Custom Quote', style: TextStyle(fontWeight: FontWeight.bold, color: isMe ? Colors.white : AppTheme.primary)),
+                                    Text('chat.send_quote'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: isMe ? Colors.white : AppTheme.primary)),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
@@ -2699,7 +2700,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
                                     onPressed: () {},
-                                    child: const Text('Accept Quote'),
+                                    child: Text('chat.accept'.tr()),
                                   ),
                                 ),
                               ],
@@ -2735,7 +2736,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                                   children: [
                                     HugeIcon(icon: HugeIcons.strokeRoundedMoney04, color: isMe ? Colors.white : AppTheme.primary, size: 20),
                                     const SizedBox(width: 8),
-                                    Text('Counter-Offer', style: TextStyle(fontWeight: FontWeight.bold, color: isMe ? Colors.white : AppTheme.primary)),
+                                    Text('chat.counter_offer'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: isMe ? Colors.white : AppTheme.primary)),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
@@ -2768,7 +2769,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     ),
                                     onPressed: () {},
-                                    child: const Text('Accept Counter'),
+                                    child: Text('chat.accept'.tr()),
                                   ),
                                 ),
                               ],
@@ -2799,12 +2800,12 @@ class _MessageBubbleState extends State<_MessageBubble> {
                             HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: isMe ? Colors.white : AppTheme.primary, size: 32),
                             const SizedBox(height: 12),
                             Text(
-                              'Location Requested',
+                              'chat.location_requested'.tr(),
                               style: TextStyle(fontWeight: FontWeight.bold, color: isMe ? Colors.white : (isDark ? Colors.white : Colors.black87)),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Share your location to help calculate travel distance.',
+                              'chat.share_location_desc'.tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 12, color: isMe ? Colors.white70 : (isDark ? Colors.white70 : Colors.black54)),
                             ),
@@ -2818,7 +2819,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
                                 onPressed: () {},
-                                child: const Text('Share Location'),
+                                child: Text('chat.share_location'.tr()),
                               ),
                             ),
                           ],

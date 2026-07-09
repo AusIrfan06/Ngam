@@ -5,6 +5,8 @@ import '../../models/gig_model.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
 import 'package:provider/provider.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import '../../providers/gig_provider.dart';
 import '../../providers/auth_provider.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -206,34 +208,29 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     const SizedBox(height: 28),
 
                     // ─── Description ─────────────────────────
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Text(
-                        gig.description,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 1.6,
+                    _buildGlassSection(
+                      isDark: Theme.of(context).brightness == Brightness.dark,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          gig.description,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            height: 1.6,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 28),
 
                     // ─── Customer Info ───────────────────────
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
+                    _buildGlassSection(
+                      isDark: Theme.of(context).brightness == Brightness.dark,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
                         children: [
                           Container(
                             width: 50,
@@ -320,6 +317,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         ],
                       ),
                     ),
+                    ),
                     const SizedBox(height: 40),
 
                     // ─── Bounty Amount ───────────────────────
@@ -353,38 +351,28 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 56,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
+                        child: _buildGlassButton(
+                          isDark: Theme.of(context).brightness == Brightness.dark,
+                          icon: Icons.check_circle_outline,
+                          label: 'runner.accept_task'.tr(),
+                          onTap: () {
                             Navigator.pushNamed(
                               context,
                               '/confirm-acceptance',
                               arguments: gig,
                             );
                           },
-                          icon: const Icon(Icons.check_circle_outline),
-                          label: Text('runner.accept_task'.tr()),
-                          style: ElevatedButton.styleFrom(
-                            textStyle: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
                         ),
                       )
                     else
                       SizedBox(
                         width: double.infinity,
                         height: 56,
-                        child: OutlinedButton.icon(
-                          onPressed: _showManageServiceMenu,
-                          icon: const Icon(Icons.settings_outlined),
-                          label: const Text('Manage Service'),
-                          style: OutlinedButton.styleFrom(
-                            textStyle: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                        child: _buildGlassButton(
+                          isDark: Theme.of(context).brightness == Brightness.dark,
+                          icon: Icons.settings_outlined,
+                          label: 'Manage Service',
+                          onTap: _showManageServiceMenu,
                         ),
                       ),
                   ],
@@ -393,6 +381,86 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+
+  LiquidGlassSettings _getGlassSettings(bool isDark) {
+    return LiquidGlassSettings(
+      thickness: 0.1,
+      blur: 15,
+      refractiveIndex: 1.0,
+      glassColor: Colors.transparent,
+      lightAngle: 45.0,
+      lightIntensity: isDark ? 0.1 : 0.2,
+      ambientStrength: 1.0,
+      saturation: 1.0,
+      chromaticAberration: 0.0,
+    );
+  }
+
+  Widget _buildGlassSection({required bool isDark, required Widget child}) {
+    return GlassContainer(
+      useOwnLayer: true,
+      quality: GlassQuality.standard,
+      shape: LiquidRoundedSuperellipse(borderRadius: 16.0),
+      settings: _getGlassSettings(isDark),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withOpacity(0.05)
+              : Colors.white.withOpacity(0.4),
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildGlassButton(
+      {required bool isDark,
+      required IconData icon,
+      required String label,
+      required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16.0),
+      child: GlassContainer(
+        quality: GlassQuality.standard,
+        shape: LiquidRoundedSuperellipse(borderRadius: 16.0),
+        settings: _getGlassSettings(isDark),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.white.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppTheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

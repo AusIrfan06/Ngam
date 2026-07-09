@@ -15,9 +15,9 @@ import '../../utils/glass_toast.dart';
 import 'account_details_screen.dart';
 import 'support_screens.dart';
 import 'about_screens.dart';
-import 'payment_methods_screen.dart';
 import 'privacy_security_screen.dart';
 import '../runner/runner_verification_screen.dart';
+import 'wallet_screen.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 // ============================================================
@@ -239,6 +239,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 24),
 
+                        // ─── Gamification (Ngam Ranks) ───────────
+                        if (authProvider.isRunner) ...[
+                          _buildNgamRankSection(isDark),
+                          const SizedBox(height: 24),
+                        ],
+
                         // ─── Stats Section ───────────────────────
                         _buildSectionHeader('profile.statistics'.tr()),
                         Row(
@@ -262,7 +268,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               label: 'profile.rating'.tr(),
                               value: _rating > 0
                                   ? _rating.toStringAsFixed(1)
-                                  : '-',
+                                  : 'profile.new_rating'.tr(),
                               icon: HugeIcons.strokeRoundedStar,
                             ),
                           ],
@@ -291,14 +297,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _buildDivider(isDark),
                               _buildSettingsTile(
                                 isDark,
-                                HugeIcons.strokeRoundedCreditCard,
-                                "profile.payment_methods".tr(),
+                                Icons.wallet_rounded,
+                                "wallet.title".tr(),
                                 trailing: _buildArrow(),
                                 onTap: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        const PaymentMethodsScreen(),
+                                    builder: (_) => const WalletScreen(),
                                   ),
                                 ),
                               ),
@@ -508,6 +513,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // ─── UI Helper Widgets ───────────────────────────────────────
 
+  String _getRankName(int completed) {
+    if (completed >= 50) return "rank.platinum".tr();
+    if (completed >= 30) return "rank.gold".tr();
+    if (completed >= 10) return "rank.silver".tr();
+    return "rank.bronze".tr();
+  }
+  
+  List<Color> _getRankColors(int completed) {
+    if (completed >= 50) return [const Color(0xFFE5E4E2), const Color(0xFFB0B0B0), const Color(0xFFE5E4E2)]; // Platinum
+    if (completed >= 30) return [const Color(0xFFFFD700), const Color(0xFFDAA520), const Color(0xFFFFD700)]; // Gold
+    if (completed >= 10) return [const Color(0xFFC0C0C0), const Color(0xFF808080), const Color(0xFFC0C0C0)]; // Silver
+    return [const Color(0xFFCD7F32), const Color(0xFF8B4513), const Color(0xFFCD7F32)]; // Bronze
+  }
+
+  int _getNextRankTarget(int completed) {
+    if (completed >= 50) return 100;
+    if (completed >= 30) return 50;
+    if (completed >= 10) return 30;
+    return 10;
+  }
+
+  Widget _buildNgamRankSection(bool isDark) {
+    final user = context.read<AuthProvider>().user;
+    if (user == null) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader("profile.ngam_rank".tr()),
+        StreamBuilder<int>(
+          stream: GigService.streamCompletedCount(user.id),
+          initialData: _tasksCompleted,
+          builder: (context, snapshot) {
+            int completed = snapshot.data ?? 0;
+            String rankName = _getRankName(completed);
+            List<Color> colors = _getRankColors(completed);
+            int target = _getNextRankTarget(completed);
+            double progress = (completed / target).clamp(0.0, 1.0);
+            int xp = completed * 50;
+
+            return GlassContainer(
+              useOwnLayer: true,
+              quality: GlassQuality.standard,
+              shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+              settings: _getGlassSettings(isDark),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      isDark ? colors.first.withValues(alpha: 0.15) : colors.first.withValues(alpha: 0.3),
+                      isDark ? colors.last.withValues(alpha: 0.05) : colors.last.withValues(alpha: 0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24.0),
+                  border: Border.all(
+                    color: colors.first.withValues(alpha: isDark ? 0.3 : 0.6),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.first.withValues(alpha: isDark ? 0.2 : 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
+                            boxShadow: [
+                              BoxShadow(color: colors.first.withValues(alpha: 0.6), blurRadius: 20, spreadRadius: 4),
+                              BoxShadow(color: Colors.white.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 1),
+                            ],
+                          ),
+                          child: const HugeIcon(icon: HugeIcons.strokeRoundedAward01, color: Colors.white, size: 40),
+                        ),
+                        const SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(rankName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87, letterSpacing: 0.5)),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: colors.first.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: colors.first.withValues(alpha: 0.5)),
+                                ),
+                                child: Text('Level $completed  •  $xp XP', style: TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        height: 14,
+                        color: isDark ? Colors.black45 : Colors.black.withValues(alpha: 0.1),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: progress,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(colors: [colors.last, colors.first]),
+                              boxShadow: [BoxShadow(color: colors.first.withValues(alpha: 0.8), blurRadius: 12)],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('$completed / $target Tasks', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : Colors.black87)),
+                        Text('${(target - completed) * 50} XP to next rank', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colors.first)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        ),
+      ],
+    );
+  }
+
   Widget _buildGlassButton(
     bool isDark,
     String label,
@@ -714,11 +862,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     : Colors.black.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: HugeIcon(
-                icon: icon,
-                color: isDark ? Colors.white : Colors.black87,
-                size: 20,
-              ),
+              child: icon is IconData
+                  ? Icon(
+                      icon,
+                      color: isDark ? Colors.white : Colors.black87,
+                      size: 20,
+                    )
+                  : HugeIcon(
+                      icon: icon,
+                      color: isDark ? Colors.white : Colors.black87,
+                      size: 20,
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(

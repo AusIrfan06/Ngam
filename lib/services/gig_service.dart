@@ -358,6 +358,14 @@ class GigService {
     return (response as List).length;
   }
 
+  /// Get real-time stream of completed tasks count for a user (as runner)
+  static Stream<int> streamCompletedCount(String runnerId) {
+    return _client
+        .from(DbTable.gigs)
+        .stream(primaryKey: ['id'])
+        .map((list) => list.where((gig) => gig['gig_worker_id'] == runnerId && gig['status'] == GigStatus.completed).length);
+  }
+
   /// Get count of posted tasks for a user (as customer)
   static Future<int> getPostedCount(String customerId) async {
     final response = await _client

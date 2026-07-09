@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../utils/glass_toast.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SecurityData {
   static final appLockEnabled = ValueNotifier<bool>(false);
@@ -165,7 +166,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
               // 🟢 Title
               Text(
-                "Enable 2FA?",
+                "privacy.enable_2fa".tr(),
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -200,7 +201,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       ),
                       onPressed: () => Navigator.pop(context, false),
                       child: Text(
-                        "Cancel",
+                        "wallet.cancel".tr(),
                         style: TextStyle(
                             color: isDark ? Colors.white : Colors.black87,
                             fontWeight: FontWeight.w600,
@@ -218,9 +219,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
                       ),
                       onPressed: () => Navigator.pop(context, true), // 🟢 Returns 'true' to enable
-                      child: const Text(
-                        "Enable",
-                        style: TextStyle(
+                      child: Text(
+                        "privacy.enable".tr(),
+                        style: const TextStyle(
                             color: Colors.blueAccent,
                             fontWeight: FontWeight.w700,
                             fontFamily: 'Inter'
@@ -250,8 +251,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text("Privacy & Security",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Inter')),
+        title: Text("privacy.title".tr(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Inter')),
         leading: IconButton(
             icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: Colors.grey, size: 24),
             onPressed: () => Navigator.pop(context)
@@ -263,8 +264,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("SECURITY",
-                style: TextStyle(
+            Text("privacy.security".tr(),
+                style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -292,7 +293,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ValueListenableBuilder<bool>(
                     valueListenable: SecurityData.hideContentEnabled,
                     builder: (context, val, _) => _buildToggleTile(
-                        isDark, HugeIcons.strokeRoundedViewOffSlash, "Hide in App Switcher", val,
+                        isDark, HugeIcons.strokeRoundedViewOffSlash, "privacy.hide_app_switcher".tr(), val,
                             (newVal) => _toggleScreenSecurity(newVal)
                     ),
                   ),
@@ -302,7 +303,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ValueListenableBuilder<bool>(
                     valueListenable: SecurityData.locationEnabled,
                     builder: (context, val, _) => _buildToggleTile(
-                        isDark, HugeIcons.strokeRoundedLocation01, "Location Services", val,
+                        isDark, HugeIcons.strokeRoundedLocation01, "privacy.location_services".tr(), val,
                             (newVal) => SecurityData.toggleSecuritySetting('locationEnabled', newVal)
                     ),
                   ),
@@ -312,7 +313,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ValueListenableBuilder<bool>(
                     valueListenable: SecurityData.twoFactorEnabled,
                     builder: (context, val, _) => _buildToggleTile(
-                        isDark, HugeIcons.strokeRoundedSmartPhone01, "Two-Factor Authentication", val,
+                        isDark, HugeIcons.strokeRoundedSmartPhone01, "privacy.two_factor_auth".tr(), val,
                             (newVal) => _handle2FAToggle(newVal)
                     ),
                   ),
@@ -323,7 +324,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             const SizedBox(height: 32),
 
             // --- 🟢 DATA & PRIVACY SECTION ---
-            _buildSectionHeader("DATA & PRIVACY"),
+            _buildSectionHeader("privacy.data_privacy".tr()),
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
@@ -336,16 +337,16 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   _buildSettingsTile(
                     isDark,
                     HugeIcons.strokeRoundedSettings02,
-                    "System Permissions",
-                    subtitle: "Manage Camera, Gallery, and GPS",
+                    "privacy.system_permissions".tr(),
+                    subtitle: "privacy.manage_permissions".tr(),
                     onTap: _openAppSettings,
                   ),
                   _buildDivider(isDark),
                   _buildSettingsTile(
                     isDark,
                     HugeIcons.strokeRoundedDelete02,
-                    "Clear App Cache",
-                    subtitle: "Free up storage space",
+                    "privacy.clear_cache".tr(),
+                    subtitle: "privacy.free_storage".tr(),
                     trailing: Text(_cacheSize, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
                     onTap: () => _showClearCacheConfirmation(context),
                   ),
@@ -356,7 +357,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             const SizedBox(height: 32),
 
             // --- 🟢 SESSIONS SECTION ---
-            _buildSectionHeader("ACTIVE SESSIONS"),
+            _buildSectionHeader("privacy.active_sessions".tr()),
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
@@ -376,8 +377,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                   _buildDivider(isDark),
                   _buildSettingsTile(
-                    isDark, HugeIcons.strokeRoundedShield02, "Log out of all devices",
-                    subtitle: "Instantly secure your account",
+                    isDark, HugeIcons.strokeRoundedShield02, "privacy.log_out_all".tr(),
+                    subtitle: "privacy.instantly_secure".tr(),
                     onTap: () => _showLogoutConfirmation(context),
                   ),
                 ],
@@ -471,7 +472,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text("App Lock", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
+                                Text("privacy.app_lock".tr(), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
                                 const SizedBox(height: 2),
                                 Text(
                                   appLockEnabled ? "Enabled • $currentTimeoutText" : "Disabled",
@@ -628,13 +629,13 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
-                        child: const Text("THIS DEVICE", style: TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                        child: Text("privacy.this_device".tr(), style: const TextStyle(color: Colors.green, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   // 🟢 Reactive location text
-                  Text("Active Now  •  $syncedLocation", style: const TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'Inter')),
+                  Text("${"privacy.active_now".tr()}  •  $syncedLocation", style: const TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'Inter')),
                 ],
               ),
             ),
@@ -686,7 +687,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "Device Details",
+                  "privacy.active_sessions_info".tr(),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, fontFamily: 'Inter', color: isDark ? Colors.white : Colors.black87),
                 ),
                 const SizedBox(height: 24),
@@ -714,7 +715,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      "Done",
+                      "support.done".tr(),
                       style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w700, fontFamily: 'Inter'),
                     ),
                   ),
@@ -799,7 +800,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  "Secure Account?",
+                  "privacy.log_out_all_title".tr(),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -809,7 +810,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "This will instantly log you out of all other devices. You will stay logged in on this Samsung phone.",
+                  "privacy.log_out_all_desc".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -829,7 +830,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
                         ),
                         onPressed: () => Navigator.pop(context),
-                        child: Text("Cancel", style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600, fontFamily: 'Inter')),
+                        child: Text("wallet.cancel".tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600, fontFamily: 'Inter')),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -851,7 +852,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           // 🟢 FIXED: Swapped to the new global glass helper
                           showGlassToast(context, "Other sessions secured successfully");
                         },
-                        child: const Text("Log Out", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
+                        child: Text("auth.logout".tr(), style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
                       ),
                     ),
                   ],
@@ -909,7 +910,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
                 // 🟢 Title
                 Text(
-                  "Clear App Cache?",
+                  "privacy.clear_cache".tr(),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -921,7 +922,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
                 // 🟢 Content
                 Text(
-                  "This will remove temporary files used by Rezrv to speed up loading. Your personal data and account settings will not be affected.",
+                  "privacy.free_storage".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -944,7 +945,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         ),
                         onPressed: () => Navigator.pop(context),
                         child: Text(
-                          "Cancel",
+                          "wallet.cancel".tr(),
                           style: TextStyle(
                               color: isDark ? Colors.white : Colors.black87,
                               fontWeight: FontWeight.w600,
@@ -965,8 +966,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           Navigator.pop(context); // Close dialog first
                           _clearCache(); // Run your existing clear logic
                         },
-                        child: const Text(
-                          "Clear",
+                        child: Text(
+                          "privacy.clear_cache".tr().split(" ")[0], // using "Clear"
                           style: TextStyle(
                               color: Colors.blueAccent,
                               fontWeight: FontWeight.w700,

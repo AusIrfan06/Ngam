@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../utils/glass_toast.dart';
 
 // ============================================================
@@ -112,7 +113,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
 
   void _submitFeedback() {
     FocusScope.of(context).unfocus();
-    showGlassToast(context, 'Terima kasih atas maklum balas anda! ⭐');
+    showGlassToast(context, "about.thank_you".tr());
     Navigator.pop(context);
   }
 
@@ -141,9 +142,9 @@ class _RateAppScreenState extends State<RateAppScreen> {
               children: [
                 const HugeIcon(icon: HugeIcons.strokeRoundedStar, color: Colors.orangeAccent, size: 64),
                 const SizedBox(height: 24),
-                Text('Suka Ngam?', style: GoogleFonts.outfit(fontSize: 30, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87)),
+                Text("about.like_ngam".tr(), style: GoogleFonts.outfit(fontSize: 30, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87)),
                 const SizedBox(height: 8),
-                Text('Bagi bintang untuk bantu kami berkembang.', style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black54)),
+                Text("about.rate_subtitle".tr(), style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black54)),
                 const SizedBox(height: 32),
 
                 Row(
@@ -178,7 +179,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
                         style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
                         decoration: InputDecoration(
                           filled: false,
-                          hintText: 'Kongsikan pendapat anda tentang Ngam...',
+                          hintText: "about.feedback_hint".tr(),
                           hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black26),
                           border: InputBorder.none,
                         ),
@@ -201,7 +202,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [BoxShadow(color: const Color(0xFFFF8C00).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))],
                       ),
-                      child: const Center(child: Text('Hantar Maklum Balas', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5))),
+                      child: Center(child: Text("about.submit_feedback".tr(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5))),
                     ),
                   ),
                 ),

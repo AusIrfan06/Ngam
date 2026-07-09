@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 // ============================================================
 // Ngam App — Support Screens
@@ -23,22 +24,22 @@ class HelpCenterScreen extends StatefulWidget {
 }
 
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
-  final List<Map<String, String>> _faqs = [
-    {'q': 'Bagaimana cara posting task?', 'a': 'Tekan butang "+" di bawah, isi butiran task seperti kategori, lokasi, dan tawaran harga. Kemudian submit dan tunggu runner ambil task anda.'},
-    {'q': 'Bagaimana cara menjadi Runner?', 'a': 'Tukar peranan anda kepada "Runner" dari profil. Anda kemudian boleh cari task yang tersedia dalam feed dan menerima task yang bersesuaian.'},
-    {'q': 'Bagaimana pembayaran berfungsi?', 'a': 'Pembayaran dibuat terus antara Pemesan dan Runner selepas task selesai. Kami cadangkan menggunakan DuitNow atau pemindahan bank.'},
-    {'q': 'Bolehkah saya batalkan task?', 'a': 'Ya, anda boleh batalkan task dari halaman "My Tasks" selagi task belum diterima oleh runner.'},
-    {'q': 'Apa yang berlaku jika runner tidak hadir?', 'a': 'Hubungi kami melalui "Hubungi Kami" dan kami akan bantu selesaikan isu tersebut dalam masa 24 jam.'},
-    {'q': 'Adakah runner Ngam boleh dipercayai?', 'a': 'Semua runner kami perlu melalui proses verifikasi identiti yang ketat sebelum akaun mereka diaktifkan demi keselamatan anda.'},
-    {'q': 'Bolehkah saya berhubung dengan runner?', 'a': 'Ya, anda boleh menggunakan fungsi chat di dalam aplikasi untuk berkomunikasi dengan runner sebaik sahaja mereka menerima task anda.'},
-    {'q': 'Macam mana kalau harga barang berubah?', 'a': 'Anda boleh berbincang dengan runner melalui chat. Runner akan memaklumkan harga sebenar berserta resit untuk pengesahan anda.'},
-    {'q': 'Bagaimana cara untuk memberi rating?', 'a': 'Selepas task ditandakan sebagai selesai, satu pop-up akan muncul membenarkan anda untuk memberi rating dan ulasan kepada runner.'},
-    {'q': 'Adakah maklumat lokasi saya selamat?', 'a': 'Ya, maklumat peribadi dan lokasi tepat anda hanya akan dikongsi dengan runner yang telah sah menerima task anda sahaja.'},
-    {'q': 'Berapa lamakah masa untuk task disiapkan?', 'a': 'Masa bergantung kepada jenis task dan jarak lokasi. Anda boleh melihat anggaran masa atau bertanya terus kepada runner.'},
-    {'q': 'Apa jadi jika barang saya rosak?', 'a': 'Sila ambil gambar kerosakan dan hubungi khidmat pelanggan kami dalam masa 24 jam untuk bantuan pampasan.'},
-    {'q': 'Bolehkah saya tip runner?', 'a': 'Tentu sekali! Anda boleh memberikan tip tunai terus kepada runner atau menyertakan jumlah tip di dalam tawaran harga asal task anda.'},
-    {'q': 'Adakah terdapat had berat untuk barang?', 'a': 'Kami mencadangkan berat maksimum 15kg bagi task penghantaran motosikal. Untuk barang yang lebih besar, sila nyatakan dengan jelas di deskripsi.'},
-    {'q': 'Bolehkah saya tukar lokasi selepas runner terima task?', 'a': 'Perubahan lokasi selepas task diterima tertakluk kepada persetujuan runner. Kos tambahan mungkin dikenakan.'},
+  List<Map<String, String>> get _faqs => [
+    {'q': "support.faq_1_q".tr(), 'a': "support.faq_1_a".tr()},
+    {'q': "support.faq_2_q".tr(), 'a': "support.faq_2_a".tr()},
+    {'q': "support.faq_3_q".tr(), 'a': "support.faq_3_a".tr()},
+    {'q': "support.faq_4_q".tr(), 'a': "support.faq_4_a".tr()},
+    {'q': "support.faq_5_q".tr(), 'a': "support.faq_5_a".tr()},
+    {'q': "support.faq_6_q".tr(), 'a': "support.faq_6_a".tr()},
+    {'q': "support.faq_7_q".tr(), 'a': "support.faq_7_a".tr()},
+    {'q': "support.faq_8_q".tr(), 'a': "support.faq_8_a".tr()},
+    {'q': "support.faq_9_q".tr(), 'a': "support.faq_9_a".tr()},
+    {'q': "support.faq_10_q".tr(), 'a': "support.faq_10_a".tr()},
+    {'q': "support.faq_11_q".tr(), 'a': "support.faq_11_a".tr()},
+    {'q': "support.faq_12_q".tr(), 'a': "support.faq_12_a".tr()},
+    {'q': "support.faq_13_q".tr(), 'a': "support.faq_13_a".tr()},
+    {'q': "support.faq_14_q".tr(), 'a': "support.faq_14_a".tr()},
+    {'q': "support.faq_15_q".tr(), 'a': "support.faq_15_a".tr()},
   ];
 
   final TextEditingController _searchController = TextEditingController();
@@ -62,7 +63,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Text('Pusat Bantuan', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18, color: isDark ? Colors.white : Colors.black87)),
+        title: Text("support.help_center".tr(), style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18, color: isDark ? Colors.white : Colors.black87)),
         leading: IconButton(
           icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isDark ? Colors.white70 : Colors.black54, size: 24),
           onPressed: () => Navigator.pop(context),
@@ -75,7 +76,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Hi 👋\nBagaimana kami boleh bantu?', style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87, height: 1.2)),
+              Text("support.greeting".tr(), style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87, height: 1.2)),
               const SizedBox(height: 24),
 
               // Search bar
@@ -90,7 +91,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                     decoration: InputDecoration(
                       filled: false,
-                      hintText: 'Cari soalan...', hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black26),
+                      hintText: "support.search_hint".tr(), hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black26),
                       icon: const HugeIcon(icon: HugeIcons.strokeRoundedSearch01, color: Colors.grey, size: 20),
                       border: InputBorder.none,
                     ),
@@ -99,7 +100,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ),
               const SizedBox(height: 32),
 
-              Text('SOALAN LAZIM', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              Text("support.faq_title".tr(), style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
               const SizedBox(height: 12),
 
               ...(() {
@@ -179,7 +180,7 @@ class ContactUsScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Text('Hubungi Kami', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18, color: isDark ? Colors.white : Colors.black87)),
+        title: Text("support.contact_us".tr(), style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18, color: isDark ? Colors.white : Colors.black87)),
         leading: IconButton(
           icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: isDark ? Colors.white70 : Colors.black54, size: 24),
           onPressed: () => Navigator.pop(context),
@@ -192,19 +193,19 @@ class ContactUsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Hubungi Kami', style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87)),
+              Text("support.contact_us".tr(), style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87)),
               const SizedBox(height: 8),
-              Text('Pasukan kami sedia membantu anda.', style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black54)),
+              Text("support.contact_subtitle".tr(), style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black54)),
               const SizedBox(height: 32),
 
-              _contactCard(isDark, HugeIcons.strokeRoundedBubbleChat, 'Chat Sokongan', 'Kami di sini untuk membantu.', 'Mula Chat'),
+              _contactCard(isDark, HugeIcons.strokeRoundedBubbleChat, "support.chat_support".tr(), "support.chat_subtitle".tr(), "support.start_chat".tr()),
               const SizedBox(height: 16),
-              _contactCard(isDark, HugeIcons.strokeRoundedMail01, 'E-mel Kami', 'Hantar e-mel bila-bila masa.', 'support@ngam.my'),
+              _contactCard(isDark, HugeIcons.strokeRoundedMail01, "support.email_us".tr(), "support.email_subtitle".tr(), 'support@ngam.my'),
               const SizedBox(height: 16),
-              _contactCard(isDark, HugeIcons.strokeRoundedCall02, 'Hubungi Kami', 'Isnin-Jumaat, 9am–5pm.', '+60 12-345 6789'),
+              _contactCard(isDark, HugeIcons.strokeRoundedCall02, "support.call_us".tr(), "support.call_subtitle".tr(), '+60 12-345 6789'),
               const SizedBox(height: 32),
 
-              Text('IKUTI KAMI', style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              Text("support.follow_us".tr(), style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
               const SizedBox(height: 12),
               Row(
                 children: [
