@@ -104,6 +104,28 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Sign in with Google
+  Future<bool> signInWithGoogle() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _user = await AuthService.signInWithGoogle();
+      if (_user != null) {
+        await PushService.saveTokenToSupabase(_user!.id);
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Sign out
   Future<void> signOut() async {
     await AuthService.signOut();

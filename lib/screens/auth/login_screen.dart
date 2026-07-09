@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/animated_background.dart';
 import '../../widgets/glass_card.dart';
@@ -74,13 +78,18 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
       body: AnimatedBackground(
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
-            child: Center(
-              child: SingleChildScrollView(
+            child: Stack(
+              children: [
+                Center(
+                  child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GlassCard(
                   child: Form(
@@ -176,7 +185,31 @@ class _LoginScreenState extends State<LoginScreen>
                             return null;
                           },
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 12),
+
+                        // ─── Forgot Password ───────────────────
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              // TODO: Navigate to forgot password screen
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.primary,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'auth.forgot_password'.tr(),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
       
                         // ─── Error Message ─────────────────────
                         Consumer<AuthProvider>(
@@ -235,7 +268,92 @@ class _LoginScreenState extends State<LoginScreen>
                             );
                           },
                         ),
+                        const SizedBox(height: 32),
+
+                        // ─── Social Login ──────────────────────
+                        Row(
+                          children: [
+                            const Expanded(child: Divider(color: Colors.grey, thickness: 0.5)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'auth.or_continue_with'.tr(),
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Expanded(child: Divider(color: Colors.grey, thickness: 0.5)),
+                          ],
+                        ),
                         const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () async {
+                                  final authProvider = context.read<AuthProvider>();
+                                  final success = await authProvider.signInWithGoogle();
+                                  if (success && mounted) {
+                                    final role = authProvider.userRole;
+                                    if (role == 'runner') {
+                                      Navigator.pushReplacementNamed(context, '/runner-home');
+                                    } else {
+                                      Navigator.pushReplacementNamed(context, '/customer-home');
+                                    }
+                                  }
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const FaIcon(FontAwesomeIcons.google, size: 20),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text('auth.google_signin'.tr()),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {},
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const FaIcon(FontAwesomeIcons.apple, size: 22),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text('auth.apple_signin'.tr()),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
       
                         // ─── Sign Up Link ──────────────────────
                         Row(
@@ -259,11 +377,86 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ],
                         ),
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+                // ─── Top Right Action Buttons (Theme & Language) ───
+                Positioned(
+                  top: 16,
+                  right: 24,
+                  child: GlassContainer(
+                    quality: GlassQuality.standard,
+                    shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                    settings: LiquidGlassSettings(
+                      thickness: 0.1,
+                      blur: 15,
+                      glassColor: Colors.transparent,
+                      lightIntensity: isDark ? 0.1 : 0.2,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.white.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.7),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Language Button
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              if (context.locale.languageCode == 'en') {
+                                context.setLocale(const Locale('ms'));
+                              } else {
+                                context.setLocale(const Locale('en'));
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedTranslate,
+                                color: isDark ? Colors.white : Colors.black87,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 20,
+                            color: isDark ? Colors.white30 : Colors.black26,
+                          ),
+                          // Theme Button
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              themeProvider.toggleTheme();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              child: HugeIcon(
+                                icon: isDark
+                                    ? HugeIcons.strokeRoundedSun01
+                                    : HugeIcons.strokeRoundedMoon02,
+                                color: isDark ? Colors.white : Colors.black87,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

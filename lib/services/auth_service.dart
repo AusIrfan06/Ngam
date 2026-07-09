@@ -1,3 +1,6 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart' as g_sign_in;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 import '../utils/constants.dart';
 import 'supabase_service.dart';
@@ -67,6 +70,66 @@ class AuthService {
         .select()
         .eq('id', userId)
         .single();
+
+    return UserModel.fromJson(response);
+  }
+
+  /// Sign in with Google
+  static Future<UserModel> signInWithGoogle() async {
+    final webClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
+    final iosClientId = dotenv.env['GOOGLE_IOS_CLIENT_ID'] ?? '';
+
+    // Initialize Google Sign In instance
+    await g_sign_in.GoogleSignIn.instance.initialize(
+      serverClientId: webClientId.isNotEmpty ? webClientId : null,
+      clientId: iosClientId.isNotEmpty ? iosClientId : null,
+    );
+
+    final googleUser = await g_sign_in.GoogleSignIn.instance.authenticate();
+    if (googleUser == null) {
+      throw Exception('Google Sign In canceled');
+    }
+
+    final googleAuth = googleUser.authentication;
+    final idToken = googleAuth.idToken;
+
+    if (idToken == null) {
+      throw Exception('No ID Token found.');
+    }
+
+    final authResponse = await _client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+    );
+
+    if (authResponse.user == null) {
+      throw Exception('Login failed. Could not authenticate with Google.');
+    }
+
+    final userId = authResponse.user!.id;
+    
+    // Check if the user exists in our users table
+    final response = await _client
+        .from(DbTable.users)
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (response == null) {
+      // New user! Insert into public.users
+      final userData = {
+        'id': userId,
+        'name': authResponse.user!.userMetadata?['full_name'] ?? 'Google User',
+        'email': authResponse.user!.email,
+        'phone': '',
+        'role': 'pemesan', // Default role for OAuth
+        'is_verified_runner': false,
+        'created_at': DateTime.now().toIso8601String(),
+        'avatar_url': authResponse.user!.userMetadata?['avatar_url'],
+      };
+      await _client.from(DbTable.users).insert(userData);
+      return UserModel.fromJson(userData);
+    }
 
     return UserModel.fromJson(response);
   }

@@ -122,7 +122,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         actions: [
-          if (gig.status == 'OPEN' || gig.status == 'DISABLED')
+          if (gig.status == 'OPEN' || gig.status == 'DISABLED' || gig.status == 'SERVICE' || gig.status == 'DISABLED_SERVICE')
             IconButton(
               icon: const Icon(Icons.settings_outlined),
               onPressed: _showManageTaskMenu,
@@ -439,7 +439,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (sheetContext) {
         return Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -455,16 +455,16 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 leading: Icon(Icons.attach_money, color: isDark ? Colors.white70 : Colors.black87),
                 title: Text('Adjust Bounty', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   _showAdjustBountyDialog();
                 },
               ),
               ListTile(
-                leading: Icon(gig.status == 'DISABLED' ? Icons.play_arrow : Icons.pause, color: isDark ? Colors.white70 : Colors.black87),
-                title: Text(gig.status == 'DISABLED' ? 'Resume Task' : 'Pause Task', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                leading: Icon(gig.status.startsWith('DISABLED') ? Icons.play_arrow : Icons.pause, color: isDark ? Colors.white70 : Colors.black87),
+                title: Text(gig.status.startsWith('DISABLED') ? 'Resume Task' : 'Pause Task', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () async {
-                  Navigator.pop(context);
-                  final isPausing = gig.status != 'DISABLED';
+                  Navigator.pop(sheetContext);
+                  final isPausing = !gig.status.startsWith('DISABLED');
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (c) => AlertDialog(
@@ -477,9 +477,19 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     ),
                   );
                   if (confirm == true) {
+                    if (!mounted) return;
                     await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                    
+                    final newStatus = gig.status == 'DISABLED' 
+                        ? 'OPEN' 
+                        : gig.status == 'DISABLED_SERVICE' 
+                            ? 'SERVICE' 
+                            : gig.status == 'SERVICE' 
+                                ? 'DISABLED_SERVICE' 
+                                : 'DISABLED';
+                                
                     setState(() {
-                      _gig = _gig!.copyWith(status: gig.status == 'DISABLED' ? 'OPEN' : 'DISABLED');
+                      _gig = _gig!.copyWith(status: newStatus);
                     });
                   }
                 },
@@ -488,7 +498,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text('Delete Task', style: TextStyle(color: Colors.red)),
                 onTap: () async {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (c) => AlertDialog(
@@ -501,6 +511,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     ),
                   );
                   if (confirm == true) {
+                    if (!mounted) return;
                     await context.read<GigProvider>().deleteGig(gig.id);
                     if (mounted) Navigator.pop(context);
                   }

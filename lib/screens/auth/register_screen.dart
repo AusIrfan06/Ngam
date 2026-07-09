@@ -2,7 +2,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' hide GlassCard;
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/constants.dart';
 import '../../widgets/animated_background.dart';
@@ -19,7 +22,7 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -30,6 +33,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirmPassword = true;
   String _selectedRole = UserRole.pemesan;
 
+  // Runner Details
+  final _icNumberController = TextEditingController();
+  final _vehicleTypeController = TextEditingController();
+  final _plateNumberController = TextEditingController();
+
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
+    _fadeController.forward();
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -37,6 +62,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _icNumberController.dispose();
+    _vehicleTypeController.dispose();
+    _plateNumberController.dispose();
+    _fadeController.dispose();
     super.dispose();
   }
 
@@ -53,6 +82,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (success && mounted) {
+      if (_selectedRole == UserRole.runner) {
+        // Submit runner verification data
+        await authProvider.submitRunnerVerification(
+          fullName: _nameController.text.trim(),
+          icNumber: _icNumberController.text.trim().isEmpty ? 'N/A' : _icNumberController.text.trim(),
+          vehicleType: _vehicleTypeController.text.trim().isEmpty ? 'Motorcycle' : _vehicleTypeController.text.trim(),
+          plateNumber: _plateNumberController.text.trim(),
+        );
+      }
+      
       final role = authProvider.userRole;
       if (role == 'runner') {
         Navigator.pushReplacementNamed(context, '/runner-home');
@@ -64,42 +103,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'auth.create_account'.tr(),
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
-        ),
-      ),
       body: AnimatedBackground(
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: GlassCard(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Stack(
+              children: [
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(left: 24, right: 24, top: 80, bottom: 24),
+                    child: GlassCard(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // ─── Logo ──────────────────────────────
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primary.withValues(alpha: 0.3),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.asset('assets/app.png', fit: BoxFit.cover),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'auth.create_account'.tr(),
+                              style: GoogleFonts.outfit(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
 
-                TextFormField(
-                  controller: _nameController,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(
-                    labelText: 'auth.full_name'.tr(),
-                    prefixIcon: const Icon(Icons.person_outlined),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'auth.please_enter_name'.tr();
-                    }
-                    return null;
-                  },
-                ),
+                            // ─── Full Name ───────────────────────────
+                            TextFormField(
+                              controller: _nameController,
+                              textCapitalization: TextCapitalization.words,
+                              decoration: InputDecoration(
+                                labelText: 'auth.full_name'.tr(),
+                                prefixIcon: const Icon(Icons.person_outlined),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'auth.please_enter_name'.tr();
+                                }
+                                return null;
+                              },
+                            ),
                 const SizedBox(height: 16),
 
                 // ─── Email ───────────────────────────────
@@ -234,6 +302,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 32),
 
+                // ─── Runner Details Form (Show only for runner) ───
+                if (_selectedRole == UserRole.runner) ...[
+                  Text(
+                    'Runner Details',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _icNumberController,
+                    decoration: const InputDecoration(
+                      labelText: 'IC Number',
+                      prefixIcon: Icon(Icons.badge_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _vehicleTypeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Vehicle Type (e.g. Motorcycle)',
+                      prefixIcon: Icon(Icons.two_wheeler),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _plateNumberController,
+                    decoration: const InputDecoration(
+                      labelText: 'Plate Number',
+                      prefixIcon: Icon(Icons.pin_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
                 // ─── Error Message ───────────────────────
                 Consumer<AuthProvider>(
                   builder: (context, auth, _) {
@@ -322,8 +427,85 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     ),
-  ),
-);
+                // ─── Top Right Action Buttons (Theme & Language) ───
+                Positioned(
+                  top: 16,
+                  right: 24,
+                  child: GlassContainer(
+                    quality: GlassQuality.standard,
+                    shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                    settings: LiquidGlassSettings(
+                      thickness: 0.1,
+                      blur: 15,
+                      glassColor: Colors.transparent,
+                      lightIntensity: isDark ? 0.1 : 0.2,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.white.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.7),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Language Button
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              if (context.locale.languageCode == 'en') {
+                                context.setLocale(const Locale('ms'));
+                              } else {
+                                context.setLocale(const Locale('en'));
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              child: HugeIcon(
+                                icon: HugeIcons.strokeRoundedTranslate,
+                                color: isDark ? Colors.white : Colors.black87,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 20,
+                            color: isDark ? Colors.white30 : Colors.black26,
+                          ),
+                          // Theme Button
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              themeProvider.toggleTheme();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              child: HugeIcon(
+                                icon: isDark
+                                    ? HugeIcons.strokeRoundedSun01
+                                    : HugeIcons.strokeRoundedMoon02,
+                                color: isDark ? Colors.white : Colors.black87,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

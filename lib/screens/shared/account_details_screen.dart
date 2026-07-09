@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../utils/glass_toast.dart';
@@ -30,6 +32,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   bool _isLoading = false;
   bool _obscureCurrentPass = true;
   bool _obscureNewPass = true;
+  bool _isUploadingAvatar = false;
 
   @override
   void initState() {
@@ -137,6 +140,29 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
     }
   }
 
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null && mounted) {
+      setState(() => _isUploadingAvatar = true);
+      final error = await context.read<AuthProvider>().uploadAvatar(File(pickedFile.path));
+      if (mounted) {
+        setState(() => _isUploadingAvatar = false);
+        if (error != null) {
+          showGlassToast(context, error, isError: true);
+        } else {
+          showGlassToast(context, "Profile picture updated!");
+        }
+      }
+    }
+  }
+
   String? _validateCurrentPassword(String? value) {
     if (_newPasswordController.text.isNotEmpty && (value == null || value.isEmpty)) {
       return "Required to change password";
@@ -190,6 +216,72 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ─── Profile Picture Upload ───
+                    Center(
+                      child: GestureDetector(
+                        onTap: _isUploadingAvatar ? null : _pickAndUploadImage,
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 110,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.6),
+                                  width: 2,
+                                ),
+                                image: context.watch<AuthProvider>().user?.avatarUrl != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(context.watch<AuthProvider>().user!.avatarUrl!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: context.watch<AuthProvider>().user?.avatarUrl == null
+                                  ? HugeIcon(
+                                      icon: HugeIcons.strokeRoundedUser,
+                                      color: isDark ? Colors.white54 : Colors.black54,
+                                      size: 40,
+                                    )
+                                  : null,
+                            ),
+                            if (_isUploadingAvatar)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black54,
+                                  ),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2),
+                                ),
+                                child: const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCamera01,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
                     Text("account.public_profile".tr(), style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     const SizedBox(height: 12),
 

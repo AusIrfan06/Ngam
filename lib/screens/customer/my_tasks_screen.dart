@@ -253,7 +253,6 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                     gig: gig,
                                     isDark: isDark,
                                     onTap: () {
-                                      if (gig.status == 'SERVICE') return;
                                       final currentUserId = context.read<AuthProvider>().user?.id;
                                       if (gig.customerId == currentUserId) {
                                         Navigator.pushNamed(context, '/order-status', arguments: gig);
@@ -262,6 +261,8 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                           Navigator.pushNamed(context, '/active-job', arguments: gig);
                                         } else if (gig.status == GigStatus.pending && currentUserId != null) {
                                           _showPendingOptions(context, gig, currentUserId, isDark);
+                                        } else {
+                                          Navigator.pushNamed(context, '/task-detail', arguments: gig);
                                         }
                                       }
                                     },

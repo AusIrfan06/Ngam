@@ -164,19 +164,23 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
   }
 
   void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize(
-      onStatus: (status) {
-        if (status == 'done' || status == 'notListening') {
-          if (mounted && _aiInlineIsListening) {
-            setState(() => _aiInlineIsListening = false);
-            if (_aiInlineRecognizedWords.isNotEmpty) {
-              _aiHandleSend(_aiInlineRecognizedWords);
+    try {
+      _speechEnabled = await _speechToText.initialize(
+        onStatus: (status) {
+          if (status == 'done' || status == 'notListening') {
+            if (mounted && _aiInlineIsListening) {
+              setState(() => _aiInlineIsListening = false);
+              if (_aiInlineRecognizedWords.isNotEmpty) {
+                _aiHandleSend(_aiInlineRecognizedWords);
+              }
             }
           }
-        }
-      },
-    );
-    if (mounted) setState(() {});
+        },
+      );
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint("Speech initialization error: $e");
+    }
   }
   Future<void> _loadCachedLocation() async {
     try {

@@ -128,11 +128,13 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
         ),
         
         SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: DefaultTabController(
+            length: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 const SizedBox(height: 20),
                 // Glass Header
                 _buildSystemGlass(
@@ -192,91 +194,112 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                   ),
                 ),
                 const SizedBox(height: 20),
-
+                TabBar(
+                  indicatorColor: Theme.of(context).primaryColor,
+                  labelColor: isDark ? Colors.white : Colors.black,
+                  unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
+                  tabs: const [
+                    Tab(text: "Customer Tasks"),
+                    Tab(text: "My Services"),
+                  ],
+                ),
+                const SizedBox(height: 12),                
                 Expanded(
                   child: gigProvider.isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : gigProvider.myGigs.isEmpty
-                          ? Center(
-                              child: _buildSystemGlass(
-                                borderRadius: 32,
-                                isDark: isDark,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(40),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.work_off_outlined,
-                                        size: 64,
-                                        color: isDark ? Colors.white54 : Colors.black45,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'runner.no_jobs_yet'.tr(),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: isDark ? Colors.white70 : Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'runner.accept_first_gig'.tr(),
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: isDark ? Colors.white54 : Colors.black54,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: () async {
-                                final userId = context.read<AuthProvider>().user?.id;
-                                if (userId != null) {
-                                  await gigProvider.loadRunnerGigs(userId);
-                                }
-                              },
-                              child: ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 100), // padding for bottom nav
-                                itemCount: gigProvider.myGigs.length,
-                                itemBuilder: (context, index) {
-                                  final gig = gigProvider.myGigs[index];
-                                  return _GlassTaskCard(
-                                    gig: gig,
-                                    isDark: isDark,
-                                    onTap: () {
-                                      if (gig.status == 'SERVICE') {
-                                        Navigator.pushNamed(context, '/task-detail', arguments: gig);
-                                        return;
-                                      }
-                                      final currentUserId = context.read<AuthProvider>().user?.id;
-                                      if (gig.customerId == currentUserId) {
-                                        Navigator.pushNamed(context, '/order-status', arguments: gig);
-                                      } else {
-                                        if (gig.isActive) {
-                                          Navigator.pushNamed(context, '/active-job', arguments: gig);
-                                        } else if (gig.status == GigStatus.pending && currentUserId != null) {
-                                          _showPendingOptions(context, gig, currentUserId, isDark);
-                                        }
-                                      }
-                                    },
-                                    actionWidget: null,
-                                  );
-                                },
-                              ),
+                      : TabBarView(
+                          children: [
+                            // Tab 1: Customer Tasks (Tasks assigned to me, customerId != currentUserId)
+                            _buildJobList(
+                              gigs: gigProvider.myGigs.where((g) => g.customerId != context.read<AuthProvider>().user?.id).toList(),
+                              emptyMessage: 'runner.no_jobs_yet'.tr(),
+                              emptySubMessage: 'runner.accept_first_gig'.tr(),
+                              isDark: isDark,
+                              gigProvider: gigProvider,
                             ),
+                            // Tab 2: My Services (Services posted by me, customerId == currentUserId)
+                            _buildJobList(
+                              gigs: gigProvider.myGigs.where((g) => g.customerId == context.read<AuthProvider>().user?.id).toList(),
+                              emptyMessage: "No services posted",
+                              emptySubMessage: "Tap + Post Job to post your first service.",
+                              isDark: isDark,
+                              gigProvider: gigProvider,
+                            ),
+                          ],
+                        ),
                 ),
               ],
             ),
           ),
         ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildJobList({
+    required List<GigModel> gigs,
+    required String emptyMessage,
+    required String emptySubMessage,
+    required bool isDark,
+    required GigProvider gigProvider,
+  }) {
+    if (gigs.isEmpty) {
+      return Center(
+        child: _buildSystemGlass(
+          borderRadius: 32,
+          isDark: isDark,
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.work_off_outlined, size: 64, color: isDark ? Colors.white54 : Colors.black45),
+                const SizedBox(height: 16),
+                Text(emptyMessage, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black87)),
+                const SizedBox(height: 8),
+                Text(emptySubMessage, style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black54), textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        final userId = context.read<AuthProvider>().user?.id;
+        if (userId != null) {
+          await gigProvider.loadRunnerGigs(userId);
+        }
+      },
+      child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 100),
+        itemCount: gigs.length,
+        itemBuilder: (context, index) {
+          final gig = gigs[index];
+          return _GlassTaskCard(
+            gig: gig,
+            isDark: isDark,
+            onTap: () {
+              final currentUserId = context.read<AuthProvider>().user?.id;
+              if (gig.customerId == currentUserId) {
+                Navigator.pushNamed(context, '/order-status', arguments: gig);
+              } else {
+                if (gig.isActive) {
+                  Navigator.pushNamed(context, '/active-job', arguments: gig);
+                } else if (gig.status == GigStatus.pending && currentUserId != null) {
+                  _showPendingOptions(context, gig, currentUserId, isDark);
+                } else {
+                  Navigator.pushNamed(context, '/task-detail', arguments: gig);
+                }
+              }
+            },
+            actionWidget: null,
+          );
+        },
+      ),
     );
   }
 
