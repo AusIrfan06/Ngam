@@ -509,7 +509,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                   );
                   if (confirm == true) {
+                    if (!context.mounted) return;
                     await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                    if (!mounted) return;
                     setState(() {
                       _gig = _gig!.copyWith(status: gig.status == 'DISABLED_SERVICE' ? 'SERVICE' : 'DISABLED_SERVICE');
                     });
