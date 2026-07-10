@@ -403,6 +403,23 @@ class GigProvider extends ChangeNotifier {
     }
   }
 
+  /// Runner marks gig as delivered (awaiting confirmation)
+  Future<bool> deliverGig(String gigId) async {
+    try {
+      await GigService.deliverGig(gigId);
+      if (_activeJob != null && _activeJob!.id == gigId) {
+        _activeJob = _activeJob!.copyWith(status: GigStatus.delivered);
+      }
+      _handleLocationTracking();
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to mark gig as delivered';
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Runner marks gig as complete
   Future<bool> completeGig(String gigId, String runnerId) async {
     try {

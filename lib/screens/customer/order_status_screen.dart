@@ -115,6 +115,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
 
     final gig = _gig!;
     final gigIdShort = gig.id.substring(0, 8).toUpperCase();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -367,6 +368,83 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         },
                         icon: HugeIcon(icon: HugeIcons.strokeRoundedChatting01,
                           color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // ─── Confirm Completion Button (when delivered) ─────
+            if (gig.status == 'DELIVERED') ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.info.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.info.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Task Delivered',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.info,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'The runner has marked this task as delivered. Please confirm to release the payment.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (c) => AlertDialog(
+                              title: const Text('Confirm Completion?'),
+                              content: const Text('Are you sure the task is completed satisfactorily? The payment will be released to the runner immediately.'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success),
+                                  onPressed: () => Navigator.pop(c, true),
+                                  child: const Text('Confirm & Pay', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
+                          
+                          if (confirm == true && context.mounted) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (_) => const Center(child: CircularProgressIndicator()),
+                            );
+                            final success = await context.read<GigProvider>().completeGig(gig.id, gig.gigWorkerId!);
+                            if (context.mounted) {
+                              Navigator.pop(context); // close loader
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment released successfully!')));
+                              }
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('Confirm & Release Payment'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.success,
+                          foregroundColor: Colors.white,
                         ),
                       ),
                     ),

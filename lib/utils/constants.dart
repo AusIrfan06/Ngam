@@ -69,6 +69,7 @@ class GigStatus {
   static const String pending = 'PENDING';
   static const String locked = 'LOCKED';
   static const String inProgress = 'IN-PROGRESS';
+  static const String delivered = 'DELIVERED';
   static const String completed = 'COMPLETED';
   static const String cancelled = 'CANCELLED';
   static const String service = 'SERVICE';

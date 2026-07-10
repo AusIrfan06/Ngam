@@ -311,7 +311,17 @@ class GigService {
     await _logStatus(gigId, GigStatus.inProgress);
   }
 
-  /// Runner completes the gig (also credits runner balance)
+  /// Runner marks the gig as delivered (awaiting confirmation)
+  static Future<void> deliverGig(String gigId) async {
+    await _client
+        .from(DbTable.gigs)
+        .update({'status': GigStatus.delivered})
+        .eq('id', gigId);
+
+    await _logStatus(gigId, GigStatus.delivered);
+  }
+
+  /// Customer confirms completion (also credits runner balance)
   static Future<void> completeGig(String gigId, String runnerId) async {
     await _client.rpc('complete_gig_and_pay', params: {
       'p_gig_id': gigId,

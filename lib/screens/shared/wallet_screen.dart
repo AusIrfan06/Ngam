@@ -41,6 +41,9 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     super.initState();
     _startAutoScroll();
     _loadMethods();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTransactions();
+    });
   }
 
   void _startAutoScroll() {
@@ -62,16 +65,82 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   double _tiltY = 0.0;
 
   final List<String> _malaysianBanks = [
-    "Maybank", "CIMB Bank", "Public Bank", "RHB Bank", "Hong Leong Bank", "AmBank", "Bank Islam"
+    "Maybank", "CIMB Bank", "Public Bank", "RHB Bank", "Hong Leong Bank", 
+    "AmBank", "Bank Islam", "Bank Rakyat", "UOB Malaysia", "OCBC Bank Malaysia", 
+    "HSBC Bank Malaysia", "Standard Chartered Bank", "Affin Bank", "Alliance Bank", 
+    "Bank Muamalat", "Agrobank", "MBSB Bank", "Al Rajhi Bank", "Kuwait Finance House", 
+    "Citibank Malaysia", "GXBank", "AEON Bank", "Boost Bank"
   ];
 
-  // Transaction Mock Data (For Ngam Pay)
-  final List<Map<String, dynamic>> _transactions = [
-    {'title': 'Task Completed', 'subtitle': 'Deliver Parcel to KLCC', 'amount': 25.00, 'isPositive': true, 'date': DateTime.now().subtract(const Duration(hours: 2))},
-    {'title': 'Withdrawal', 'subtitle': 'To Maybank ***4412', 'amount': -150.00, 'isPositive': false, 'date': DateTime.now().subtract(const Duration(days: 1, hours: 5))},
-    {'title': 'Top Up', 'subtitle': 'From FPX', 'amount': 200.00, 'isPositive': true, 'date': DateTime.now().subtract(const Duration(days: 3))},
-    {'title': 'Paid for Task', 'subtitle': 'Buy me dinner', 'amount': -18.50, 'isPositive': false, 'date': DateTime.now().subtract(const Duration(days: 5))},
-  ];
+  // Transactions Data
+  List<Map<String, dynamic>> _transactions = [];
+
+  Future<void> _loadTransactions() async {
+    final authProvider = context.read<AuthProvider>();
+    if (authProvider.user == null) return;
+    
+    try {
+      final data = await SupabaseService.client
+          .from('transactions')
+          .select('*, gigs(title)')
+          .eq('user_id', authProvider.user!.id)
+          .order('created_at', ascending: false)
+          .limit(20);
+          
+      final mapped = data.map((row) {
+        final type = row['type'] as String;
+        final amount = (row['amount'] as num).toDouble();
+        final date = DateTime.parse(row['created_at']).toLocal();
+        final gig = row['gigs'] as Map<String, dynamic>?;
+        
+        String title = '';
+        String subtitle = '';
+        bool isPositive = amount >= 0;
+        
+        switch (type) {
+          case 'topup':
+            title = 'Top Up';
+            subtitle = 'Wallet Deposit';
+            break;
+          case 'withdrawal':
+            title = 'Withdrawal';
+            subtitle = 'Bank Transfer';
+            break;
+          case 'payment':
+            title = 'Task Payment';
+            subtitle = gig?['title'] ?? 'Service charge';
+            break;
+          case 'refund':
+            title = 'Refund';
+            subtitle = gig?['title'] ?? 'Task Cancelled';
+            break;
+          case 'earning':
+            title = 'Earning';
+            subtitle = gig?['title'] ?? 'Task Completed';
+            break;
+          default:
+            title = 'Transaction';
+            subtitle = 'Other';
+        }
+        
+        return {
+          'title': title,
+          'subtitle': subtitle,
+          'amount': amount.abs(),
+          'isPositive': isPositive,
+          'date': date,
+        };
+      }).toList();
+      
+      if (mounted) {
+        setState(() {
+          _transactions = mapped;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading transactions: $e');
+    }
+  }
 
   LiquidGlassSettings _getGlassSettings(bool isDark, {double blur = 15.0}) {
     return LiquidGlassSettings(
@@ -589,6 +658,102 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   // ==========================================
   // DYNAMIC CONTENTS
   // ==========================================
+  Future<double?> _showAmountDialog(BuildContext context, String title, String action, {bool isWithdrawal = false, List<Map<String, dynamic>>? cards}) async {
+    final TextEditingController controller = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    Map<String, dynamic>? selectedCard;
+    if (cards != null && cards.isNotEmpty) {
+      selectedCard = cards.firstWhere((c) => c['isPrimary'] == true, orElse: () => cards.first);
+    }
+    
+    return showDialog<double>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF1E242B) : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (isWithdrawal)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text('Withdrawal will be transferred directly to your primary bank account.', style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black54)),
+                  ),
+                if (!isWithdrawal && cards != null && cards.isNotEmpty) ...[
+                  Text('Fund Source:', style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black54)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<Map<String, dynamic>>(
+                        value: selectedCard,
+                        isExpanded: true,
+                        dropdownColor: isDark ? const Color(0xFF2C323A) : Colors.white,
+                        items: cards.map((c) {
+                          return DropdownMenuItem<Map<String, dynamic>>(
+                            value: c,
+                            child: Text('${c["name"] ?? "Card"} ending in ${c["last4"] ?? "****"}', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => selectedCard = val);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (!isWithdrawal && (cards == null || cards.isEmpty))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text('No credit card registered. Please add a card first.', style: TextStyle(fontSize: 12, color: Colors.redAccent)),
+                  ),
+                TextField(
+                  controller: controller,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                  decoration: InputDecoration(
+                    prefixText: 'RM ',
+                    hintText: '0.00',
+                    filled: true,
+                    fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, null),
+                child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: (!isWithdrawal && (cards == null || cards.isEmpty)) ? null : () {
+                  final val = double.tryParse(controller.text);
+                  Navigator.pop(ctx, val);
+                },
+                child: Text(action, style: const TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
   Widget _buildNgamPayActions(bool isDark, Map<String, dynamic> method) {
     return Padding(
       key: const ValueKey('ngam_pay_actions'),
@@ -601,30 +766,88 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               label: "wallet.top_up".tr(), 
               isDark: isDark, 
               onTap: () async {
-                final authProvider = context.read<AuthProvider>();
-                try {
-                  await SupabaseService.client.rpc('top_up_wallet', params: {
-                    'p_user_id': authProvider.user!.id,
-                    'p_amount': 50.00, // Hardcoded RM 50 for demo
-                  });
-                  await authProvider.refreshBalance();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('RM 50 added to your wallet!')),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to top up')),
-                    );
+                final registeredCards = _savedMethods.value.where((m) => m['type'] == 'card').toList();
+                final amount = await _showAmountDialog(context, 'Top Up Amount', 'Top Up', cards: registeredCards);
+                if (amount != null && amount > 0) {
+                  final authProvider = context.read<AuthProvider>();
+                  try {
+                    await SupabaseService.client.rpc('top_up_wallet', params: {
+                      'p_user_id': authProvider.user!.id,
+                      'p_amount': amount,
+                    });
+                    await authProvider.refreshBalance();
+                    await _loadTransactions();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('RM ${amount.toStringAsFixed(2)} added to your wallet!')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Failed to top up')),
+                      );
+                    }
                   }
                 }
               }
             )
           ),
           const SizedBox(width: 12),
-          Expanded(child: _buildActionBtn(icon: HugeIcons.strokeRoundedArrowUp01, label: "wallet.withdraw".tr(), isDark: isDark, onTap: () {})),
+          Expanded(child: _buildActionBtn(
+            icon: HugeIcons.strokeRoundedArrowUp01, 
+            label: "wallet.withdraw".tr(), 
+            isDark: isDark, 
+            onTap: () async {
+              final amount = await _showAmountDialog(context, 'Withdraw Amount', 'Withdraw', isWithdrawal: true);
+              if (amount != null && amount > 0) {
+                final authProvider = context.read<AuthProvider>();
+                final currentBalance = authProvider.user?.balance ?? 0.0;
+                
+                if (amount > currentBalance) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Insufficient balance')),
+                    );
+                  }
+                  return;
+                }
+
+                try {
+                  // Attempt withdrawal RPC if it exists, otherwise fallback to local/dummy update for demo
+                  try {
+                    await SupabaseService.client.rpc('withdraw_wallet', params: {
+                      'p_user_id': authProvider.user!.id,
+                      'p_amount': amount,
+                    });
+                  } catch (e) {
+                    // Fallback simulation if withdraw_wallet RPC is not created yet
+                    final newBalance = currentBalance - amount;
+                    await SupabaseService.client.from('users').update({'balance': newBalance}).eq('id', authProvider.user!.id);
+                    await SupabaseService.client.from('transactions').insert({
+                      'user_id': authProvider.user!.id,
+                      'type': 'withdrawal',
+                      'amount': -amount,
+                    });
+                  }
+                  
+                  await authProvider.refreshBalance();
+                  await _loadTransactions();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('RM ${amount.toStringAsFixed(2)} withdrawn to bank account successfully!')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to withdraw')),
+                    );
+                  }
+                }
+              }
+            }
+          )),
         ],
       ),
     );

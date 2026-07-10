@@ -299,9 +299,43 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ─── Mark Complete Button ────────────────
+            // ─── Mark Delivered Button ────────────────
             Consumer<GigProvider>(
               builder: (context, gigProvider, _) {
+                if (gig.status == 'DELIVERED') {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.info.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        HugeIcon(icon: HugeIcons.strokeRoundedClock01, color: AppTheme.info, size: 32),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Awaiting Customer Confirmation',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.info,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'You will receive the payment once the customer confirms.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.info.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 return SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -309,13 +343,12 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                     onPressed: gigProvider.isLoading
                         ? null
                         : () async {
-                            final success =
-                                await gigProvider.completeGig(gig.id, context.read<AuthProvider>().user!.id);
+                            final success = await gigProvider.deliverGig(gig.id);
                             if (success && context.mounted) {
-                              // Stop tracking once completed
+                              // Stop tracking once delivered
                               LocationService.instance.stopTracking();
                               
-                              // Show completion dialog
+                              // Show delivery dialog
                               showDialog(
                                 context: context,
                                 barrierDismissible: false,
@@ -331,19 +364,18 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                                         width: 70,
                                         height: 70,
                                         decoration: BoxDecoration(
-                                          color: AppTheme.success
-                                              .withValues(alpha: 0.1),
+                                          color: AppTheme.info.withValues(alpha: 0.1),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
-                                          Icons.check_circle,
-                                          size: 48,
-                                          color: AppTheme.success,
+                                          Icons.delivery_dining,
+                                          size: 40,
+                                          color: AppTheme.info,
                                         ),
                                       ),
                                       const SizedBox(height: 16),
                                       Text(
-                                        'runner.task_completed'.tr(),
+                                        'Task Delivered',
                                         style: GoogleFonts.outfit(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w700,
@@ -351,17 +383,16 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'runner.requester_notified'.tr(),
+                                        'The customer has been notified and needs to confirm to release the funds.',
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(fontSize: 14),
+                                        style: const TextStyle(fontSize: 14),
                                       ),
                                       const SizedBox(height: 24),
                                       SizedBox(
                                         width: double.infinity,
                                         child: ElevatedButton(
                                           onPressed: () {
-                                            Navigator
-                                                .pushNamedAndRemoveUntil(
+                                            Navigator.pushNamedAndRemoveUntil(
                                               ctx,
                                               '/runner-home',
                                               (route) => false,
@@ -386,9 +417,9 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                             ),
                           )
                         : const Icon(Icons.check_circle_outline),
-                    label: Text('runner.mark_complete'.tr()),
+                    label: const Text('Mark as Delivered'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.success,
+                      backgroundColor: AppTheme.primary,
                       textStyle: GoogleFonts.outfit(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
