@@ -212,7 +212,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     if (!mounted) return;
     final currentUser = context.read<AuthProvider>().user;
     final gigProvider = context.read<GigProvider>();
-    final available = gigProvider.services.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
+    final available = gigProvider.services.where((g) => g.customerId != currentUser?.id && g.latitude != null && g.longitude != null && g.status != 'completed').toList();
     
     available.sort((a, b) {
       double distanceA = Geolocator.distanceBetween(
@@ -530,7 +530,8 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     final q = keyword?.trim().toLowerCase() ?? '';
 
     final gigProvider = context.read<GigProvider>();
-    final allOpenGigs = gigProvider.services.where((g) => g.status != 'completed').toList();
+    final currentUser = context.read<AuthProvider>().user;
+    final allOpenGigs = gigProvider.services.where((g) => g.customerId != currentUser?.id && g.status != 'completed').toList();
     List<GigModel> results = [];
 
     if (q.isNotEmpty) {
@@ -687,7 +688,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
       // Build live job context for the AI
       final gigProvider = context.read<GigProvider>();
       final currentUser = context.read<AuthProvider>().user;
-      final allGigs = gigProvider.services.where((g) => g.status != 'completed').toList();
+      final allGigs = gigProvider.services.where((g) => g.customerId != currentUser?.id && g.status != 'completed').toList();
       final currentLoc = _currentLocation;
       
       allGigs.sort((a, b) {
