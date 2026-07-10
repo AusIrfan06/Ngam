@@ -36,6 +36,8 @@ import 'widgets/app_lock_wrapper.dart';
 // CSC264 Individual Project
 // ============================================================
 
+import 'services/ai_service.dart';
+
 // ─── Global Navigator Key ─────────────────────────────────────
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -47,8 +49,9 @@ void main() async {
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
-  // Initialize Supabase
+  // Initialize Supabase & AI
   await SupabaseService.initialize();
+  AiService().initialize();
 
   // Initialize Push Notifications
   await PushService.initialize();

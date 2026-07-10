@@ -10,6 +10,7 @@ import '../../utils/bounty_calculator.dart';
 import '../../utils/constants.dart';
 import 'package:latlong2/latlong.dart';
 import '../../widgets/map_picker.dart';
+import '../../services/ai_service.dart';
 
 // ============================================================
 // Ngam App — Post Task Screen
@@ -31,6 +32,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   final _bountyController = TextEditingController();
   String _selectedCategory = TaskCategory.food;
   LatLng? _selectedLocation;
+  bool _isAiLoading = false;
 
   @override
   void dispose() {
@@ -39,6 +41,52 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     _locationController.dispose();
     _bountyController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleAiAssist() async {
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please type a short title first (e.g. "Beli kfc")')),
+      );
+      return;
+    }
+
+    setState(() => _isAiLoading = true);
+    
+    try {
+      final aiResult = await AiService().enhanceTask(_titleController.text.trim());
+      
+      if (aiResult != null && mounted) {
+        setState(() {
+          if (aiResult['title'] != null) _titleController.text = aiResult['title'];
+          if (aiResult['description'] != null) _descriptionController.text = aiResult['description'];
+          
+          if (aiResult['category'] != null) {
+            String cat = aiResult['category'].toString().toLowerCase();
+            if (TaskCategory.all.contains(cat)) {
+              _selectedCategory = cat;
+            }
+          }
+          
+          if (aiResult['suggestedBounty'] != null) {
+            _bountyController.text = aiResult['suggestedBounty'].toString();
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✨ Magic applied!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('AI Error: \$e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAiLoading = false);
+      }
+    }
   }
 
   Future<void> _handleSubmit() async {
@@ -195,6 +243,20 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                           labelText: isRunner ? 'post_task.service_title_label'.tr() : 'customer.task_title'.tr(),
                           hintText: isRunner ? 'post_task.service_title_hint'.tr() : 'post_task.task_title_hint'.tr(),
                           prefixIcon: const Icon(Icons.title_rounded),
+                          suffixIcon: _isAiLoading
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                )
+                              : IconButton(
+                                  icon: const Text('✨', style: TextStyle(fontSize: 20)),
+                                  tooltip: 'AI Magic Assist',
+                                  onPressed: _handleAiAssist,
+                                ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
