@@ -19,6 +19,7 @@ class GigProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   StreamSubscription? _gigsSubscription;
+  StreamSubscription? _servicesSubscription;
   StreamSubscription<Position>? _locationSubscription;
 
   List<GigModel> get openGigs => _openGigs;
@@ -416,10 +417,27 @@ class GigProvider extends ChangeNotifier {
     );
   }
 
+  /// Subscribe to real-time runner services feed (for customers)
+  void subscribeToServices() {
+    _servicesSubscription?.cancel();
+    _servicesSubscription = GigService.subscribeToServices().listen(
+      (servicesList) {
+        _services = servicesList;
+        notifyListeners();
+      },
+      onError: (e) {
+        _error = 'Real-time connection lost';
+        notifyListeners();
+      }
+    );
+  }
+
   /// Unsubscribe from real-time feed
   void unsubscribe() {
     _gigsSubscription?.cancel();
     _gigsSubscription = null;
+    _servicesSubscription?.cancel();
+    _servicesSubscription = null;
     _locationSubscription?.cancel();
     _locationSubscription = null;
   }

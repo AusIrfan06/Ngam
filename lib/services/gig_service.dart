@@ -361,6 +361,18 @@ class GigService {
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
   }
 
+  /// Subscribe to all runner services (live feed for customers)
+  static Stream<List<GigModel>> subscribeToServices() {
+    return _client
+        .from(DbTable.gigs)
+        .stream(primaryKey: ['id'])
+        .map((list) => list
+            .map((json) => GigModel.fromJson(json))
+            .where((gig) => gig.status == GigStatus.service)
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
+  }
+
   static Future<void> updateRunnerLocation(String gigId, double lat, double lng) async {
     await _client.from(DbTable.gigs).update({
       'runner_latitude': lat,

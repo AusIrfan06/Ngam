@@ -45,7 +45,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       if (context.read<AuthProvider>().user != null) { 
         await gigProvider.loadCustomerGigs(context.read<AuthProvider>().user!.id);
       }
-      await gigProvider.loadServices(); // Load runner services for map discovery
+      gigProvider.subscribeToServices(); // Load runner services for map discovery in real-time
       
       FlutterNativeSplash.remove();
     });
@@ -1720,8 +1720,8 @@ RULES:
               children: [
                 Expanded(
                   child: Text(_activeSearchQuery == null 
-                      ? (context.locale.languageCode == 'ms' ? 'Tugasan Saya' : 'My Tasks') 
-                      : (_displayedGigs.isNotEmpty ? '${_displayedGigs.length} ${context.locale.languageCode == 'ms' ? 'kerja dijumpai' : 'jobs found'}' : (context.locale.languageCode == 'ms' ? 'Tiada kerja dijumpai' : 'No Results Found')),
+                      ? (context.locale.languageCode == 'ms' ? 'Servis Berhampiran' : 'Nearby Services') 
+                      : (_displayedGigs.isNotEmpty ? '${_displayedGigs.length} ${context.locale.languageCode == 'ms' ? 'servis dijumpai' : 'services found'}' : (context.locale.languageCode == 'ms' ? 'Tiada servis dijumpai' : 'No Results Found')),
                       style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontSize: 18, fontWeight: FontWeight.bold)
                   ),
                 ),
