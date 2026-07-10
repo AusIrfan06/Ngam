@@ -119,7 +119,12 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      String errorMsg = e.toString();
+      if (errorMsg.contains('GoogleSignInExceptionCode.canceled') || errorMsg.contains('Account reauth failed')) {
+        _error = 'Google Sign-In canceled or failed to authenticate.';
+      } else {
+        _error = errorMsg.replaceAll('Exception: ', '');
+      }
       _isLoading = false;
       notifyListeners();
       return false;

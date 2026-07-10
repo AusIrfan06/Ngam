@@ -42,7 +42,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final gigProvider = context.read<GigProvider>();
-      if (context.read<AuthProvider>().user != null) { await gigProvider.loadCustomerGigs(context.read<AuthProvider>().user!.id); }
+      if (context.read<AuthProvider>().user != null) { 
+        await gigProvider.loadCustomerGigs(context.read<AuthProvider>().user!.id);
+      }
+      await gigProvider.loadServices(); // Load runner services for map discovery
       
       FlutterNativeSplash.remove();
     });
@@ -209,7 +212,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     if (!mounted) return;
     final currentUser = context.read<AuthProvider>().user;
     final gigProvider = context.read<GigProvider>();
-    final available = gigProvider.myGigs.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
+    final available = gigProvider.services.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
     
     available.sort((a, b) {
       double distanceA = Geolocator.distanceBetween(
@@ -527,7 +530,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     final q = keyword?.trim().toLowerCase() ?? '';
 
     final gigProvider = context.read<GigProvider>();
-    final allOpenGigs = gigProvider.myGigs.where((g) => g.status != 'completed').toList();
+    final allOpenGigs = gigProvider.services.where((g) => g.status != 'completed').toList();
     List<GigModel> results = [];
 
     if (q.isNotEmpty) {
@@ -684,7 +687,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
       // Build live job context for the AI
       final gigProvider = context.read<GigProvider>();
       final currentUser = context.read<AuthProvider>().user;
-      final allGigs = gigProvider.myGigs.where((g) => g.status != 'completed').toList();
+      final allGigs = gigProvider.services.where((g) => g.status != 'completed').toList();
       final currentLoc = _currentLocation;
       
       allGigs.sort((a, b) {
@@ -2247,7 +2250,7 @@ RULES:
                     // Re-filter gigs based on new radius
                     final currentUser = context.read<AuthProvider>().user;
                     final gigProvider = context.read<GigProvider>();
-                    final available = gigProvider.myGigs.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
+                    final available = gigProvider.services.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
                     final withinRadius = available.where((g) {
                       double distM = Geolocator.distanceBetween(
                         _currentLocation.latitude, _currentLocation.longitude,

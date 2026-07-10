@@ -155,40 +155,40 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                               'runner.my_jobs_title'.tr(),
                               style: GoogleFonts.outfit(
                                 fontSize: 26,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'runner.jobs_count'.tr(args: [gigProvider.myGigs.length.toString()]),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDark ? Colors.white70 : Colors.black87,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ],
                         ),
-                        _buildSystemGlass(
-                          borderRadius: 16,
-                          isDark: isDark,
-                          blur: 15,
-                          customColor: Theme.of(context).primaryColor.withValues(alpha: 0.8),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const PostTaskScreen()));
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              child: Row(
-                                children: [
-                                  HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18, color: Colors.white),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'runner.post_job'.tr(),
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
+                        
+                        // Action Button
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/post-service');
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                const HugeIcon(icon: HugeIcons.strokeRoundedPlusSign, color: Colors.white, size: 18),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Tawar Servis',
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                ),
+                              ],
                             ),
                           ),
                         ),

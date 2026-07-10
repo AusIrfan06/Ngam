@@ -231,17 +231,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         padding: const EdgeInsets.all(20),
                         child: Row(
                         children: [
-                          Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: AppTheme.info.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
+                          CircleAvatar(
+                            radius: 26,
+                            backgroundColor: AppTheme.info.withValues(alpha: 0.1),
+                            backgroundImage: NetworkImage(
+                              'https://ui-avatars.com/api/?name=${Uri.encodeComponent(gig.customerName ?? 'Customer')}&background=random&color=fff',
                             ),
-                            child: HugeIcon(icon: HugeIcons.strokeRoundedUser,
-                              color: AppTheme.info,
-                              size: 28,
-                            ),
+                            onBackgroundImageError: (e, s) {},
                           ),
                           const SizedBox(width: 16),
                           Expanded(

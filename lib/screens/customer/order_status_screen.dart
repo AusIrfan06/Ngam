@@ -289,17 +289,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 child: Row(
                   children: [
                     // Runner avatar
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
+                        backgroundImage: NetworkImage(
+                          'https://ui-avatars.com/api/?name=${Uri.encodeComponent(gig.runnerName ?? 'Runner')}&background=random&color=fff',
+                        ),
+                        onBackgroundImageError: (e, s) {},
                       ),
-                      child: HugeIcon(icon: HugeIcons.strokeRoundedUser,
-                        color: AppTheme.primary,
-                      ),
-                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

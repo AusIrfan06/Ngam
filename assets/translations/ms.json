@@ -24,7 +24,11 @@
     "please_enter_phone": "Sila masukkan nombor telefon",
     "password_min_length": "Kata laluan mestilah sekurang-kurangnya 6 aksara",
     "confirm_password": "Sahkan Kata Laluan",
-    "passwords_do_not_match": "Kata laluan tidak sepadan"
+    "passwords_do_not_match": "Kata laluan tidak sepadan",
+    "forgot_password": "Lupa Kata Laluan?",
+    "or_continue_with": "Atau teruskan dengan",
+    "google_signin": "Google",
+    "apple_signin": "Apple"
   },
   "nav": {
     "home": "Laman Utama",

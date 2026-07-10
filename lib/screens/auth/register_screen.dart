@@ -399,27 +399,28 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 const SizedBox(height: 20),
 
                 // ─── Login Link ─────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'auth.have_account'.tr(),
-                      style: TextStyle(color: Colors.grey.shade500),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        'auth.login_here'.tr(),
-                        style: const TextStyle(
-                          color: AppTheme.primary,
-                          fontWeight: FontWeight.w600,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'auth.have_account'.tr(),
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'auth.login_here'.tr(),
+                          style: const TextStyle(
+                            color: AppTheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(height: 40),
               ],
             ),
@@ -554,12 +555,15 @@ class _RoleButton extends StatelessWidget {
                 if (isSelected)
                   const Icon(Icons.check, size: 16, color: AppTheme.primary),
                 if (isSelected) const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? AppTheme.primary : Colors.grey.shade600,
+                Flexible(
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? AppTheme.primary : Colors.grey.shade600,
+                    ),
                   ),
                 ),
               ],
