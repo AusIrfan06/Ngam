@@ -13,6 +13,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../services/payment_service.dart';
+import '../../services/supabase_service.dart';
 
 
 class WalletScreen extends StatefulWidget {
@@ -122,8 +123,11 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                 final bankMethods = methods.where((m) => m["type"] == "bank").toList();
                 final duitnowMethods = methods.where((m) => m["type"] == "duitnow_qr").toList();
 
+                final authProvider = context.watch<AuthProvider>();
+                final realBalance = authProvider.user?.balance ?? 0.0;
+                
                 // Virtual list: Ngam Pay is always index 0
-                final virtualCards = [ {"id": "ngam_pay", "type": "wallet", "name": "Ngam Pay", "balance": 345.50}, ...savedCards, ...bankMethods, ...duitnowMethods ];
+                final virtualCards = [ {"id": "ngam_pay", "type": "wallet", "name": "Ngam Pay", "balance": realBalance}, ...savedCards, ...bankMethods, ...duitnowMethods ];
                 
                 final cardWidth = MediaQuery.of(context).size.width - 32;
                 final cardHeight = 220.0; 
@@ -591,7 +595,34 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          Expanded(child: _buildActionBtn(icon: HugeIcons.strokeRoundedAdd01, label: "wallet.top_up".tr(), isDark: isDark, onTap: () {})),
+          Expanded(
+            child: _buildActionBtn(
+              icon: HugeIcons.strokeRoundedAdd01, 
+              label: "wallet.top_up".tr(), 
+              isDark: isDark, 
+              onTap: () async {
+                final authProvider = context.read<AuthProvider>();
+                try {
+                  await SupabaseService.client.rpc('top_up_wallet', params: {
+                    'p_user_id': authProvider.user!.id,
+                    'p_amount': 50.00, // Hardcoded RM 50 for demo
+                  });
+                  await authProvider.refreshBalance();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('RM 50 added to your wallet!')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to top up')),
+                    );
+                  }
+                }
+              }
+            )
+          ),
           const SizedBox(width: 12),
           Expanded(child: _buildActionBtn(icon: HugeIcons.strokeRoundedArrowUp01, label: "wallet.withdraw".tr(), isDark: isDark, onTap: () {})),
         ],

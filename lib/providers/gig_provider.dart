@@ -315,6 +315,24 @@ class GigProvider extends ChangeNotifier {
     }
   }
 
+  /// Customer cancels a gig and gets a refund
+  Future<bool> cancelGigAndRefund(String gigId, String customerId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await GigService.cancelGigAndRefund(gigId, customerId);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to cancel gig';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Runner accepts a gig (Task-State Locker)
   Future<bool> acceptGig(String gigId, String runnerId) async {
     _isLoading = true;
@@ -386,9 +404,9 @@ class GigProvider extends ChangeNotifier {
   }
 
   /// Runner marks gig as complete
-  Future<bool> completeGig(String gigId) async {
+  Future<bool> completeGig(String gigId, String runnerId) async {
     try {
-      await GigService.completeGig(gigId);
+      await GigService.completeGig(gigId, runnerId);
       _activeJob = null;
       _handleLocationTracking();
       notifyListeners();

@@ -259,6 +259,23 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Refresh user balance
+  Future<void> refreshBalance() async {
+    if (_user == null) return;
+    try {
+      final response = await Supabase.instance.client
+          .from('users')
+          .select('balance')
+          .eq('id', _user!.id)
+          .single();
+      final newBalance = (response['balance'] as num?)?.toDouble() ?? 0.0;
+      _user = _user!.copyWith(balance: newBalance);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to refresh balance: $e');
+    }
+  }
+
   /// Clear error
   void clearError() {
     _error = null;

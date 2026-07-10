@@ -491,24 +491,26 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 },
               ),
               ListTile(
-                leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, color: Colors.red),
-                title: const Text('Delete Task', style: TextStyle(color: Colors.red)),
+                leading: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: Colors.red),
+                title: const Text('Cancel Task & Refund', style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(sheetContext);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (c) => AlertDialog(
-                      title: const Text('Delete Task?'),
-                      content: const Text('Are you sure you want to permanently delete this task?'),
+                      title: const Text('Cancel Task?'),
+                      content: const Text('Are you sure you want to cancel this task? Your payment will be refunded to your wallet.'),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('No')),
+                        TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Cancel Task', style: TextStyle(color: Colors.red))),
                       ],
                     ),
                   );
                   if (confirm == true) {
                     if (!mounted) return;
-                    await context.read<GigProvider>().deleteGig(gig.id);
+                    final authProvider = context.read<AuthProvider>();
+                    await context.read<GigProvider>().cancelGigAndRefund(gig.id, authProvider.user!.id);
+                    await authProvider.refreshBalance();
                     if (mounted) Navigator.pop(context);
                   }
                 },

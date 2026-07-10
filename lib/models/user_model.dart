@@ -15,6 +15,7 @@ class UserModel {
   final DateTime? birthDate;
   final String? address;
   final DateTime createdAt;
+  final double balance;
 
   UserModel({
     required this.id,
@@ -29,6 +30,7 @@ class UserModel {
     this.birthDate,
     this.address,
     required this.createdAt,
+    this.balance = 0.0,
   });
 
   /// Create from Supabase JSON row
@@ -46,6 +48,7 @@ class UserModel {
       birthDate: json['birth_date'] != null ? DateTime.parse(json['birth_date'] as String) : null,
       address: json['address'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
+      balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -64,6 +67,7 @@ class UserModel {
       if (birthDate != null) 'birth_date': "${birthDate!.year}-${birthDate!.month.toString().padLeft(2, '0')}-${birthDate!.day.toString().padLeft(2, '0')}",
       if (address != null) 'address': address,
       'created_at': createdAt.toIso8601String(),
+      'balance': balance,
     };
   }
 
@@ -81,6 +85,7 @@ class UserModel {
     DateTime? birthDate,
     String? address,
     DateTime? createdAt,
+    double? balance,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -95,6 +100,7 @@ class UserModel {
       birthDate: birthDate ?? this.birthDate,
       address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
+      balance: balance ?? this.balance,
     );
   }
 }

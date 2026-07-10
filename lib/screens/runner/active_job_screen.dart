@@ -310,7 +310,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                         ? null
                         : () async {
                             final success =
-                                await gigProvider.completeGig(gig.id);
+                                await gigProvider.completeGig(gig.id, context.read<AuthProvider>().user!.id);
                             if (success && context.mounted) {
                               // Stop tracking once completed
                               LocationService.instance.stopTracking();

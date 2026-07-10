@@ -53,6 +53,48 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     final authProvider = context.read<AuthProvider>();
     final gigProvider = context.read<GigProvider>();
     final userId = authProvider.user!.id;
+    final balance = authProvider.user!.balance;
+    final amount = double.parse(_bountyController.text);
+
+    if (!authProvider.isRunner && balance < amount) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Baki Tidak Mencukupi'),
+            content: Text('Baki dompet anda (RM ${balance.toStringAsFixed(2)}) tidak mencukupi untuk membayar tugasan ini (RM ${amount.toStringAsFixed(2)}). Sila tambah nilai.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!authProvider.isRunner) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sahkan Pembayaran'),
+          content: Text('RM ${amount.toStringAsFixed(2)} akan ditolak daripada baki dompet anda. Teruskan?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Bayar & Hantar'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+    }
 
     GigModel? gig;
     if (authProvider.isRunner) {
@@ -62,7 +104,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
-        price: double.parse(_bountyController.text),
+        price: amount,
         location: _locationController.text.trim(),
       );
     } else {
@@ -72,11 +114,16 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         category: _selectedCategory,
-        bountyAmount: double.parse(_bountyController.text),
+        bountyAmount: amount,
         location: _locationController.text.trim(),
         latitude: _selectedLocation!.latitude,
         longitude: _selectedLocation!.longitude,
       );
+    }
+
+    // Refresh balance after payment
+    if (!authProvider.isRunner && mounted) {
+      authProvider.refreshBalance();
     }
 
     if (gig != null && mounted) {

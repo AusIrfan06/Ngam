@@ -851,7 +851,7 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                                                 icon: const HugeIcon(icon: HugeIcons.strokeRoundedTaskDone01, size: 20, color: Colors.blue),
                                                 onPressed: () async {
                                                    final provider = context.read<GigProvider>();
-                                                   await provider.completeGig(booking.id);
+                                                   await provider.completeGig(booking.id, context.read<AuthProvider>().user!.id);
                                                    _fetchBookings(); // Refresh
                                                 },
                                               ),

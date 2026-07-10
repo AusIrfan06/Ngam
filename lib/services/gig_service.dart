@@ -54,10 +54,29 @@ class GigService {
       if (runnerName != null) 'runner_name': runnerName,
     };
 
-    await _client.from(DbTable.gigs).insert(dbPayload);
-
-    // Log the initial status
-    await _logStatus(gigId, status ?? GigStatus.open);
+    if (status != GigStatus.service) {
+      // Use RPC for payment deduction when a customer creates a gig
+      final response = await _client.rpc('create_gig_with_payment', params: {
+        'p_id': gigId,
+        'p_customer_id': customerId,
+        'p_gig_worker_id': gigWorkerId,
+        'p_title': title,
+        'p_description': description,
+        'p_category': category,
+        'p_bounty_amount': bountyAmount,
+        'p_status': status ?? GigStatus.open,
+        'p_location': location,
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+        'p_customer_name': customerName ?? '',
+        'p_runner_name': runnerName ?? '',
+      });
+      // Assuming response['success'] == true, otherwise it would throw
+    } else {
+      // Runner posting a service (free)
+      await _client.from(DbTable.gigs).insert(dbPayload);
+      await _logStatus(gigId, status ?? GigStatus.open);
+    }
 
     return GigModel.fromJson(gigDataForModel);
   }
@@ -168,7 +187,23 @@ class GigService {
       createdAt: DateTime.now(),
     );
 
-    await _client.from(DbTable.gigs).insert(gig.toJson());
+    // Use RPC to deduct balance from customer when booking
+    await _client.rpc('create_gig_with_payment', params: {
+        'p_id': gig.id,
+        'p_customer_id': customerId,
+        'p_gig_worker_id': runnerId,
+        'p_title': title,
+        'p_description': description,
+        'p_category': category,
+        'p_bounty_amount': bountyAmount,
+        'p_status': 'PENDING',
+        'p_location': location,
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+        'p_customer_name': '', // Could pass if needed
+        'p_runner_name': '',
+    });
+
     return gig;
   }
 
@@ -276,17 +311,23 @@ class GigService {
     await _logStatus(gigId, GigStatus.inProgress);
   }
 
-  /// Runner completes the gig
-  static Future<void> completeGig(String gigId) async {
-    await _client
-        .from(DbTable.gigs)
-        .update({'status': GigStatus.completed})
-        .eq('id', gigId);
-
-    await _logStatus(gigId, GigStatus.completed);
+  /// Runner completes the gig (also credits runner balance)
+  static Future<void> completeGig(String gigId, String runnerId) async {
+    await _client.rpc('complete_gig_and_pay', params: {
+      'p_gig_id': gigId,
+      'p_runner_id': runnerId,
+    });
   }
 
-  /// Cancel a gig (by customer or system)
+  /// Cancel a gig (by customer) - Refunds customer
+  static Future<void> cancelGigAndRefund(String gigId, String customerId) async {
+    await _client.rpc('cancel_gig_and_refund', params: {
+      'p_gig_id': gigId,
+      'p_user_id': customerId,
+    });
+  }
+
+  /// Cancel a gig (no refund, e.g. runner taking down service)
   static Future<void> cancelGig(String gigId) async {
     await _client
         .from(DbTable.gigs)
