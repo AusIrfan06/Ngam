@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/gig_model.dart';
 import '../../utils/app_theme.dart';
@@ -53,13 +54,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             pinned: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
-            actions: [
-              if (gig.customerId == currentUserId)
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  onPressed: _showManageServiceMenu,
-                ),
-            ],
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               title: Text(
@@ -108,8 +102,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     // ─── Location ────────────────────────────
                     Row(
                       children: [
-                        const Icon(
-                          Icons.location_on,
+                        HugeIcon(icon: HugeIcons.strokeRoundedLocation01,
                           size: 20,
                           color: AppTheme.primary,
                         ),
@@ -156,8 +149,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                   point: LatLng(gig.latitude!, gig.longitude!),
                                   width: 40,
                                   height: 40,
-                                  child: const Icon(
-                                    Icons.location_on,
+                                  child: HugeIcon(icon: HugeIcons.strokeRoundedLocation01,
                                     color: Colors.red,
                                     size: 40,
                                   ),
@@ -181,7 +173,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                 await launchUrl(url, mode: LaunchMode.externalApplication);
                               }
                             },
-                            icon: const Icon(Icons.navigation_rounded),
+                            icon: HugeIcon(icon: HugeIcons.strokeRoundedNavigation01),
                             label: Text('task_detail.navigate'.tr()),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -246,8 +238,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                               color: AppTheme.info.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
-                              Icons.person,
+                            child: HugeIcon(icon: HugeIcons.strokeRoundedUser,
                               color: AppTheme.info,
                               size: 28,
                             ),
@@ -267,7 +258,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                 const SizedBox(height: 4),
                                 const Row(
                                   children: [
-                                    Icon(Icons.star, size: 16, color: Colors.amber),
+                                    HugeIcon(icon: HugeIcons.strokeRoundedStar, size: 16, color: Colors.amber),
                                     SizedBox(width: 6),
                                     Text(
                                       '4.8 (12 tasks)',
@@ -315,8 +306,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                     }
                                   }
                                 },
-                                icon: const Icon(
-                                  Icons.chat_bubble_outline,
+                                icon: HugeIcon(icon: HugeIcons.strokeRoundedChatting01,
                                   color: AppTheme.primary,
                                 ),
                               ),
@@ -360,7 +350,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         height: 56,
                         child: _buildGlassButton(
                           isDark: Theme.of(context).brightness == Brightness.dark,
-                          icon: Icons.check_circle_outline,
+                          icon: HugeIcons.strokeRoundedCheckmarkBadge01,
                           label: 'runner.accept_task'.tr(),
                           onTap: () {
                             Navigator.pushNamed(
@@ -377,7 +367,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         height: 56,
                         child: _buildGlassButton(
                           isDark: Theme.of(context).brightness == Brightness.dark,
-                          icon: Icons.settings_outlined,
+                          icon: HugeIcons.strokeRoundedSettings01,
                           label: 'Manage Service',
                           onTap: _showManageServiceMenu,
                         ),
@@ -434,7 +424,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   Widget _buildGlassButton(
       {required bool isDark,
-      required IconData icon,
+      required dynamic icon,
       required String label,
       required VoidCallback onTap}) {
     return InkWell(
@@ -455,7 +445,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppTheme.primary, size: 24),
+              HugeIcon(icon: icon, color: AppTheme.primary, size: 24),
               const SizedBox(width: 12),
               Text(
                 label,
@@ -491,7 +481,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               Text('task_detail.manage_service'.tr(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
               const SizedBox(height: 16),
               ListTile(
-                leading: Icon(Icons.attach_money, color: isDark ? Colors.white70 : Colors.black87),
+                leading: HugeIcon(icon: HugeIcons.strokeRoundedMoney03, color: isDark ? Colors.white70 : Colors.black87),
                 title: Text('task_detail.adjust_bounty'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -499,7 +489,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(gig.status == 'DISABLED_SERVICE' ? Icons.play_arrow : Icons.pause, color: isDark ? Colors.white70 : Colors.black87),
+                leading: HugeIcon(icon: gig.status == 'DISABLED_SERVICE' ? HugeIcons.strokeRoundedPlay : HugeIcons.strokeRoundedPause, color: isDark ? Colors.white70 : Colors.black87),
                 title: Text(gig.status == 'DISABLED_SERVICE' ? 'Resume Service' : 'Pause Service', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () async {
                   Navigator.pop(sheetContext);
@@ -526,7 +516,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, color: Colors.red),
                 title: Text('task_detail.delete_service'.tr(), style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(sheetContext);

@@ -224,17 +224,17 @@ class GigProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final gig = await GigService.createGig(
+      final gig = await GigService.bookService(
+        serviceId: serviceListing.id,
         customerId: customerId,
-        customerName: customerName,
-        gigWorkerId: serviceListing.gigWorkerId,
-        runnerName: serviceListing.runnerName,
+        runnerId: serviceListing.gigWorkerId!,
         title: serviceListing.title,
         description: serviceListing.description,
         category: serviceListing.category,
         bountyAmount: serviceListing.bountyAmount,
         location: serviceListing.location,
-        status: GigStatus.pending,
+        latitude: serviceListing.latitude,
+        longitude: serviceListing.longitude,
       );
       _myGigs.insert(0, gig);
       _isLoading = false;

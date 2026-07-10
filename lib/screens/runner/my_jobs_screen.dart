@@ -2,14 +2,17 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/gig_provider.dart';
 import '../../utils/constants.dart';
-import '../customer/post_task_screen.dart';
 import '../../models/gig_model.dart';
 import '../../widgets/category_chip.dart';
+import '../../services/gig_service.dart';
+import 'task_detail_screen.dart';
+import '../customer/post_task_screen.dart';
 
 // ============================================================
 // Ngam App — My Jobs Screen (Runner)
@@ -178,7 +181,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.add, size: 18, color: Colors.white),
+                                  HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18, color: Colors.white),
                                   const SizedBox(width: 8),
                                   Text(
                                     'runner.post_job'.tr(),
@@ -194,14 +197,37 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                   ),
                 ),
                 const SizedBox(height: 20),
-                TabBar(
-                  indicatorColor: Theme.of(context).primaryColor,
-                  labelColor: isDark ? Colors.white : Colors.black,
-                  unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
-                  tabs: const [
-                    Tab(text: "Customer Tasks"),
-                    Tab(text: "My Services"),
-                  ],
+                Container(
+                  height: 48,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: TabBar(
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        if (!isDark)
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                      ],
+                    ),
+                    labelColor: isDark ? Colors.white : Theme.of(context).primaryColor,
+                    unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                    tabs: [
+                      Tab(text: 'runner.customer_tasks'.tr()),
+                      Tab(text: 'runner.my_services'.tr()),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),                
                 Expanded(
@@ -217,9 +243,12 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                               isDark: isDark,
                               gigProvider: gigProvider,
                             ),
-                            // Tab 2: My Services (Services posted by me, customerId == currentUserId)
+                            // Tab 2: My Services (Services posted by me, customerId == currentUserId AND status is SERVICE/DISABLED_SERVICE)
                             _buildJobList(
-                              gigs: gigProvider.myGigs.where((g) => g.customerId == context.read<AuthProvider>().user?.id).toList(),
+                              gigs: gigProvider.myGigs.where((g) => 
+                                g.customerId == context.read<AuthProvider>().user?.id && 
+                                (g.status == 'SERVICE' || g.status == 'DISABLED_SERVICE')
+                              ).toList(),
                               emptyMessage: "No services posted",
                               emptySubMessage: "Tap + Post Job to post your first service.",
                               isDark: isDark,
@@ -255,7 +284,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.work_off_outlined, size: 64, color: isDark ? Colors.white54 : Colors.black45),
+                HugeIcon(icon: HugeIcons.strokeRoundedWorkHistory, size: 64, color: isDark ? Colors.white54 : Colors.black45),
                 const SizedBox(height: 16),
                 Text(emptyMessage, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black87)),
                 const SizedBox(height: 8),
@@ -399,6 +428,10 @@ class _GlassTaskCard extends StatefulWidget {
 class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProviderStateMixin {
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
+  bool _isExpanded = false;
+  
+  List<GigModel>? _bookings;
+  bool _isLoadingBookings = false;
 
   @override
   void initState() {
@@ -407,6 +440,26 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
     );
+  }
+  
+  Future<void> _fetchBookings() async {
+    if (widget.gig.status != 'SERVICE' && widget.gig.status != 'DISABLED_SERVICE') return;
+    if (_bookings != null) return;
+    
+    setState(() => _isLoadingBookings = true);
+    try {
+      final fetched = await GigService.fetchBookingsForService(widget.gig.id);
+      if (mounted) {
+        setState(() {
+          _bookings = fetched;
+          _isLoadingBookings = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingBookings = false);
+      }
+    }
   }
 
   @override
@@ -422,6 +475,8 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
       case 'IN-PROGRESS': return const Color(0xFF3498DB);
       case 'COMPLETED': return const Color(0xFF27AE60);
       case 'CANCELLED': return const Color(0xFFE74C3C);
+      case 'SERVICE': return const Color(0xFF9B59B6);
+      case 'DISABLED_SERVICE': return Colors.grey;
       default: return Colors.grey;
     }
   }
@@ -467,13 +522,51 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
     );
   }
 
+  Widget _buildQuickAction({
+    required dynamic icon,
+    required String label,
+    required Color color,
+    required VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HugeIcon(icon: icon, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => _scaleController.forward(),
       onTapUp: (_) {
         _scaleController.reverse();
-        if (widget.onTap != null) widget.onTap!();
+        if (widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE') {
+          setState(() {
+            _isExpanded = !_isExpanded;
+          });
+          if (_isExpanded) {
+            _fetchBookings();
+          }
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const TaskDetailScreen(),
+              settings: RouteSettings(arguments: widget.gig),
+            ),
+          );
+        }
       },
       onTapCancel: () => _scaleController.reverse(),
       child: AnimatedBuilder(
@@ -517,7 +610,7 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                             if (widget.gig.location.isNotEmpty) ...[
                               Row(
                                 children: [
-                                  Icon(Icons.location_on_rounded, size: 14, color: widget.isDark ? Colors.white54 : Colors.black54),
+                                  HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 14, color: widget.isDark ? Colors.white54 : Colors.black54),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
@@ -539,19 +632,19 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                               spacing: 8,
                               runSpacing: 8,
                               children: [
-                                CategoryChip(label: widget.gig.category, showIcon: false),
+                                CategoryChip(label: widget.gig.category, showIcon: false, isSelected: true),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: _getStatusColor().withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(20),
                                     border: Border.all(color: _getStatusColor().withValues(alpha: 0.3)),
                                   ),
                                   child: Text(
                                     widget.gig.status,
                                     style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
                                       color: _getStatusColor(),
                                     ),
                                   ),
@@ -562,16 +655,217 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        widget.gig.formattedBounty,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            widget.gig.formattedBounty,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE')
+                            HugeIcon(
+                              icon: _isExpanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                              color: widget.isDark ? Colors.white54 : Colors.black54,
+                              size: 20,
+                            ),
+                        ],
                       ),
                     ],
                   ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: _isExpanded
+                      ? Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Divider(color: widget.isDark ? Colors.white24 : Colors.black12, height: 1),
+                            ),
+                            // Quick Actions for Services
+                            if (widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE') ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildQuickAction(
+                                      icon: HugeIcons.strokeRoundedView,
+                                      label: "Details",
+                                      color: Colors.blue,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => const TaskDetailScreen(),
+                                            settings: RouteSettings(arguments: widget.gig),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    _buildQuickAction(
+                                      icon: widget.gig.status == 'DISABLED_SERVICE' ? HugeIcons.strokeRoundedPlay : HugeIcons.strokeRoundedPause,
+                                      label: widget.gig.status == 'DISABLED_SERVICE' ? "Resume" : "Pause",
+                                      color: Colors.orange,
+                                      onTap: () async {
+                                        final provider = context.read<GigProvider>();
+                                        await provider.toggleGigStatus(widget.gig.id, widget.gig.status);
+                                      },
+                                    ),
+                                    _buildQuickAction(
+                                      icon: HugeIcons.strokeRoundedDelete01,
+                                      label: "Delete",
+                                      color: Colors.red,
+                                      onTap: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (c) => AlertDialog(
+                                            title: const Text('Delete Service?'),
+                                            content: const Text('Are you sure you want to delete this service?'),
+                                            actions: [
+                                              TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+                                              TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirm == true) {
+                                          if (!mounted) return;
+                                          final provider = context.read<GigProvider>();
+                                          await provider.deleteGig(widget.gig.id);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            
+                            // Bookings Section
+                            if ((widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE') && _isExpanded) ...[
+                               Padding(
+                                 padding: const EdgeInsets.symmetric(horizontal: 16),
+                                 child: Divider(color: widget.isDark ? Colors.white24 : Colors.black12, height: 1),
+                               ),
+                               const SizedBox(height: 8),
+                               Padding(
+                                 padding: const EdgeInsets.symmetric(horizontal: 16),
+                                 child: Row(
+                                   children: [
+                                      HugeIcon(icon: HugeIcons.strokeRoundedUserGroup, size: 16, color: widget.isDark ? Colors.white70 : Colors.black87),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "Customer Bookings", 
+                                        style: TextStyle(
+                                          fontSize: 13, 
+                                          fontWeight: FontWeight.w700, 
+                                          color: widget.isDark ? Colors.white70 : Colors.black87,
+                                        ),
+                                      ),
+                                   ]
+                                 ),
+                               ),
+                               const SizedBox(height: 8),
+                               if (_isLoadingBookings)
+                                 const Padding(
+                                   padding: EdgeInsets.all(16.0),
+                                   child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+                                 )
+                               else if (_bookings != null && _bookings!.isEmpty)
+                                 Padding(
+                                   padding: const EdgeInsets.all(16.0),
+                                   child: Center(
+                                     child: Text(
+                                       "No bookings yet.", 
+                                       style: TextStyle(fontSize: 13, color: widget.isDark ? Colors.white54 : Colors.black54),
+                                     ),
+                                   ),
+                                 )
+                               else if (_bookings != null)
+                                 Padding(
+                                   padding: const EdgeInsets.symmetric(horizontal: 12),
+                                   child: Column(
+                                     children: _bookings!.map((booking) => Container(
+                                       margin: const EdgeInsets.only(bottom: 8),
+                                       padding: const EdgeInsets.all(12),
+                                       decoration: BoxDecoration(
+                                         color: widget.isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
+                                         borderRadius: BorderRadius.circular(12),
+                                       ),
+                                       child: Row(
+                                         children: [
+                                            CircleAvatar(
+                                              radius: 16,
+                                              backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                                              child: Text(
+                                                (booking.customerName?.isNotEmpty ?? false) ? booking.customerName![0].toUpperCase() : 'C',
+                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    booking.customerName ?? 'Unknown Customer',
+                                                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    booking.status,
+                                                    style: TextStyle(
+                                                      fontSize: 11, 
+                                                      fontWeight: FontWeight.w700, 
+                                                      color: booking.status == 'PENDING' ? Colors.orange : (booking.status == 'COMPLETED' ? Colors.green : Colors.blue),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // Action Buttons for booking
+                                            if (booking.status == 'PENDING') ...[
+                                              IconButton(
+                                                icon: const HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge01, size: 20, color: Colors.green),
+                                                onPressed: () async {
+                                                   final provider = context.read<GigProvider>();
+                                                   await provider.acceptPendingGig(booking.id, widget.gig.gigWorkerId!);
+                                                   _fetchBookings(); // Refresh
+                                                },
+                                              ),
+                                              IconButton(
+                                                icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, size: 20, color: Colors.red),
+                                                onPressed: () async {
+                                                   final provider = context.read<GigProvider>();
+                                                   await provider.rejectPendingGig(booking.id, widget.gig.gigWorkerId!);
+                                                   _fetchBookings(); // Refresh
+                                                },
+                                              ),
+                                            ] else if (booking.status == 'IN-PROGRESS' || booking.status == 'LOCKED') ...[
+                                              IconButton(
+                                                icon: const HugeIcon(icon: HugeIcons.strokeRoundedTaskDone01, size: 20, color: Colors.blue),
+                                                onPressed: () async {
+                                                   final provider = context.read<GigProvider>();
+                                                   await provider.completeGig(booking.id);
+                                                   _fetchBookings(); // Refresh
+                                                },
+                                              ),
+                                            ]
+                                         ],
+                                       ),
+                                     )).toList(),
+                                   ),
+                                 ),
+                               const SizedBox(height: 8),
+                            ],
+                          ],
+                        )
+                      : const SizedBox.shrink(),
                 ),
                 if (widget.actionWidget != null)
                   Padding(

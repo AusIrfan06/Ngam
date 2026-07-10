@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/gig_model.dart';
 import '../../services/gig_service.dart';
@@ -122,9 +123,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
         actions: [
-          if (gig.status == 'OPEN' || gig.status == 'DISABLED' || gig.status == 'SERVICE' || gig.status == 'DISABLED_SERVICE')
+          if (gig.status == 'OPEN' || gig.status == 'DISABLED')
             IconButton(
-              icon: const Icon(Icons.settings_outlined),
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedSettings01),
               onPressed: _showManageTaskMenu,
             ),
         ],
@@ -251,7 +252,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                           point: LatLng(gig.latitude!, gig.longitude!),
                           width: 40,
                           height: 40,
-                          child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: Colors.red, size: 40),
                         ),
                         // Runner Marker
                         if (_runnerLocation != null)
@@ -264,7 +265,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                                 color: AppTheme.primary.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.delivery_dining, color: AppTheme.primary, size: 30),
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedDeliveryTruck01, color: AppTheme.primary, size: 30),
                             ),
                           ),
                       ],
@@ -295,8 +296,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                         color: AppTheme.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.person,
+                      child: HugeIcon(icon: HugeIcons.strokeRoundedUser,
                         color: AppTheme.primary,
                       ),
                     ),
@@ -315,7 +315,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Icon(Icons.star,
+                              HugeIcon(icon: HugeIcons.strokeRoundedStar,
                                   size: 14, color: Colors.amber),
                               const SizedBox(width: 4),
                               Text(
@@ -368,8 +368,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                             }
                           }
                         },
-                        icon: const Icon(
-                          Icons.chat_bubble_outline,
+                        icon: HugeIcon(icon: HugeIcons.strokeRoundedChatting01,
                           color: AppTheme.primary,
                         ),
                       ),
@@ -396,7 +395,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       setState(() => _hasReview = true);
                     }
                   },
-                  icon: const Icon(Icons.star_rounded),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedStar),
                   label: Text('order_status.rate_review'.tr()),
                 ),
               ),
@@ -413,7 +412,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.check_circle,
+                    HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkBadge01,
                         color: AppTheme.success, size: 20),
                     const SizedBox(width: 8),
                     Text(
@@ -452,7 +451,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               Text('Manage Task', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
               const SizedBox(height: 16),
               ListTile(
-                leading: Icon(Icons.attach_money, color: isDark ? Colors.white70 : Colors.black87),
+                leading: HugeIcon(icon: HugeIcons.strokeRoundedMoney03, color: isDark ? Colors.white70 : Colors.black87),
                 title: Text('Adjust Bounty', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -460,7 +459,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(gig.status.startsWith('DISABLED') ? Icons.play_arrow : Icons.pause, color: isDark ? Colors.white70 : Colors.black87),
+                leading: HugeIcon(icon: gig.status.startsWith('DISABLED') ? HugeIcons.strokeRoundedPlay : HugeIcons.strokeRoundedPause, color: isDark ? Colors.white70 : Colors.black87),
                 title: Text(gig.status.startsWith('DISABLED') ? 'Resume Task' : 'Pause Task', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
                 onTap: () async {
                   Navigator.pop(sheetContext);
@@ -495,7 +494,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, color: Colors.red),
                 title: const Text('Delete Task', style: TextStyle(color: Colors.red)),
                 onTap: () async {
                   Navigator.pop(sheetContext);

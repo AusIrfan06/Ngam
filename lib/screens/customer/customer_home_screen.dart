@@ -2044,17 +2044,32 @@ RULES:
                                       final currentUser = context.read<AuthProvider>().user;
                                       if (currentUser == null) return;
                                       final provider = context.read<GigProvider>();
-                                      final success = await provider.acceptGig(gig.id, currentUser.id);
-                                      if (success && context.mounted) {
+                                      
+                                      if (gig.status == 'SERVICE') {
+                                        final success = await provider.orderService(
+                                          customerId: currentUser.id,
+                                          customerName: currentUser.name,
+                                          serviceListing: gig,
+                                        );
+                                        if (success != null && context.mounted) {
                                           _searchFocus.unfocus();
                                           Navigator.pop(context);
-                                          Navigator.pushNamed(context, '/active-job', arguments: gig);
+                                          // Note: You might want to redirect to a different page for booking success later.
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service booked successfully!')));
+                                        }
+                                      } else {
+                                        final success = await provider.acceptGig(gig.id, currentUser.id);
+                                        if (success && context.mounted) {
+                                            _searchFocus.unfocus();
+                                            Navigator.pop(context);
+                                            Navigator.pushNamed(context, '/active-job', arguments: gig);
+                                        }
                                       }
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(vertical: 18),
                                       decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(18), boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))]),
-                                      child: const Center(child: Text("Accept Job", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))),
+                                      child: Center(child: Text(gig.status == 'SERVICE' ? "Book Service" : "Accept Job", style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))),
                                     ),
                                   ),
                                 ),

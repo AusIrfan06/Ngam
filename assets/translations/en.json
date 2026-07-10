@@ -135,6 +135,8 @@
     "requester_notified": "Requester will be notified instantly.",
     "done": "Done",
     "my_jobs_title": "Jobs",
+    "customer_tasks": "Customer Tasks",
+    "my_services": "My Services",
     "jobs_count": "{} jobs",
     "post_job": "Post Job",
     "no_jobs_yet": "No jobs yet",

@@ -117,12 +117,59 @@ class GigService {
     final response = await _client
         .from(DbTable.gigs)
         .select()
-        .eq('gig_worker_id', runnerId)
+        .or('gig_worker_id.eq.$runnerId,customer_id.eq.$runnerId')
+        .order('created_at', ascending: false);
+
+    return (response as List)
+        .map((json) => GigModel.fromJson(json))
+        .where((gig) => gig.serviceId == null) // Filter out bookings here if they shouldn't show as top-level tasks
+        .toList();
+  }
+
+  /// Fetch bookings for a specific service advertisement
+  static Future<List<GigModel>> fetchBookingsForService(String serviceId) async {
+    final response = await _client
+        .from(DbTable.gigs)
+        .select()
+        .eq('service_id', serviceId)
         .order('created_at', ascending: false);
 
     return (response as List)
         .map((json) => GigModel.fromJson(json))
         .toList();
+  }
+
+  /// Customer books a service advertisement
+  static Future<GigModel> bookService({
+    required String serviceId,
+    required String customerId,
+    required String runnerId,
+    required String title,
+    required String description,
+    required String category,
+    required double bountyAmount,
+    required String location,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final gig = GigModel(
+      id: const Uuid().v4(),
+      customerId: customerId,
+      gigWorkerId: runnerId,
+      serviceId: serviceId,
+      title: title,
+      description: description,
+      category: category,
+      bountyAmount: bountyAmount,
+      status: 'PENDING',
+      location: location,
+      latitude: latitude,
+      longitude: longitude,
+      createdAt: DateTime.now(),
+    );
+
+    await _client.from(DbTable.gigs).insert(gig.toJson());
+    return gig;
   }
 
   /// Fetch a single gig by ID
@@ -132,6 +179,7 @@ class GigService {
         .select()
         .eq('id', gigId)
         .single();
+
 
     return GigModel.fromJson(response);
   }

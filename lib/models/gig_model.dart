@@ -6,11 +6,12 @@ class GigModel {
   final String id;
   final String customerId;
   final String? gigWorkerId;
+  final String? serviceId;
   final String title;
   final String description;
   final String category;
   final double bountyAmount;
-  final String status; // OPEN, LOCKED, IN-PROGRESS, COMPLETED, CANCELLED
+  final String status; // OPEN, LOCKED, IN-PROGRESS, COMPLETED, CANCELLED, SERVICE, DISABLED_SERVICE, PENDING
   final String location;
   final double? latitude;
   final double? longitude;
@@ -27,6 +28,7 @@ class GigModel {
     required this.id,
     required this.customerId,
     this.gigWorkerId,
+    this.serviceId,
     required this.title,
     required this.description,
     required this.category,
@@ -49,6 +51,7 @@ class GigModel {
       id: json['id'] as String,
       customerId: json['customer_id'] as String,
       gigWorkerId: json['gig_worker_id'] as String?,
+      serviceId: json['service_id'] as String?,
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
       category: json['category'] as String? ?? '',
@@ -70,7 +73,8 @@ class GigModel {
     return {
       'id': id,
       'customer_id': customerId,
-      'gig_worker_id': gigWorkerId,
+      if (gigWorkerId != null) 'gig_worker_id': gigWorkerId,
+      if (serviceId != null) 'service_id': serviceId,
       'title': title,
       'description': description,
       'category': category,
@@ -90,6 +94,7 @@ class GigModel {
     String? id,
     String? customerId,
     String? gigWorkerId,
+    String? serviceId,
     String? title,
     String? description,
     String? category,
@@ -109,6 +114,7 @@ class GigModel {
       id: id ?? this.id,
       customerId: customerId ?? this.customerId,
       gigWorkerId: gigWorkerId ?? this.gigWorkerId,
+      serviceId: serviceId ?? this.serviceId,
       title: title ?? this.title,
       description: description ?? this.description,
       category: category ?? this.category,

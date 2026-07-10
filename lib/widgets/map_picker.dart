@@ -23,6 +23,36 @@ class _MapPickerState extends State<MapPicker> {
   double _rotation = 0.0;
   bool _isLoadingLocation = false;
 
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _fetchCurrentLocation() async {
+    if (mounted) {
+      setState(() => _isLoadingLocation = true);
+    }
+    try {
+      final hasPermission = await Geolocator.requestPermission();
+      if (hasPermission == LocationPermission.always || hasPermission == LocationPermission.whileInUse) {
+        final pos = await Geolocator.getCurrentPosition();
+        final latLng = LatLng(pos.latitude, pos.longitude);
+        if (mounted) {
+          _mapController.move(latLng, 15.0);
+          setState(() {
+            _selectedLocation = latLng;
+          });
+          widget.onLocationSelected(latLng);
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingLocation = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -41,12 +71,17 @@ class _MapPickerState extends State<MapPicker> {
             options: MapOptions(
               initialCenter: widget.initialCenter,
               initialZoom: 13.0,
+              onMapReady: _fetchCurrentLocation,
               onTap: (tapPosition, point) {
                 setState(() {
                   _selectedLocation = point;
                 });
                 widget.onLocationSelected(point);
               },
+
+              interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+              ),
               onPositionChanged: (position, hasGesture) {
                 if (position.rotation != _rotation) {
                   setState(() {
@@ -111,23 +146,7 @@ class _MapPickerState extends State<MapPicker> {
                 FloatingActionButton.small(
                   heroTag: 'gps_btn',
                   backgroundColor: Theme.of(context).cardColor,
-                  onPressed: () async {
-                    setState(() => _isLoadingLocation = true);
-                    try {
-                      final hasPermission = await Geolocator.requestPermission();
-                      if (hasPermission == LocationPermission.always || hasPermission == LocationPermission.whileInUse) {
-                        final pos = await Geolocator.getCurrentPosition();
-                        final latLng = LatLng(pos.latitude, pos.longitude);
-                        _mapController.move(latLng, 15.0);
-                        setState(() {
-                          _selectedLocation = latLng;
-                        });
-                        widget.onLocationSelected(latLng);
-                      }
-                    } finally {
-                      setState(() => _isLoadingLocation = false);
-                    }
-                  },
+                  onPressed: _fetchCurrentLocation,
                   child: _isLoadingLocation 
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : Icon(Icons.my_location, color: Theme.of(context).primaryColor),
