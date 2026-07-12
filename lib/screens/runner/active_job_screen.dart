@@ -306,6 +306,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                 hintText: 'runner.notes_hint'.tr(),
               ),
             ),
+            const SizedBox(height: 24),
             // ─── Chat with Customer Button ─────────────
             Consumer<AuthProvider>(
               builder: (context, auth, _) {

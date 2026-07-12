@@ -836,6 +836,12 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                                       onTap: () async {
                                         final currentUser = context.read<AuthProvider>().user;
                                         if (currentUser == null || booking.customerId == null) return;
+                                        
+                                        if (booking.status == 'PENDING') {
+                                          _showPendingOptions(context, booking, currentUser.id, widget.isDark);
+                                          return;
+                                        }
+                                        
                                         final conversation = await ChatService.createOrGetConversation(currentUser.id, booking.customerId!);
                                         if (context.mounted) {
                                           Navigator.push(

@@ -1129,28 +1129,64 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
 
   // ── Loading Shimmer ─────────────────────────────────────────
   Widget _buildLoadingShimmer(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Shimmer.fromColors(
-            baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
-            highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
-            child: Column(
-              children: [
-                Container(
-                  width: 180, height: 18,
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  width: 120, height: 14,
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                ),
-              ],
-            ),
+    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final highlightColor = isDark ? Colors.grey.shade700 : Colors.grey.shade100;
+    
+    Widget buildSkeletonBox(double height, [double? width]) {
+      return Container(
+        height: height,
+        width: width ?? double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24), // matching the glass superellipse
+        ),
+      );
+    }
+
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              // App Bar Skeleton
+              buildSkeletonBox(40, 150),
+              const SizedBox(height: 24),
+              // Timeframe Selector Skeleton
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buildSkeletonBox(35, 70),
+                  buildSkeletonBox(35, 70),
+                  buildSkeletonBox(35, 70),
+                  buildSkeletonBox(35, 70),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Hero Earnings Skeleton
+              buildSkeletonBox(140),
+              const SizedBox(height: 16),
+              // Chart Skeleton
+              buildSkeletonBox(220),
+              const SizedBox(height: 16),
+              // Task Completion Skeleton
+              Row(
+                children: [
+                  Expanded(child: buildSkeletonBox(100)),
+                  const SizedBox(width: 16),
+                  Expanded(child: buildSkeletonBox(100)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // List item skeleton
+              buildSkeletonBox(70),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
