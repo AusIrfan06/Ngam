@@ -2095,6 +2095,11 @@ RULES:
                                               ),
                                             ),
                                           );
+                                        } else if (context.mounted && provider.error != null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                            backgroundColor: Colors.redAccent,
+                                            content: Text(provider.error!),
+                                          ));
                                         }
                                       } else {
                                         final success = await provider.acceptGig(gig.id, currentUser.id);
@@ -2108,7 +2113,9 @@ RULES:
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(vertical: 18),
                                       decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(18), boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))]),
-                                      child: Center(child: Text(gig.status == 'SERVICE' ? "Book Service" : "Accept Job", style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))),
+                                      child: Center(child: context.watch<GigProvider>().isLoading 
+                                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                        : Text(gig.status == 'SERVICE' ? "Book Service" : "Accept Job", style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))),
                                     ),
                                   ),
                                 ),

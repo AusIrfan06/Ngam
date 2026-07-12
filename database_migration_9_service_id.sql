@@ -1,5 +1,7 @@
--- Add service_id to create_gig_with_payment RPC to link bookings to their parent service
+-- 1. Add service_id column to gigs table
+ALTER TABLE public.gigs ADD COLUMN IF NOT EXISTS service_id UUID REFERENCES public.gigs(id) ON DELETE CASCADE;
 
+-- 2. Add service_id to create_gig_with_payment RPC to link bookings to their parent service
 CREATE OR REPLACE FUNCTION public.create_gig_with_payment(
   p_id UUID,
   p_customer_id UUID,

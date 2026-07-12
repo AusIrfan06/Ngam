@@ -28,8 +28,9 @@ class StatsScreen extends StatefulWidget {
 
 class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin {
   bool _isLoading = true;
-  int _selectedTimeframeIndex = 1; // 0=Today, 1=This Week, 2=This Month, 3=All-Time
-
+  int _selectedTimeframeIndex = 1; // 0=Today, 1=This Week, 2=This Month, 3=Custom Range
+  DateTime? _customStartDate;
+  DateTime? _customEndDate;
 
   double _totalEarnings = 0.0;
   int _completedTasks = 0;
@@ -50,7 +51,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
   late Animation<double> _fadeAnimation;
 
   String get _selectedTimeframe {
-    const map = ['Today', 'This Week', 'This Month', 'All-Time'];
+    const map = ['Today', 'This Week', 'This Month', 'Custom Range'];
     return map[_selectedTimeframeIndex];
   }
 
@@ -107,6 +108,13 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     } else if (_selectedTimeframe == 'This Month') {
       final startOfMonth = DateTime(now.year, now.month, 1);
       filteredGigs = _allGigs.where((g) => g.createdAt.isAfter(startOfMonth)).toList();
+    } else if (_selectedTimeframe == 'Custom Range') {
+      if (_customStartDate != null && _customEndDate != null) {
+        filteredGigs = _allGigs.where((g) => 
+          g.createdAt.isAfter(_customStartDate!.subtract(const Duration(milliseconds: 1))) && 
+          g.createdAt.isBefore(_customEndDate!.add(const Duration(days: 1)))
+        ).toList();
+      }
     }
 
     _recentTransactions = filteredGigs.where((g) => g.status == GigStatus.completed || g.status == GigStatus.cancelled).toList();
@@ -237,7 +245,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
 
   // ── Timeframe Pill Selector ─────────────────────────────────
   Widget _buildTimeframeSelector(bool isDark) {
-    final labels = ['Today', 'Week', 'Month', 'All'];
+    final labels = ['Today', 'Week', 'Month', 'Custom'];
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: ClipRRect(
@@ -260,9 +268,36 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                 final isSelected = _selectedTimeframeIndex == i;
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedTimeframeIndex = i);
-                      _calculateStatsForTimeframe();
+                    onTap: () async {
+                      if (i == 3) {
+                        final picked = await showDateRangePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now(),
+                          initialDateRange: _customStartDate != null && _customEndDate != null 
+                             ? DateTimeRange(start: _customStartDate!, end: _customEndDate!) 
+                             : null,
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: isDark ? const ColorScheme.dark(primary: Colors.blueAccent) : const ColorScheme.light(primary: Colors.blueAccent),
+                              ),
+                              child: child!,
+                            );
+                          }
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            _selectedTimeframeIndex = i;
+                            _customStartDate = picked.start;
+                            _customEndDate = picked.end;
+                          });
+                          _calculateStatsForTimeframe();
+                        }
+                      } else {
+                        setState(() => _selectedTimeframeIndex = i);
+                        _calculateStatsForTimeframe();
+                      }
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
@@ -1214,7 +1249,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                           child: FlexibleSpaceBar(
                             titlePadding: const EdgeInsets.only(left: 24, bottom: 16),
                             title: Text(
-                              'Insights',
+                              'Statistics',
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 26,

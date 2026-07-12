@@ -799,7 +799,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     }
 
     try {
-      await ChatService.sendMessage(pendingMsg, contextGigId: _linkedGig?.id);
+      final actualMsg = await ChatService.sendMessage(pendingMsg, contextGigId: _linkedGig?.id);
+      if (mounted) {
+        setState(() {
+          final index = _messages.indexWhere((m) => m.id == pendingMsg.id);
+          if (index != -1) _messages[index] = actualMsg;
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -836,7 +842,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       });
 
       try {
-        await ChatService.sendImageMessage(pendingMsg, File(pickedFile.path), contextGigId: _linkedGig?.id);
+        final actualMsg = await ChatService.sendImageMessage(pendingMsg, File(pickedFile.path), contextGigId: _linkedGig?.id);
+        if (mounted) {
+          setState(() {
+            final index = _messages.indexWhere((m) => m.id == pendingMsg.id);
+            if (index != -1) _messages[index] = actualMsg;
+          });
+        }
       } catch (e) {
         if (mounted) {
           setState(() {
@@ -1252,7 +1264,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         });
 
         try {
-          await ChatService.sendFileMessage(pendingMsg, file, fileName, contextGigId: _linkedGig?.id);
+          final actualMsg = await ChatService.sendFileMessage(pendingMsg, file, fileName, contextGigId: _linkedGig?.id);
+          if (mounted) {
+            setState(() {
+              final index = _messages.indexWhere((m) => m.id == pendingMsg.id);
+              if (index != -1) _messages[index] = actualMsg;
+            });
+          }
         } catch (e) {
           if (mounted) {
             setState(() {

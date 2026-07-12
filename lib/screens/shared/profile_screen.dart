@@ -148,8 +148,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  user.role == UserRole.pemesan
-                                      ? "PEMESAN"
+                                  user.role == UserRole.customer
+                                      ? "CUSTOMER"
                                       : "RUNNER",
                                   style: const TextStyle(
                                     color: Colors.white,
@@ -185,14 +185,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Row(
                               children: [
                                 _RoleToggle(
-                                  label: 'Pemesan',
+                                  label: 'Customer',
                                   icon: HugeIcons.strokeRoundedUserGroup,
-                                  isSelected: user.role == UserRole.pemesan,
+                                  isSelected: user.role == UserRole.customer,
                                   isDark: isDark,
                                   onTap: () async {
-                                    if (user.role == UserRole.pemesan) return;
+                                    if (user.role == UserRole.customer) return;
                                     await authProvider.setRole(
-                                      UserRole.pemesan,
+                                      UserRole.customer,
                                     );
                                     if (context.mounted) {
                                       Navigator.pushNamedAndRemoveUntil(

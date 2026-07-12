@@ -225,10 +225,10 @@ Selamat datang ke Ngam. Dengan mengakses atau menggunakan aplikasi kami, anda be
 Anda mesti mewujudkan akaun untuk menggunakan Ngam. Anda bertanggungjawab untuk menjaga kerahsiaan kelayakan akaun anda dan semua aktiviti di bawah akaun anda.
 
 2. Task & Runner
-Pemesan bertanggungjawab untuk menyediakan maklumat task yang tepat. Runner bertanggungjawab untuk melaksanakan task dengan jujur dan profesional.
+customer bertanggungjawab untuk menyediakan maklumat task yang tepat. Runner bertanggungjawab untuk melaksanakan task dengan jujur dan profesional.
 
 3. Pembayaran
-Harga yang ditunjukkan adalah dalam Ringgit Malaysia (MYR). Pembayaran dibuat terus antara Pemesan dan Runner. Ngam tidak bertanggungjawab atas sebarang pertikaian pembayaran.
+Harga yang ditunjukkan adalah dalam Ringgit Malaysia (MYR). Pembayaran dibuat terus antara customer dan Runner. Ngam tidak bertanggungjawab atas sebarang pertikaian pembayaran.
 
 4. Kelakuan Pengguna
 Pengguna dilarang menggunakan Ngam untuk aktiviti haram, menipu, atau berbahaya. Akaun yang melanggar peraturan ini akan digantung.

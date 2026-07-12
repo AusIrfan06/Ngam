@@ -79,7 +79,7 @@ class GigStatus {
 
 // ─── User Roles ──────────────────────────────────────────────
 class UserRole {
-  static const String pemesan = 'pemesan';
+  static const String customer = 'customer';
   static const String runner = 'runner';
 }
 

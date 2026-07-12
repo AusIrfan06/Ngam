@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/gig_model.dart';
 import '../services/gig_service.dart';
 import 'package:geolocator/geolocator.dart';
@@ -243,7 +244,11 @@ class GigProvider extends ChangeNotifier {
       return gig;
     } catch (e, st) {
       debugPrint('Error ordering service: $e\n$st');
-      _error = 'Failed to order service: $e';
+      if (e is PostgrestException) {
+        _error = e.message; // Just show the clear message from the database
+      } else {
+        _error = 'Failed to order service: $e';
+      }
       _isLoading = false;
       notifyListeners();
       return null;

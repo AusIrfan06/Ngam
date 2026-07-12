@@ -23,8 +23,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isInitializing => _isInitializing;
   String? get error => _error;
   bool get isLoggedIn => _user != null;
-  String get userRole => _user?.role ?? 'pemesan';
-  bool get isCustomer => userRole == 'pemesan';
+  String get userRole => _user?.role ?? 'customer';
+  bool get isCustomer => userRole == 'customer';
   bool get isRunner => userRole == 'runner';
 
   /// Try to restore session on app start
@@ -69,7 +69,15 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString().replaceAll('Exception: ', '');
+      String errorMessage = e.toString().replaceAll('Exception: ', '');
+      if (errorMessage.toLowerCase().contains('already registered') || errorMessage.toLowerCase().contains('already exists')) {
+        if (role == 'runner') {
+          errorMessage = 'Emel ini telah didaftarkan. Sila log masuk dan pergi ke Profil > Runner untuk memohon.';
+        } else {
+          errorMessage = 'Emel ini telah didaftarkan. Sila log masuk ke akaun anda.';
+        }
+      }
+      _error = errorMessage;
       _isLoading = false;
       notifyListeners();
       return false;
@@ -139,11 +147,11 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Switch user role between pemesan and runner
+  /// Switch user role between customer and runner
   Future<void> switchRole() async {
     if (_user == null) return;
 
-    final newRole = _user!.role == 'pemesan' ? 'runner' : 'pemesan';
+    final newRole = _user!.role == 'customer' ? 'runner' : 'customer';
 
     try {
       await AuthService.updateRole(_user!.id, newRole);

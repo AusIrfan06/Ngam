@@ -122,7 +122,7 @@ class AuthService {
         'name': authResponse.user!.userMetadata?['full_name'] ?? 'Google User',
         'email': authResponse.user!.email,
         'phone': '',
-        'role': 'pemesan', // Default role for OAuth
+        'role': 'customer', // Default role for OAuth
         'is_verified_runner': false,
         'created_at': DateTime.now().toIso8601String(),
         'avatar_url': authResponse.user!.userMetadata?['avatar_url'],

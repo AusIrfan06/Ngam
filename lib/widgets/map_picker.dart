@@ -133,8 +133,9 @@ class _MapPickerState extends State<MapPicker> {
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: FloatingActionButton.small(
                       heroTag: 'compass_btn',
-                      backgroundColor: Theme.of(context).cardColor,
-                      foregroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
                       onPressed: () {
                         _mapController.rotate(0);
                       },
@@ -147,11 +148,12 @@ class _MapPickerState extends State<MapPicker> {
                 // Current Location Button
                 FloatingActionButton.small(
                   heroTag: 'gps_btn',
-                  backgroundColor: Theme.of(context).cardColor,
-                  foregroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
                   onPressed: _fetchCurrentLocation,
                   child: _isLoadingLocation 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.my_location),
                 ),
               ],

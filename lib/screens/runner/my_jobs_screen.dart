@@ -14,6 +14,7 @@ import '../../services/gig_service.dart';
 import 'task_detail_screen.dart';
 import 'active_job_screen.dart';
 import '../customer/post_task_screen.dart';
+import '../../services/chat_service.dart';
 
 // ============================================================
 // Ngam App — My Jobs Screen (Runner)
@@ -830,7 +831,22 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                                  Padding(
                                    padding: const EdgeInsets.symmetric(horizontal: 12),
                                    child: Column(
-                                     children: _bookings!.map((booking) => Container(
+                                     children: _bookings!.map((booking) => InkWell(
+                                      onTap: () async {
+                                        final currentUser = context.read<AuthProvider>().user;
+                                        if (currentUser == null || booking.customerId == null) return;
+                                        final conversation = await ChatService.createOrGetConversation(currentUser.id, booking.customerId!);
+                                        if (context.mounted) {
+                                          Navigator.pushNamed(context, '/chat', arguments: {
+                                            'conversation': conversation,
+                                            'otherUserId': booking.customerId,
+                                            'otherUserName': booking.customerName,
+                                            'contextGig': widget.gig, 
+                                          });
+                                        }
+                                      },
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
                                        margin: const EdgeInsets.only(bottom: 8),
                                        padding: const EdgeInsets.all(12),
                                        decoration: BoxDecoration(
@@ -898,6 +914,7 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                                             ]
                                          ],
                                        ),
+                                     ),
                                      )).toList(),
                                    ),
                                  ),

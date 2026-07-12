@@ -31,7 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String _selectedRole = UserRole.pemesan;
+  String _selectedRole = UserRole.customer;
 
   // Runner Details
   final _icNumberController = TextEditingController();
@@ -281,9 +281,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                       child: _RoleButton(
                         label: 'auth.role_customer'.tr(),
                         icon: Icons.shopping_bag_outlined,
-                        isSelected: _selectedRole == UserRole.pemesan,
+                        isSelected: _selectedRole == UserRole.customer,
                         onTap: () {
-                          setState(() => _selectedRole = UserRole.pemesan);
+                          setState(() => _selectedRole = UserRole.customer);
                         },
                       ),
                     ),

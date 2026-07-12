@@ -229,10 +229,11 @@ class ChatService {
   }
 
   /// Send a message
-  static Future<void> sendMessage(MessageModel message, {String? contextGigId}) async {
+  static Future<MessageModel> sendMessage(MessageModel message, {String? contextGigId}) async {
     try {
-      // 1. Insert message
-      await _supabase.from('messages').insert(message.toSupabaseJson());
+      // 1. Insert message and get the real generated UUID
+      final response = await _supabase.from('messages').insert(message.toSupabaseJson()).select().single();
+      final actualMessage = MessageModel.fromJson(response);
 
       // 2. Update conversation
       if (contextGigId != null) {
@@ -251,9 +252,11 @@ class ChatService {
         }).eq('id', message.conversationId);
       }
       
-      // Update local status
-      final sentMsg = message.copyWith(status: 'sent');
+      // Update local status with the REAL ID so it doesn't duplicate on reload
+      final sentMsg = actualMessage.copyWith(status: 'sent');
       await LocalDatabaseService.instance.insertMessage(sentMsg);
+      
+      return actualMessage;
     } catch (e) {
       final failedMsg = message.copyWith(status: 'failed');
       await LocalDatabaseService.instance.insertMessage(failedMsg);
@@ -276,7 +279,7 @@ class ChatService {
   }
 
   /// Upload image and send an image message
-  static Future<void> sendImageMessage(MessageModel pendingMessage, File imageFile, {String? contextGigId}) async {
+  static Future<MessageModel> sendImageMessage(MessageModel pendingMessage, File imageFile, {String? contextGigId}) async {
     try {
       final fileExt = imageFile.path.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${pendingMessage.senderId}.$fileExt';
@@ -291,7 +294,8 @@ class ChatService {
         fileSize: imageFile.lengthSync(),
       );
 
-      await _supabase.from('messages').insert(newMsg.toSupabaseJson());
+      final response = await _supabase.from('messages').insert(newMsg.toSupabaseJson()).select().single();
+      final actualMessage = MessageModel.fromJson(response);
 
       if (contextGigId != null) {
         await _supabase.rpc('update_conversation_task_message', params: {
@@ -305,11 +309,14 @@ class ChatService {
           'last_message': '📷 Photo',
           'last_message_sender_id': pendingMessage.senderId,
           'last_message_is_read': false,
-          'updated_at': newMsg.createdAt.toUtc().toIso8601String(),
+          'updated_at': actualMessage.createdAt.toUtc().toIso8601String(),
         }).eq('id', pendingMessage.conversationId);
       }
       
-      await LocalDatabaseService.instance.insertMessage(newMsg.copyWith(status: 'sent'));
+      final sentMsg = actualMessage.copyWith(status: 'sent');
+      await LocalDatabaseService.instance.insertMessage(sentMsg);
+      
+      return actualMessage;
     } catch (e) {
       await LocalDatabaseService.instance.insertMessage(pendingMessage.copyWith(status: 'failed'));
       rethrow;
@@ -317,7 +324,7 @@ class ChatService {
   }
 
   /// Upload file and send a file message
-  static Future<void> sendFileMessage(MessageModel pendingMessage, File file, String fileName, {String? contextGigId}) async {
+  static Future<MessageModel> sendFileMessage(MessageModel pendingMessage, File file, String fileName, {String? contextGigId}) async {
     try {
       final filePath = '${pendingMessage.conversationId}/${DateTime.now().millisecondsSinceEpoch}_$fileName';
       
@@ -330,7 +337,8 @@ class ChatService {
         fileSize: file.lengthSync(),
       );
 
-      await _supabase.from('messages').insert(newMsg.toSupabaseJson());
+      final response = await _supabase.from('messages').insert(newMsg.toSupabaseJson()).select().single();
+      final actualMessage = MessageModel.fromJson(response);
 
       if (contextGigId != null) {
         await _supabase.rpc('update_conversation_task_message', params: {
@@ -344,11 +352,14 @@ class ChatService {
           'last_message': '📎 File',
           'last_message_sender_id': pendingMessage.senderId,
           'last_message_is_read': false,
-          'updated_at': newMsg.createdAt.toUtc().toIso8601String(),
+          'updated_at': actualMessage.createdAt.toUtc().toIso8601String(),
         }).eq('id', pendingMessage.conversationId);
       }
       
-      await LocalDatabaseService.instance.insertMessage(newMsg.copyWith(status: 'sent'));
+      final sentMsg = actualMessage.copyWith(status: 'sent');
+      await LocalDatabaseService.instance.insertMessage(sentMsg);
+      
+      return actualMessage;
     } catch (e) {
       await LocalDatabaseService.instance.insertMessage(pendingMessage.copyWith(status: 'failed'));
       rethrow;

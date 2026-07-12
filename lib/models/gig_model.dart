@@ -62,10 +62,17 @@ class GigModel {
       longitude: (json['longitude'] as num?)?.toDouble(),
       runnerLatitude: (json['runner_latitude'] as num?)?.toDouble(),
       runnerLongitude: (json['runner_longitude'] as num?)?.toDouble(),
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: _parseUtcDate(json['created_at'] as String),
       customerName: json['customer_name'] as String? ?? (json['customer'] != null ? json['customer']['name'] as String? : null),
       runnerName: json['runner_name'] as String? ?? (json['runner'] != null ? json['runner']['name'] as String? : null),
     );
+  }
+
+  static DateTime _parseUtcDate(String dateString) {
+    if (!dateString.endsWith('Z') && !dateString.contains('+') && !dateString.contains(RegExp(r'-[0-9]{2}:'))) {
+      dateString += 'Z';
+    }
+    return DateTime.parse(dateString).toLocal();
   }
 
   /// Convert to JSON for Supabase insert
@@ -147,7 +154,7 @@ class GigModel {
   /// Short time ago string
   String get timeAgo {
     final diff = DateTime.now().difference(createdAt);
-    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.isNegative || diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     return '${diff.inDays}d ago';

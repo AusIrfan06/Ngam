@@ -7,7 +7,7 @@ class UserModel {
   final String name;
   final String email;
   final String phone;
-  final String role; // 'pemesan' or 'runner'
+  final String role; // 'customer' or 'runner'
   final bool isVerifiedRunner;
   final String? avatarUrl;
   final String? bio;
@@ -40,7 +40,7 @@ class UserModel {
       name: json['name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
-      role: json['role'] as String? ?? 'pemesan',
+      role: json['role'] as String? ?? 'customer',
       isVerifiedRunner: json['is_verified_runner'] as bool? ?? false,
       avatarUrl: json['avatar_url'] as String?,
       bio: json['bio'] as String?,
