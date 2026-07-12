@@ -145,7 +145,7 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
     } else if (widget.gigOverride != null) {
       unread = c.taskUnreadCounts?[widget.gigOverride!.id] ?? 0;
     } else {
-      // General chat unread logic: total unread minus sum of specific task unreads
+      // Logik mesej tak baca: Total semua tolak dengan yang dalam task-task spesifik
       int specificUnreadSum = 0;
       if (c.taskUnreadCounts != null) {
         specificUnreadSum = c.taskUnreadCounts!.values.fold(0, (sum, val) => sum + val);
@@ -187,7 +187,7 @@ class _ConversationSubTileState extends State<ConversationSubTile> {
                 ),
               ),
             ] else ...[
-               // Placeholder for alignment if no status icon
+               // Ruang kosong nak bagi seimbang kalau takde ikon status
                const SizedBox(width: 46),
             ],
             Expanded(

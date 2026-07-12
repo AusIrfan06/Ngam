@@ -41,7 +41,7 @@ class LocalDatabaseService {
     const idType = 'TEXT PRIMARY KEY';
     const textType = 'TEXT NOT NULL';
     const textNullType = 'TEXT';
-    const boolType = 'INTEGER NOT NULL'; // SQLite doesn't have a separate Boolean storage class.
+    const boolType = 'INTEGER NOT NULL'; // SQLite memang tak ada storage class khas untuk Boolean.
     const integerType = 'INTEGER NOT NULL';
     const integerNullType = 'INTEGER';
 
@@ -79,7 +79,7 @@ CREATE TABLE conversations (
 ''');
   }
 
-  // Messages Operations
+  // Urusan Mesej
   Future<void> insertMessage(MessageModel message) async {
     final db = await instance.database;
     final json = message.toJson();
@@ -155,7 +155,7 @@ CREATE TABLE conversations (
     );
   }
 
-  // Conversations Operations
+  // Urusan Chat/Perbualan
   Future<void> insertConversation(ConversationModel conversation) async {
     final db = await instance.database;
     final json = conversation.toJson();

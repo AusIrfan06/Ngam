@@ -32,7 +32,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
   @override
   void initState() {
     super.initState();
-    // Force a rebuild after the first frame to fix the GlassContainer shader glitch
+    // Paksa render balik (rebuild) lepas frame pertama nak elak masalah shader GlassContainer bersepah
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() {});
@@ -46,10 +46,10 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
     final bool isKeyboardOpen = keyboardHeight > 100;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 🟢 1. GET THE DEVICE'S BOTTOM SAFE AREA
+    // 🟢 1. CHECK BERAPA PANJANG SCREEN BAWAH (SAFE AREA) PHONE NI
     final double safeBottom = MediaQuery.paddingOf(context).bottom;
 
-    // 🟢 2. CALCULATE DYNAMIC PADDING
+    // 🟢 2. KIRA PADDING DIA SECARA DINAMIK
     final double adjustedBottomPadding = safeBottom > 0 ? safeBottom + 0 : 20;
 
     const Duration animDuration = Duration(milliseconds: 450);
@@ -70,7 +70,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                   shape: LiquidRoundedSuperellipse(borderRadius: 50.0),
                   settings: LiquidGlassSettings(
                     thickness: 0.1,
-                    blur: 2.0, // Crystal clear look
+                    blur: 2.0, // Kasi rupa jernih gila
                     refractiveIndex: 1.0,
                     glassColor: Colors.transparent,
                     lightAngle: 45.0,
@@ -110,7 +110,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                           height: 48,
                           child: Stack(
                             children: [
-                              // 1. SLIDING PILL
+                              // 1. PILL YANG BOLEH SLIDE
                               AnimatedPositioned(
                                 duration: animDuration,
                                 curve: animCurve,
@@ -137,7 +137,7 @@ class _CustomBottomNavState extends State<CustomBottomNav> {
                                 ),
                               ),
 
-                              // 2. ICONS
+                              // 2. ICON-ICON KITA
                               Row(
                                 children: List.generate(widget.items.length, (i) {
                                   final isSelected = widget.currentIndex == i;

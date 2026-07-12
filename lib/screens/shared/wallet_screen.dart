@@ -72,7 +72,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     "Citibank Malaysia", "GXBank", "AEON Bank", "Boost Bank"
   ];
 
-  // Transactions Data
+  // Data Transaksi
   List<Map<String, dynamic>> _transactions = [];
 
   Future<void> _loadTransactions() async {
@@ -180,7 +180,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
       ),
       body: Stack(
         children: [
-          // Background Gradient Orbs
+          // Orbs Bercahaya kat Background
           Positioned(top: 50, left: -100, child: Container(width: 300, height: 300, decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [AppTheme.primary.withValues(alpha: 0.3), Colors.transparent])))),
           Positioned(top: 250, right: -150, child: Container(width: 350, height: 350, decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [AppTheme.accent.withValues(alpha: 0.2), Colors.transparent])))),
           
@@ -195,7 +195,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                 final authProvider = context.watch<AuthProvider>();
                 final realBalance = authProvider.user?.balance ?? 0.0;
                 
-                // Virtual list: Ngam Pay is always index 0
+                // Virtual list: Ngam Pay sentiasa duk kat index 0 (paling atas)
                 final virtualCards = [ {"id": "ngam_pay", "type": "wallet", "name": "Ngam Pay", "balance": realBalance}, ...savedCards, ...bankMethods, ...duitnowMethods ];
                 
                 final cardWidth = MediaQuery.of(context).size.width - 32;
@@ -210,7 +210,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                 final isNgamPayActive = currentMethod["id"] == "ngam_pay";
 
                 final safeHeight = MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom;
-                final contentHeight = 20 + stackHeight + (virtualCards.length > 1 ? 44 : 24) + 60 + 70; // top padding + stack + hint + buttons + larger gap
+                final contentHeight = 20 + stackHeight + (virtualCards.length > 1 ? 44 : 24) + 60 + 70; // padding atas + stack + hint + butang-butang + gap kasi besar
                 final drawerSize = (1.0 - (contentHeight / safeHeight)).clamp(0.2, 0.85);
 
                 return Stack(
@@ -218,7 +218,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                     Column(
                       children: [
                         const SizedBox(height: 20),
-                        // CARD STACK
+                        // TIMBUNAN KAD (STACK)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 0),
                           child: _buildCardStack(virtualCards, isDark, cardHeight, stackHeight, cardWidth),
@@ -239,7 +239,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                           const SizedBox(height: 24),
                         ],
                         
-                        // DYNAMIC ACTION BUTTONS
+                        // BUTANG ACTION DINAMIK
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
                           child: isNgamPayActive 
@@ -249,7 +249,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                       ],
                     ),
 
-                    // DRAGGABLE TRANSACTIONS DRAWER
+                    // LACI TRANSAKSI BOLEH DRAG
                     DraggableScrollableSheet(
                       initialChildSize: drawerSize,
                       minChildSize: drawerSize,
@@ -270,7 +270,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   }
 
   // ==========================================
-  // CARD STACK RENDERER
+  // TUKANG RENDER TIMBUNAN KAD
   // ==========================================
   Widget _buildCardStack(List<Map<String, dynamic>> cardMethods, bool isDark, double cardHeight, double stackHeight, double cardWidth) {
     int safeIndex = _frontCardIndex % cardMethods.length;
@@ -417,7 +417,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     if (method["name"] == "MASTERCARD") {
       cardColors = [const Color(0xFF141E30), const Color(0xFF243B55)];
     } else if (method["name"] == "AMEX") cardColors = [const Color(0xFF004D40), const Color(0xFF00838F)];
-    else cardColors = [const Color(0xFF1A1F3B), const Color(0xFF2B3A67)]; // Visa Default
+    else cardColors = [const Color(0xFF1A1F3B), const Color(0xFF2B3A67)]; // Default untuk Visa
 
     return Container(
       height: cardHeight,
@@ -432,7 +432,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
       ),
       child: Stack(
         children: [
-          // 1. The Glossy Plastic Overlay
+          // 1. Layer plastik yang berkilat
           Container(
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24.0),
@@ -442,19 +442,19 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                   )
               )
           ),
-          // 2. The Subtle Globe Watermark
+          // 2. Bayang-bayang watermark bumi
           Positioned(
             right: -20, bottom: -20,
             child: Icon(Icons.public, size: 160, color: Colors.white.withValues(alpha: 0.04)),
           ),
 
-          // 3. The Card Content
+          // 3. Isi kandungan kad tu
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // TOP: Name & Primary Tag
+                // BAHAGIAN ATAS: Nama dengan Primary Tag
                 Align(
                   alignment: Alignment.topCenter,
                   child: Row(
@@ -478,7 +478,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
 
                 const Spacer(),
 
-                // MIDDLE: Chip & Contactless
+                // TENGAH: Cip dengan simbol Contactless
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -490,14 +490,14 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
 
                 const Spacer(),
 
-                // BOTTOM ROW 1: Embossed Number (12 Stars + 4 Digits)
+                // BARIS BAWAH 1: Nombor timbul (12 bintang + 4 nombor hujung)
                 Text(
                     "**** **** **** ${method["last4"] ?? "0000"}",
                     style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 3.0, shadows: [Shadow(color: Colors.black45, offset: Offset(1, 1), blurRadius: 2)])
                 ),
                 const SizedBox(height: 8),
 
-                // BOTTOM ROW 2: Details & Logo
+                // BARIS BAWAH 2: Segala info dengan logo
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -657,7 +657,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   }
 
   // ==========================================
-  // DYNAMIC CONTENTS
+  // KANDUNGAN DINAMIK
   // ==========================================
   Future<double?> _showAmountDialog(BuildContext context, String title, String action, {bool isWithdrawal = false, List<Map<String, dynamic>>? cards}) async {
     final TextEditingController controller = TextEditingController();
@@ -882,14 +882,14 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                 }
 
                 try {
-                  // Attempt withdrawal RPC if it exists, otherwise fallback to local/dummy update for demo
+                  // Try panggil RPC withdrawal kalau wujud, kalau takde kita update dummy je untuk demo
                   try {
                     await SupabaseService.client.rpc('withdraw_wallet', params: {
                       'p_user_id': authProvider.user!.id,
                       'p_amount': amount,
                     });
                   } catch (e) {
-                    // Fallback simulation if withdraw_wallet RPC is not created yet
+                    // Lakonan (simulation) kalau RPC withdraw_wallet takde lagi kat DB
                     final newBalance = currentBalance - amount;
                     await SupabaseService.client.from('users').update({'balance': newBalance}).eq('id', authProvider.user!.id);
                     await SupabaseService.client.from('transactions').insert({
@@ -948,7 +948,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               onTap: () async {
                 await PaymentService.deletePaymentMethod(method["id"]);
                 await _loadMethods();
-                setState(() => _frontCardIndex = 0); // Return to Ngam Pay
+                setState(() => _frontCardIndex = 0); // Kembali semula ke Ngam Pay
               },
             ),
           ),
@@ -988,7 +988,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               Text("wallet.recent_transactions".tr(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
               const SizedBox(height: 16),
               ..._transactions.map((t) => _buildTransactionItem(t, isDark)),
-              const SizedBox(height: 100), // padding for FAB
+              const SizedBox(height: 100), // Kasi ruang (padding) sikit untuk butang FAB
             ],
           ),
         ),
@@ -1110,7 +1110,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                 _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedCreditCard, title: "Credit / Debit Card", subtitle: "Visa, Mastercard, Amex", color: Colors.blue, onTap: () { Navigator.pop(dialogContext); _showAddCardSheet(context, isDark); }),
                 const SizedBox(height: 8),
                 _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedBank, title: "Link Bank Account", subtitle: "For quick payments & refunds", color: Colors.green, onTap: () { Navigator.pop(dialogContext); _showAddBankSheet(context, isDark); }),
-                // DuitNow QR — Runner only
+                // DuitNow QR — Hanya untuk runner je
                 if (context.read<AuthProvider>().isRunner) ...[  
                   const SizedBox(height: 8),
                   _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedQrCode, title: "DuitNow QR", subtitle: "Upload your QR code for customers to pay", color: const Color(0xFF00A86B), onTap: () { Navigator.pop(dialogContext); _showAddDuitNowSheet(context, isDark); }),
@@ -1415,10 +1415,10 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                           ),
                           const SizedBox(height: 20),
 
-                          // Name label removed because DuitNow QR includes the name in the image.
+                          // Label nama dibuang sebab QR DuitNow tu sendiri dah ada nama kat gambar.
 
 
-                          // QR Upload area
+                          // Kawasan upload QR
                           Text("YOUR QR CODE".toUpperCase(), style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                           const SizedBox(height: 8),
                           GestureDetector(
@@ -1459,7 +1459,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                             ),
                           ),
 
-                          // Info box
+                          // Kotak info
                           const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(12),
@@ -1483,7 +1483,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                           ),
                           const SizedBox(height: 20),
 
-                          // Save button
+                          // Butang Save
                           _AnimatedPressable(
                             onTap: () async {
                               if (pickedQr == null) {

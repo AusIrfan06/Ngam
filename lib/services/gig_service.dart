@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:uuid/uuid.dart';
 import '../models/gig_model.dart';
 import '../models/status_log_model.dart';
@@ -5,15 +6,15 @@ import '../utils/constants.dart';
 import 'supabase_service.dart';
 
 // ============================================================
-// Ngam App — Gig Service
-// Tempat uruskan semua data gig (tambah, baca, update, buang) + sistem lock status secara live
+// Ngam App — Servis Gig
+// Tempat urus gig (tambah, baca, update, delete) + lock sistem secara live mantap
 // ============================================================
 
 class GigService {
   static final _client = SupabaseService.client;
   static const _uuid = Uuid();
 
-  // ─── CREATE ────────────────────────────────────────────────
+  // ─── BUAT GIG BARU ─────────────────────────────────────────
 
   /// Buat task baru (Bila customer nak post gig)
   static Future<GigModel> createGig({
@@ -57,8 +58,8 @@ class GigService {
     };
 
     if (status != GigStatus.service) {
-      // Guna RPC supaya payment terus kena tolak bila customer create gig
-      final response = await _client.rpc('create_gig_with_payment', params: {
+      // Pakai RPC supaya duit customer terus kena tolak sebaik je gig dibuat
+      await _client.rpc('create_gig_with_payment', params: {
         'p_id': gigId,
         'p_customer_id': customerId,
         'p_gig_worker_id': gigWorkerId,
@@ -74,7 +75,7 @@ class GigService {
       });
       // Kita assume response['success'] == true, kalau tak dia automatik throw error
     } else {
-      // Bila runner post service (takde kena bayar apa-apa)
+      // Bila runner up servis dia (tak payah bayar apa-apa pun)
       await _client.from(DbTable.gigs).insert(dbPayload);
       await _logStatus(gigId, status ?? GigStatus.open);
     }
@@ -82,7 +83,7 @@ class GigService {
     return GigModel.fromJson(gigDataForModel);
   }
 
-  // ─── READ ──────────────────────────────────────────────────
+  // ─── BACA DATA ─────────────────────────────────────────────
 
   /// Ambil senarai gig yang masih open (untuk runner cari job)
   static Future<List<GigModel>> fetchOpenGigs({String? category}) async {
@@ -113,6 +114,11 @@ class GigService {
         .from(DbTable.gigs)
         .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
         .eq('status', GigStatus.service);
+
+    final currentUserId = _client.auth.currentUser?.id;
+    if (currentUserId != null) {
+      query = query.neq('gig_worker_id', currentUserId);
+    }
 
     if (category != null && category.isNotEmpty && category != 'All') {
       query = query.eq('category', category);
@@ -147,7 +153,7 @@ class GigService {
 
     return (response as List)
         .map((json) => GigModel.fromJson(json))
-        .where((gig) => gig.serviceId == null) // Filter booking servis sebab taknak tunjuk sekali dengan task biasa
+        .where((gig) => gig.serviceId == null) // Filter keluar booking servis sebab malas nak campur dengan task biasa
         .toList();
   }
 
@@ -193,7 +199,7 @@ class GigService {
       createdAt: DateTime.now(),
     );
 
-    // Pakai RPC untuk potong balance customer masa booking
+    // Pakai RPC untuk potong duit dompet customer bila buat booking
     await _client.rpc('create_gig_with_payment', params: {
         'p_id': gig.id,
         'p_customer_id': customerId,
@@ -257,9 +263,45 @@ class GigService {
   // ─── TUKAR STATUS (Sistem Lock Task) ───────────────────────
 
   /// Bila runner accept gig — terus trigger "Sistem Lock"
+  /// Tukar status jadi LOCKED  /// Update status gig serentak
+  static Future<void> updateGigStatus(String gigId, String newStatus, {String? gigWorkerId}) async {
+    final updates = <String, dynamic>{
+      'status': newStatus,
+    };
+    if (gigWorkerId != null) {
+      updates['gig_worker_id'] = gigWorkerId;
+    }
+
+    await _client.from(DbTable.gigs).update(updates).eq('id', gigId);
+  }
+
+  /// Upload proof of delivery image
+  static Future<String?> uploadProofImage(String gigId, File imageFile) async {
+    try {
+      final String path = '$gigId/proof_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      await _client.storage
+          .from('proofs')
+          .upload(path, imageFile);
+
+      final String publicUrl = _client.storage
+          .from('proofs')
+          .getPublicUrl(path);
+
+      await _client.from(DbTable.gigs).update({
+        'proof_image_url': publicUrl,
+      }).eq('id', gigId);
+
+      return publicUrl;
+    } catch (e) {
+      print('Error uploading proof: $e');
+      return null;
+    }
+  }
+
+  /// Bila runner accept gig — terus trigger "Sistem Lock"
   /// Tukar status jadi LOCKED dan assign kat runner ni
   static Future<void> acceptGig(String gigId, String runnerId) async {
-    // Update status gig serentak
+    // Update status gig tu serentak puf!
     await _client
         .from(DbTable.gigs)
         .update({
@@ -267,7 +309,7 @@ class GigService {
           'status': GigStatus.locked,
         })
         .eq('id', gigId)
-        .eq('status', GigStatus.open) // Boleh lock kalau status dia memang still OPEN je
+        .eq('status', GigStatus.open) // Hanya boleh lock task yang masih 'OPEN' je
         .select()
         .single();
 
@@ -283,7 +325,7 @@ class GigService {
         })
         .eq('id', gigId)
         .eq('status', GigStatus.pending)
-        .eq('gig_worker_id', runnerId) // Check betul ke tak runner ni
+        .eq('gig_worker_id', runnerId) // Check balik, betul ke runner ni yang amik?
         .select()
         .single();
 
@@ -299,7 +341,7 @@ class GigService {
         })
         .eq('id', gigId)
         .eq('status', GigStatus.pending)
-        .eq('gig_worker_id', runnerId) // Check betul ke tak runner ni
+        .eq('gig_worker_id', runnerId) // Check balik, betul ke runner ni yang amik?
         .select()
         .single();
 
@@ -334,7 +376,7 @@ class GigService {
     });
   }
 
-  /// Cancel gig (customer yang buat) - Duit akan refund balik
+  /// Batal gig (customer yang buat) - Duit akan refund balik
   static Future<void> cancelGigAndRefund(String gigId, String customerId) async {
     await _client.rpc('cancel_gig_and_refund', params: {
       'p_gig_id': gigId,
@@ -342,7 +384,7 @@ class GigService {
     });
   }
 
-  /// Cancel gig (takde refund, contoh runner nak buang servis dia)
+  /// Batal gig (takde refund, contoh runner nak buang servis dia)
   static Future<void> cancelGig(String gigId) async {
     await _client
         .from(DbTable.gigs)
@@ -355,7 +397,7 @@ class GigService {
     await _logStatus(gigId, GigStatus.cancelled);
   }
 
-  // ─── TASK MANAGEMENT ─────────────────────────────────────────
+  // ─── PENGURUSAN TASK ──────────────────────────────────────
 
   /// Ubah harga upah gig ni
   static Future<void> updateBounty(String gigId, double newAmount) async {
@@ -394,7 +436,7 @@ class GigService {
     return newStatus;
   }
 
-  // ─── REAL-TIME STREAMS ─────────────────────────────────────
+  // ─── DATA REAL-TIME ────────────────────────────────────────
 
   /// Langgan perubahan live untuk satu gig ni je
   static Stream<GigModel> subscribeToGig(String gigId) {
@@ -407,24 +449,26 @@ class GigService {
 
   /// Langgan semua gig open (untuk feed runner yang sentiasa update)
   static Stream<List<GigModel>> subscribeToOpenGigs() {
+    final currentUserId = _client.auth.currentUser?.id;
     return _client
         .from(DbTable.gigs)
         .stream(primaryKey: ['id'])
         .map((list) => list
             .map((json) => GigModel.fromJson(json))
-            .where((gig) => gig.status == GigStatus.open)
+            .where((gig) => gig.status == GigStatus.open && gig.customerId != currentUserId)
             .toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
   }
 
   /// Langgan semua servis runner (untuk feed customer)
   static Stream<List<GigModel>> subscribeToServices() {
+    final currentUserId = _client.auth.currentUser?.id;
     return _client
         .from(DbTable.gigs)
         .stream(primaryKey: ['id'])
         .map((list) => list
             .map((json) => GigModel.fromJson(json))
-            .where((gig) => gig.status == GigStatus.service)
+            .where((gig) => gig.status == GigStatus.service && gig.gigWorkerId != currentUserId)
             .toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
   }
@@ -436,7 +480,7 @@ class GigService {
     }).eq('id', gigId);
   }
 
-  // ─── STATE LOGGING ───────────────────────────────────────────
+  // ─── LOGGING STATUS ────────────────────────────────────────
 
   /// Tengok rekod perubahan status gig (untuk trace balik)
   static Future<List<StatusLogModel>> fetchStatusLogs(String gigId) async {
@@ -461,7 +505,7 @@ class GigService {
     });
   }
 
-  // ─── STATS ─────────────────────────────────────────────────
+  // ─── STATISTIK ─────────────────────────────────────────────
 
   /// Kira berapa task runner ni dah siapkan
   static Future<int> getCompletedCount(String runnerId) async {

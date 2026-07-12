@@ -36,12 +36,12 @@ class LocationService {
 
   /// Start tracking and broadcasting location for a specific gig
   Future<void> startTracking(String gigId, String runnerId) async {
-    // If already tracking this gig, do nothing
+    // Kalau memang dah track gig ni, biar je la (do nothing)
     if (_currentTrackingGigId == gigId && _positionStreamSubscription != null) {
       return;
     }
     
-    // Stop any existing tracking first
+    // Stop tracking yang lama tu dulu
     await stopTracking();
 
     final hasPermission = await requestPermission();
@@ -49,18 +49,18 @@ class LocationService {
 
     _currentTrackingGigId = gigId;
 
-    // Join the gig's location broadcast channel
+    // Join channel broadcast location untuk gig ni
     _locationChannel = _supabase.channel('public:gig_location:$gigId');
     _locationChannel!.subscribe((status, [error]) {
       if (status == RealtimeSubscribeStatus.subscribed) {
-        // Ready to broadcast
+        // Ready nak broadcast data
       }
     });
 
-    // Start location stream
+    // Mula hantar stream lokasi
     final locationSettings = const LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 10, // Only send if moved by 10 meters
+      distanceFilter: 10, // Hantar location baru KALAU user gerak at least 10 meter je
     );
 
     _positionStreamSubscription = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
@@ -77,7 +77,7 @@ class LocationService {
               },
             );
           } catch (e) {
-            // Ignore channel errors if any
+            // Buat tak tahu je kat error channel kalau ada
           }
         }
       },

@@ -215,7 +215,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ─── Profile Picture Upload ───
+                    // ─── Upload Gambar Profil ───
                     Center(
                       child: GestureDetector(
                         onTap: _isUploadingAvatar ? null : _pickAndUploadImage,

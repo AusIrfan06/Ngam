@@ -43,10 +43,10 @@ class ChatService {
   static Stream<List<ConversationModel>> getConversationsStream(String currentUserId, {required bool isRunner}) async* {
     final localDb = LocalDatabaseService.instance;
 
-    // Yield local data instantly
+    // Kasi keluar data local on-the-spot
     final localConversations = await localDb.getConversations();
     if (localConversations.isNotEmpty) {
-      // For local conversations, populate with cached users
+      // Untuk chat local, kita penuhkan terus dengan user yang dah di-cache
       List<ConversationModel> populatedLocal = [];
       for (var conv in localConversations) {
         if (conv.gigId != null) {
@@ -56,7 +56,7 @@ class ChatService {
              if (isRunner && isCustomerInGig) continue;
              if (!isRunner && !isCustomerInGig) continue;
            } else {
-             // Skip if we don't have gig cache to avoid flickering wrong role chats
+             // Lompat/skip kalau takde gig cache untuk elak chat role salah berkelip-kelip
              continue;
            }
         }
@@ -68,7 +68,7 @@ class ChatService {
       yield populatedLocal;
     }
 
-    // Stream network data
+    // Tarik data network berterusan (Stream)
     yield* _supabase
         .from('conversations')
         .stream(primaryKey: ['id'])
@@ -98,7 +98,7 @@ class ChatService {
              conversations.add(conv.copyWith(otherUser: otherUser));
           }
           
-          // Cache to SQLite
+          // Save dalam SQLite (Cache)
           await localDb.insertConversations(conversations);
           return conversations;
         });
@@ -119,7 +119,7 @@ class ChatService {
       await localDb.insertMessages(networkMessages);
       return networkMessages;
     } catch (e) {
-      // Fallback to offline cache
+      // Pakai cache offline kalau network putus
       return await localDb.getMessages(conversationId, limit: limit, offset: offset);
     }
   }
@@ -157,13 +157,13 @@ class ChatService {
       .subscribe();
   }
 
-  // --- Presence ---
+  // --- Kehadiran / Presence ---
   static RealtimeChannel? _presenceChannel;
   static final ValueNotifier<Set<String>> onlineUsers = ValueNotifier({});
 
   /// Joins the global presence channel to mark the current user as online.
   static void trackPresence(String userId) {
-    if (_presenceChannel != null) return; // Already tracking
+    if (_presenceChannel != null) return; // Memang dah tengah track pun
     
     _presenceChannel = _supabase.channel('online_presence');
     _presenceChannel!
@@ -231,11 +231,11 @@ class ChatService {
   /// Send a message
   static Future<MessageModel> sendMessage(MessageModel message, {String? contextGigId}) async {
     try {
-      // 1. Insert message and get the real generated UUID
+      // 1. Sumbat mesej baru masuk DB pastu ambil UUID betul dia
       final response = await _supabase.from('messages').insert(message.toSupabaseJson()).select().single();
       final actualMessage = MessageModel.fromJson(response);
 
-      // 2. Update conversation
+      // 2. Update table perbualan
       if (contextGigId != null) {
         await _supabase.rpc('update_conversation_task_message', params: {
           'p_conversation_id': message.conversationId,
@@ -252,7 +252,7 @@ class ChatService {
         }).eq('id', message.conversationId);
       }
       
-      // Update local status with the REAL ID so it doesn't duplicate on reload
+      // Update local dengan REAL ID supaya tak ter-duplicate bila reload nanti
       final sentMsg = actualMessage.copyWith(status: 'sent');
       await LocalDatabaseService.instance.insertMessage(sentMsg);
       
@@ -384,7 +384,7 @@ class ChatService {
           'task_unread_counts': counts,
         };
         
-        // Only mark global last message as read if it was actually sent by them
+        // Mark chat tu read HANYA kalau mesej tu memang dihantar oleh pihak sana
         if (counts.isEmpty && response['last_message_sender_id'] == otherUserId) {
           updatePayload['last_message_is_read'] = true;
         }
@@ -393,7 +393,7 @@ class ChatService {
             .update(updatePayload)
             .eq('id', conversationId);
             
-        // Update local DB instantly
+        // Update database local terus
         final conv = ConversationModel.fromJson({
           ...response,
           ...updatePayload,
@@ -437,7 +437,7 @@ class ChatService {
         await _supabase.storage.from('chat_images').remove(filePaths);
       }
     } catch (e) {
-      // Safely ignore if the folder is already empty or doesn't exist
+      // Ignore je diam-diam kalau folder tu kosong atau tak wujud
     }
 
     await _supabase.from('messages').delete().eq('conversation_id', conversationId);

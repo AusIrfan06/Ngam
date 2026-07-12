@@ -1,8 +1,8 @@
 import 'constants.dart';
 
 // ============================================================
-// Ngam App — Algorithmic Bounty Matrix
-// Enforces minimum task payouts based on category complexity
+// Ngam App — Sistem Algoritma Bounty
+// Make sure upah/bounty minimum ikut tahap susah kategori task tu
 // ============================================================
 
 class BountyCalculator {

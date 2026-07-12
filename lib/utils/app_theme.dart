@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // ─── Brand Colors ──────────────────────────────────────────
+  // ─── Warna Utama Brand Kita ────────────────────────────────
   static const Color primary = Color(0xFF2196F3);     
   static const Color primaryDark = Color(0xFF1976D2);   
   static const Color secondary = Color(0xFF1E293B);     
@@ -12,7 +12,7 @@ class AppTheme {
   static const Color error = Color(0xFFE74C3C);
   static const Color info = Color(0xFF3498DB);
 
-  // ─── Light Theme ───────────────────────────────────────────
+  // ─── Tema Cerah (Light Mode) ───────────────────────────────
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -115,7 +115,7 @@ class AppTheme {
     ),
   );
 
-  // ─── Dark Theme ────────────────────────────────────────────
+  // ─── Tema Gelap (Dark Mode) ────────────────────────────────
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,

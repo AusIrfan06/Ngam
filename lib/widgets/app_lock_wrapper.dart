@@ -43,7 +43,7 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
         final timeoutMinutes = SecurityData.appLockTimeout.value;
         final elapsed = DateTime.now().difference(_pausedTime!).inMinutes;
 
-        _pausedTime = null; // Clear immediately to prevent loops
+        _pausedTime = null; // Clear cepat-cepat supaya dia tak loop berkali-kali
 
         if (elapsed >= timeoutMinutes) {
           setState(() {
@@ -78,7 +78,7 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
           });
         }
       } else {
-        // If device has no biometrics, we fallback to unlocking for now.
+        // Kalau phone tu takde fingerprint/face id, kita lepaskan je buat masa ni.
         setState(() {
           _isLocked = false;
         });

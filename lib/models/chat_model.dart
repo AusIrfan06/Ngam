@@ -13,7 +13,7 @@ class ConversationModel {
   final Map<String, dynamic>? taskLastMessages;
   final Map<String, int>? taskUnreadCounts;
 
-  // Joined user details (e.g. the other person in the chat)
+  // Details user yang kena join (contohnya orang yang kita chat tu)
   final UserModel? otherUser;
   final int unreadCount;
 
@@ -35,14 +35,14 @@ class ConversationModel {
   factory ConversationModel.fromJson(Map<String, dynamic> json, String currentUserId) {
     UserModel? otherUserParsed;
     
-    // In Supabase, we usually join the users table.
-    // The new query uses 'user1' and 'user2' foreign key aliases.
+    // Selalunya kita akan join table users kat Supabase.
+    // Query baru ni pakai alias foreign key 'user1' dengan 'user2'.
     if (json['user1'] != null && json['user1']['id'] != currentUserId) {
       otherUserParsed = UserModel.fromJson(json['user1']);
     } else if (json['user2'] != null && json['user2']['id'] != currentUserId) {
       otherUserParsed = UserModel.fromJson(json['user2']);
     } else if (json['users'] != null) {
-      // Fallback for older format if needed
+      // Guna cara lama kalau perlu (fallback)
       if (json['users'] is List) {
         for (var u in json['users']) {
           if (u['id'] != currentUserId) {
@@ -100,9 +100,9 @@ class ConversationModel {
     } else if (difference.inDays == 1) {
       return 'Yesterday';
     } else if (difference.inDays < 7) {
-      return DateFormat('EEEE').format(updatedAt); // e.g., Monday
+      return DateFormat('EEEE').format(updatedAt); // contoh, Isnin
     } else {
-      return DateFormat('MMM d').format(updatedAt); // e.g., Oct 12
+      return DateFormat('MMM d').format(updatedAt); // contoh, 12 Okt
     }
   }
 
@@ -146,15 +146,15 @@ class MessageModel {
   final bool isRead;
   final DateTime createdAt;
   
-  // New robust file handling fields
+  // Field baru untuk handle file dengan lebih ngam
   final String messageType; 
   final String? fileName;
   final int? fileSize;
   
-  // Local state field ('sending', 'sent', 'failed')
+  // State untuk local je ('sending', 'sent', 'failed')
   final String status;
   
-  // Reply reference
+  // Reference untuk reply
   final Map<String, dynamic>? replyToMessage;
 
   MessageModel({

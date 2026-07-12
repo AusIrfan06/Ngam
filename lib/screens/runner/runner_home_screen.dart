@@ -122,7 +122,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   final Set<String> _expandedCategories = {};
   List<Map<String, dynamic>> _searchMatchedCategories = [];
   List<Map<String, dynamic>> _searchMatchedGigs = [];
-  // AI panel state
+  // State untuk AI panel
   bool _isAIPanelOpen = false;
   final List<Map<String, dynamic>> _aiChatHistory = [];
   bool _aiIsTyping = false;
@@ -225,7 +225,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       );
       return distanceA.compareTo(distanceB);
     });
-    // Filter by search radius
+    // Filter ikut radius pencarian
     final withinRadius = available.where((g) {
       double distM = Geolocator.distanceBetween(
         _currentLocation.latitude, _currentLocation.longitude,
@@ -251,7 +251,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     final gigProvider = context.read<GigProvider>();
     
     gigProvider.addListener(_filterGigsByRadius);
-    _filterGigsByRadius(); // Trigger immediately to sync jobs already loaded
+    _filterGigsByRadius(); // Jalankan terus untuk sync task yang dah sedia ada
   }
   void _onSearchFocusChanged() {
     if (_searchFocus.hasFocus && mounted) {
@@ -280,7 +280,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     final latTween = Tween<double>(begin: _mapController.camera.center.latitude, end: destLocation.latitude);
     final lngTween = Tween<double>(begin: _mapController.camera.center.longitude, end: destLocation.longitude);
     final zoomTween = Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
-    _mapAnimationController?.dispose(); // Clear previous
+    _mapAnimationController?.dispose(); // Buang data lama
     _mapAnimationController = AnimationController(duration: const Duration(milliseconds: 1000), vsync: this);
     Animation<double> animation = CurvedAnimation(parent: _mapAnimationController!, curve: Curves.fastOutSlowIn);
     _mapAnimationController!.addListener(() {
@@ -490,7 +490,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       Position initialPos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 4));
       if (mounted) {
         setState(() => _currentLocation = LatLng(initialPos.latitude, initialPos.longitude));
-        _filterGigsByRadius(); // Update gigs relative to actual location!
+        _filterGigsByRadius(); // Update gig ikut lokasi sebenar kita!
         SharedPreferences.getInstance().then((prefs) {
           prefs.setDouble('cached_lat', initialPos.latitude);
           prefs.setDouble('cached_lng', initialPos.longitude);
@@ -506,7 +506,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     _positionStream = Geolocator.getPositionStream(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10)).listen((Position pos) {
       if (!mounted) return;
       setState(() => _currentLocation = LatLng(pos.latitude, pos.longitude));
-      _filterGigsByRadius(); // Keep gigs synced as user moves
+      _filterGigsByRadius(); // Make sure gig sentiasa sync bila user gerak
       SharedPreferences.getInstance().then((prefs) {
         prefs.setDouble('cached_lat', pos.latitude);
         prefs.setDouble('cached_lng', pos.longitude);
@@ -535,13 +535,13 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     List<GigModel> results = [];
 
     if (q.isNotEmpty) {
-      // Match by title or category across ALL open gigs
+      // Cari match ikut title atau kategori dari SEMUA gig yang open
       for (var gig in allOpenGigs) {
         if (gig.title.toLowerCase().contains(q) || gig.category.toLowerCase().contains(q)) {
           results.add(gig);
         }
       }
-      // Also try category tree match
+      // Try check category tree sekali
       if (results.isEmpty) {
         for (var group in _getCategoryTree(context)) {
           for (var sub in group['sub']) {
@@ -555,7 +555,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     } else {
       results = List.from(_nearbyGigs);
       if (results.isEmpty && allOpenGigs.isNotEmpty) {
-        // Fallback: AI sees the nearest global jobs. If nearby is empty, sync the top 5 nearest global jobs to the carousel!
+        // Fallback: Kalau tak jumpa nearby, kita sumbat 5 task paling dekat masuk dalam carousel!
         var sortedAll = List<GigModel>.from(allOpenGigs);
         sortedAll.sort((a, b) {
           if (a.latitude == null || a.longitude == null) return 1;
@@ -568,7 +568,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       }
     }
 
-    // Ensure results are within the search radius (expand if necessary)
+    // Make sure results ada dalam search radius (besarkan sikit radius kalau terpaksa)
     if (results.isNotEmpty) {
       double maxDistanceKm = _searchRadiusKm;
       bool expandedRadius = false;
@@ -586,12 +586,12 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         }
       }
 
-      // Add a small buffer to the new radius (e.g. 5km) and update if expanded
+      // Tambah buffer sikit (e.g. 5km) pada radius baru dan update
       if (expandedRadius) {
         _searchRadiusKm = maxDistanceKm + 5.0;
-        if (_searchRadiusKm > 100.0) _searchRadiusKm = 100.0; // Cap at 100km
+        if (_searchRadiusKm > 100.0) _searchRadiusKm = 100.0; // Limitkan sampai 100km je
         
-        // Populate _nearbyGigs using the new radius
+        // Isi _nearbyGigs guna radius yang baru ni
         List<GigModel> withinRadius = [];
         for (var gig in allOpenGigs) {
           if (gig.latitude == null || gig.longitude == null) continue;
@@ -685,7 +685,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
         return;
       }
 
-      // Build live job context for the AI
+      // Bina context task live untuk bagi kat AI
       final gigProvider = context.read<GigProvider>();
       final currentUser = context.read<AuthProvider>().user;
       final allGigs = gigProvider.openGigs.toList();
@@ -800,14 +800,14 @@ RULES:
         final data = jsonDecode(response.body);
         String rawReply = data['choices'][0]['message']['content'];
 
-        // Parse JSON response
+        // Parse response JSON
         String aiMessage = rawReply;
         String? searchKeyword;
         String? aiAcceptJobId;
         String? focusedJobId;
         String sortBy = 'distance';
         try {
-          // Extract JSON even if wrapped in markdown
+          // Extract JSON walaupun dia balut dalam markdown
           final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(rawReply);
           if (jsonMatch != null) {
             final parsed = jsonDecode(jsonMatch.group(0)!);
@@ -833,7 +833,7 @@ RULES:
           aiMessage = rawReply;
         }
 
-        // Run search and sorting
+        // Run search dengan sorting
         String resultSummary = _aiSearchByKeyword(searchKeyword, sortBy: sortBy, focusedJobId: focusedJobId);
         if (resultSummary.isNotEmpty) {
           _aiChatHistory.add({"role": "system_context", "message": "[App result: $resultSummary (Sorted by $sortBy)]"});
@@ -847,7 +847,7 @@ RULES:
             _aiIsTyping = false;
             _aiChatHistory.add({"role": "ai", "message": aiMessage});
             if (searchKeyword != null) {
-              _isAIPanelOpen = false; // Collapse to let user see the map!
+              _isAIPanelOpen = false; // Collapse kan supaya user boleh nampak map balik!
             }
           });
           if (aiAcceptJobId != null) {
@@ -863,7 +863,7 @@ RULES:
                    Navigator.pushNamed(context, '/active-job', arguments: gig);
                  }
                } catch (e) {
-                 // Gig not found in openGigs, might have been accepted already
+                 // Gig ni dah tak jumpa kat openGigs, mesti ada orang dah kebas
                }
             }
           }
@@ -1244,7 +1244,7 @@ RULES:
             ],
           ),
           const SizedBox(height: 12),
-          // Chat list
+          // Senarai Chat
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 280),
             child: ListView.builder(
@@ -1292,7 +1292,7 @@ RULES:
             ),
           ),
           const SizedBox(height: 10),
-          // Input row
+          // Row untuk type chat
           Row(
             children: [
               Expanded(
@@ -1405,15 +1405,15 @@ RULES:
                   child: Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme: Theme.of(context).colorScheme.copyWith(
-                        primary: Colors.blue, // Match desired blue focus ring
+                        primary: Colors.blue, // Bagi sama dengan warna ring focus biru tu
                       ),
                       primaryColor: Colors.blue,
                     ),
                     child: TextField(
                       controller: _searchController, focusNode: _searchFocus, onChanged: _handleSearch, onSubmitted: _executeSearch,
                       style: TextStyle(color: isDark ? Colors.white : _lightModeGray, fontWeight: FontWeight.w600, fontSize: 15),
-                      cursorColor: Colors.blue, // Use blue cursor
-                      textAlignVertical: TextAlignVertical.center, // Perfectly center vertically
+                      cursorColor: Colors.blue, // Pakai cursor biru
+                      textAlignVertical: TextAlignVertical.center, // Bagi ngam-ngam center kat tengah (vertical)
                       decoration: InputDecoration(
                         hintText: 'Search', 
                         hintStyle: TextStyle(color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.4), fontSize: 14, fontWeight: FontWeight.w400), 
@@ -1424,7 +1424,7 @@ RULES:
                         disabledBorder: InputBorder.none,
                         isDense: true,
                         filled: false,
-                        contentPadding: EdgeInsets.zero, // Eliminate extra implicit gap from the icon
+                        contentPadding: EdgeInsets.zero, // Buang gap lebihan dari icon tu
                       ),
                     ),
                   ),
@@ -2092,7 +2092,7 @@ RULES:
                                       final success = await provider.acceptGig(gig.id, currentUser.id);
                                       if (success && context.mounted) {
                                           _searchFocus.unfocus();
-                                          Navigator.pop(context); // Close bottom sheet
+                                          Navigator.pop(context); // Tutup bottom sheet ni
                                           Navigator.pushNamed(context, '/active-job', arguments: gig);
                                       }
                                     },
@@ -2274,7 +2274,7 @@ RULES:
                 onPressed: () {
                   setState(() {
                     _searchRadiusKm = tempRadius;
-                    // Re-filter gigs based on new radius
+                    // Filter gig balik ikut radius baru
                     final currentUser = context.read<AuthProvider>().user;
                     final gigProvider = context.read<GigProvider>();
                     final available = gigProvider.filteredGigs.where((g) => g.customerId != currentUser?.id && g.latitude != null && g.longitude != null).toList();
@@ -2344,7 +2344,7 @@ RULES:
     bool isListening = false;
     bool autoStarted = false;
     bool resultHandled = false;
-    // Force ms_MY locale because many Malaysians set their phone to English but speak Malay/Manglish
+    // Paksa pakai locale ms_MY sebab orang kita selalu set phone English tapi sembang Melayu/Manglish 😂
     final String selectedLocaleId = 'ms_MY';
 
     showModalBottomSheet(

@@ -13,8 +13,8 @@ import '../../models/gig_model.dart';
 import '../../widgets/category_chip.dart';
 
 // ============================================================
-// Ngam App — My Jobs Screen (Runner)
-// List of accepted/completed jobs for the runner
+// Ngam App — Skrin My Jobs (Runner)
+// Senarai task yang runner dah accept/siapkan
 // ============================================================
 
 class MyTasksScreen extends StatefulWidget {
@@ -83,7 +83,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
 
     return Stack(
       children: [
-        // Animated Abstract Background
+        // Background abstrak beranimasi
         Positioned.fill(
           child: AnimatedBuilder(
             animation: _bgAnimationController,
@@ -136,7 +136,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-                // Glass Header
+                // Header ala glassmorphism
                 _buildSystemGlass(
                   borderRadius: 24,
                   isDark: isDark,
@@ -271,7 +271,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                       : a.createdAt.compareTo(b.createdAt);
                                 });
                                 return ListView.builder(
-                                  padding: const EdgeInsets.only(bottom: 100), // padding for bottom nav
+                                  padding: const EdgeInsets.only(bottom: 100), // padding untuk bottom nav
                                   itemCount: sortedGigs.length,
                                   itemBuilder: (context, index) {
                                     final gig = sortedGigs[index];

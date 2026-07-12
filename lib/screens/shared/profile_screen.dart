@@ -21,7 +21,7 @@ import 'wallet_screen.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 // ============================================================
-// Ngam App — Profile Screen (Shared)
+// Ngam App — Skrin Profil (Customer & Runner)
 // User profile with role toggle, stats, and settings (Glassmorphic)
 // ============================================================
 
@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } catch (e) {
-      // Silently handle errors
+      // Kalau error kita ignore je diam-diam
     }
   }
 
@@ -91,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         const SizedBox(height: 20),
 
-                        // ─── Profile Header ──────────────────────────
+                        // ─── Header Profil ───────────────────────────
                         Center(
                           child: Column(
                             children: [
@@ -176,7 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // ─── Role Toggle ─────────────────────────
+                        // ─── Toggle Tukar Role ───────────────────────
                         _buildSectionHeader('profile.role_access'.tr()),
                         _buildGlassSection(
                           isDark,
@@ -239,13 +239,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // ─── Gamification (Ngam Ranks) ───────────
+                        // ─── Rank Gamifikasi (Ngam Rank) ─────────────
                         if (authProvider.isRunner) ...[
                           _buildNgamRankSection(isDark),
                           const SizedBox(height: 24),
                         ],
 
-                        // ─── Stats Section ───────────────────────
+                        // ─── Bahagian Stat / Statistik ───────────────
                         _buildSectionHeader('profile.statistics'.tr()),
                         Row(
                           children: [
@@ -361,7 +361,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // ─── Sokongan ───────────────────────────────────────────
+                        // ─── Sokongan (Bantuan) ──────────────────────────────
                         _buildSectionHeader("profile.support".tr()),
                         _buildGlassSection(
                           isDark,
@@ -397,7 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // ─── Tentang ───────────────────────────────────────────
+                        // ─── Tentang Kita ────────────────────────────────────
                         _buildSectionHeader("profile.about".tr()),
                         _buildGlassSection(
                           isDark,
@@ -453,7 +453,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
 
                         const SizedBox(height: 12),
-                        // ─── Footer ────────────────────────────────────────────
+                        // ─── Kaki / Footer Bawah ─────────────────────────────
                         Center(
                           child: Column(
                             children: [
@@ -478,7 +478,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // ─── Logout ────────────────────────────────────────────
+                        // ─── Butang Log Keluar ───────────────────────────────
                         _buildGlassButton(
                           isDark,
                           'profile.logout'.tr(),
@@ -511,7 +511,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ─── UI Helper Widgets ───────────────────────────────────────
+  // ─── UI Helper (Widget Bantuan) ──────────────────────────────
 
   String _getRankName(int completed) {
     if (completed >= 50) return "rank.platinum".tr();
@@ -522,9 +522,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   
   List<Color> _getRankColors(int completed) {
     if (completed >= 50) return [const Color(0xFFE5E4E2), const Color(0xFFB0B0B0), const Color(0xFFE5E4E2)]; // Platinum
-    if (completed >= 30) return [const Color(0xFFFFD700), const Color(0xFFDAA520), const Color(0xFFFFD700)]; // Gold
-    if (completed >= 10) return [const Color(0xFFC0C0C0), const Color(0xFF808080), const Color(0xFFC0C0C0)]; // Silver
-    return [const Color(0xFFCD7F32), const Color(0xFF8B4513), const Color(0xFFCD7F32)]; // Bronze
+    if (completed >= 30) return [const Color(0xFFFFD700), const Color(0xFFDAA520), const Color(0xFFFFD700)]; // Emas
+    if (completed >= 10) return [const Color(0xFFC0C0C0), const Color(0xFF808080), const Color(0xFFC0C0C0)]; // Perak
+    return [const Color(0xFFCD7F32), const Color(0xFF8B4513), const Color(0xFFCD7F32)]; // Gangsa
   }
 
   int _getNextRankTarget(int completed) {
@@ -956,7 +956,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   );
 }
 
-// ─── Role Toggle Glass Button ────────────────────────────────
+// ─── Butang Glass untuk Tukar Role ───────────────────────────
 class _RoleToggle extends StatelessWidget {
   final String label;
   final dynamic icon;
@@ -1012,7 +1012,7 @@ class _RoleToggle extends StatelessWidget {
   }
 }
 
-// ─── Stats Glass Card ────────────────────────────────────────
+// ─── Kad Stat jenis Glass ────────────────────────────────────
 class _StatCardGlass extends StatelessWidget {
   final String label;
   final String value;

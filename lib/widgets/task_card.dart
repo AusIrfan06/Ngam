@@ -20,7 +20,8 @@ class TaskCard extends StatefulWidget {
   State<TaskCard> createState() => _TaskCardState();
 }
 
-class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin {
+class _TaskCardState extends State<TaskCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -31,9 +32,10 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -61,33 +63,55 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
 
   List<Color> _getCategoryGradient() {
     switch (widget.gig.category) {
-      case 'Food': return [const Color(0xFFFF9A9E), const Color(0xFFFECFEF)];
-      case 'Shopping': return [const Color(0xFFE0C3FC), const Color(0xFF8EC5FC)];
-      case 'Print': return [const Color(0xFF84FAB0), const Color(0xFF8FD3F4)];
-      case 'Heavy': return [const Color(0xFFFCCB90), const Color(0xFFD57EEB)];
-      case 'Parcel': return [const Color(0xFFA78BFA), const Color(0xFFD57EEB)];
-      case 'Cleaning': return [const Color(0xFF4FACFE), const Color(0xFF00F2FE)];
-      case 'Pet Care': return [const Color(0xFFFFB347), const Color(0xFFFFD194)];
-      case 'Errands': return [const Color(0xFF5D9CEC), const Color(0xFF4A89DC)];
-      case 'Automotive': return [const Color(0xFFFC6E51), const Color(0xFFE9573F)];
-      case 'Others': return [const Color(0xFFCCD1D9), const Color(0xFFAAB2BD)];
-      default: return [const Color(0xFF43E97B), const Color(0xFF38F9D7)];
+      case 'Food':
+        return [const Color(0xFFFF9A9E), const Color(0xFFFECFEF)];
+      case 'Shopping':
+        return [const Color(0xFFE0C3FC), const Color(0xFF8EC5FC)];
+      case 'Print':
+        return [const Color(0xFF84FAB0), const Color(0xFF8FD3F4)];
+      case 'Heavy':
+        return [const Color(0xFFFCCB90), const Color(0xFFD57EEB)];
+      case 'Parcel':
+        return [const Color(0xFFA78BFA), const Color(0xFFD57EEB)];
+      case 'Cleaning':
+        return [const Color(0xFF4FACFE), const Color(0xFF00F2FE)];
+      case 'Pet Care':
+        return [const Color(0xFFFFB347), const Color(0xFFFFD194)];
+      case 'Errands':
+        return [const Color(0xFF5D9CEC), const Color(0xFF4A89DC)];
+      case 'Automotive':
+        return [const Color(0xFFFC6E51), const Color(0xFFE9573F)];
+      case 'Others':
+        return [const Color(0xFFCCD1D9), const Color(0xFFAAB2BD)];
+      default:
+        return [const Color(0xFF43E97B), const Color(0xFF38F9D7)];
     }
   }
 
   IconData _getCategoryIcon() {
     switch (widget.gig.category) {
-      case 'Food': return Icons.fastfood_rounded;
-      case 'Shopping': return Icons.shopping_cart_rounded;
-      case 'Print': return Icons.print_rounded;
-      case 'Heavy': return Icons.fitness_center_rounded;
-      case 'Parcel': return Icons.local_shipping_rounded;
-      case 'Cleaning': return Icons.cleaning_services_rounded;
-      case 'Pet Care': return Icons.pets_rounded;
-      case 'Errands': return Icons.directions_run_rounded;
-      case 'Automotive': return Icons.directions_car_rounded;
-      case 'Others': return Icons.category_rounded;
-      default: return Icons.task_alt_rounded;
+      case 'Food':
+        return Icons.fastfood_rounded;
+      case 'Shopping':
+        return Icons.shopping_cart_rounded;
+      case 'Print':
+        return Icons.print_rounded;
+      case 'Heavy':
+        return Icons.fitness_center_rounded;
+      case 'Parcel':
+        return Icons.local_shipping_rounded;
+      case 'Cleaning':
+        return Icons.cleaning_services_rounded;
+      case 'Pet Care':
+        return Icons.pets_rounded;
+      case 'Errands':
+        return Icons.directions_run_rounded;
+      case 'Automotive':
+        return Icons.directions_car_rounded;
+      case 'Others':
+        return Icons.category_rounded;
+      default:
+        return Icons.task_alt_rounded;
     }
   }
 
@@ -102,10 +126,8 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
       onTapCancel: () => _controller.reverse(),
       child: AnimatedBuilder(
         animation: _scaleAnimation,
-        builder: (context, child) => Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
@@ -126,7 +148,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Cover Image / Gradient Header
+              // Header Atas (Gambar atau Gradient)
               Container(
                 height: 120,
                 decoration: BoxDecoration(
@@ -149,15 +171,21 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                       top: 12,
                       left: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: (widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE')
+                          color:
+                              (widget.gig.status == 'SERVICE' ||
+                                  widget.gig.status == 'DISABLED')
                               ? Colors.purple.withOpacity(0.9)
                               : Colors.blue.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          (widget.gig.status == 'SERVICE' || widget.gig.status == 'DISABLED_SERVICE')
+                          (widget.gig.status == 'SERVICE' ||
+                                  widget.gig.status == 'DISABLED')
                               ? 'SERVICE OFFER'
                               : 'TASK REQUEST',
                           style: const TextStyle(
@@ -185,7 +213,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 4,
-                              )
+                              ),
                             ],
                           ),
                           child: Text(
@@ -201,14 +229,14 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                   ],
                 ),
               ),
-              
-              // Content Area
+
+              // Kawasan Isi Kandungan
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title & Price Row
+                    // Baris Tajuk dengan Harga
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -237,7 +265,7 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                     ),
                     const SizedBox(height: 12),
 
-                    // Location
+                    // Lokasi
                     if (widget.gig.location.isNotEmpty) ...[
                       Row(
                         children: [
@@ -264,11 +292,8 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                       const SizedBox(height: 12),
                     ],
 
-                    // Category Chip
-                    CategoryChip(
-                      label: widget.gig.category,
-                      showIcon: false,
-                    ),
+                    // Tag / Chip Kategori
+                    CategoryChip(label: widget.gig.category, showIcon: false),
 
                     if (widget.actionWidget != null) ...[
                       const SizedBox(height: 16),

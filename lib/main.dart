@@ -33,7 +33,7 @@ import 'widgets/app_lock_wrapper.dart';
 
 // ============================================================
 // Ngam — Local Errands, Powered by Community
-// CSC264 Individual Project
+// Projek Individu CSC264
 // ============================================================
 
 // ─── Global Navigator Key ─────────────────────────────────────
@@ -44,23 +44,23 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await EasyLocalization.ensureInitialized();
   
-  // Load environment variables
+  // Load environment variables dulu
   await dotenv.load(fileName: ".env");
 
-  // Initialize Supabase
+  // Setup Supabase
   await SupabaseService.initialize();
 
-  // Initialize Push Notifications
+  // Setup Push Notifications
   await PushService.initialize();
 
-  // Apply Screen Security if enabled
+  // Apply Screen Security kalau on
   try {
     if (SecurityData.hideContentEnabled.value) {
       const securityChannel = MethodChannel('com.example.ngam/security');
       await securityChannel.invokeMethod('enableSecureMode');
     }
   } catch (e) {
-    // Plugin might be missing if hot reloaded
+    // Plugin mungkin tak jumpa kalau baru hot reload
   }
 
   runApp(

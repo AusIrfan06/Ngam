@@ -31,8 +31,8 @@ import '../../services/local_database_service.dart';
 import '../runner/task_detail_screen.dart';
 
 // ============================================================
-// Ngam App — Chat Screen
-// Glassmorphic conversation list with message thread UI
+// Ngam App — Skrin Chat
+// Senarai chat ala glassmorphism dengan UI mesej
 // ============================================================
 
 class ChatScreen extends StatefulWidget {
@@ -141,7 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
 
-                // ─── Search Bar ──────────────────────────────────
+                // ─── Search Bar (Cari Chat) ──────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                   child: GlassContainer(
@@ -228,7 +228,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 const SizedBox(height: 12),
 
-                // ─── Section label ───────────────────────────────
+                // ─── Label Seksyen ───────────────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                   child: Align(
@@ -245,7 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
 
-                // ─── Conversation List ───────────────────────────
+                // ─── Senarai Chat/Perbualan ──────────────────────
                 Expanded(
                   child: StreamBuilder<List<ConversationModel>>(
                     stream: _conversationsStream,
@@ -435,7 +435,7 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 
-// ─── Glass Icon Button ────────────────────────────────────────
+// ─── Butang Icon Glass ────────────────────────────────────────
 class _GlassIconButton extends StatelessWidget {
   final bool isDark;
   final dynamic icon;
@@ -490,7 +490,7 @@ class _GlassIconButton extends StatelessWidget {
   }
 }
 
-// ─── Chat Thread Screen ───────────────────────────────────────
+// ─── Skrin Thread Chat (Dalam Chat) ───────────────────────────
 class ChatThreadScreen extends StatefulWidget {
   final ConversationModel conversation;
   final String? initialGigId;
@@ -584,27 +584,27 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     List<MessageModel> result = [];
     String? currentContextId;
     
-    // Process from oldest to newest
+    // Proses mesej dari yang paling lama sampai paling baru
     for (int i = _messages.length - 1; i >= 0; i--) {
       final msg = _messages[i];
       
       if (msg.content.startsWith('__SYSTEM__Context:')) {
         currentContextId = msg.content.replaceFirst('__SYSTEM__Context:', '');
-        continue; // Hide system messages
+        continue; // Sorok mesej sistem
       } else if (msg.content.startsWith('__SYSTEM__:')) {
         final title = msg.content.replaceFirst('__SYSTEM__:Topic changed to ', '');
         final matchedGigs = _sharedGigs.where((g) => g.title == title);
         if (matchedGigs.isNotEmpty) {
           currentContextId = matchedGigs.first.id;
         }
-        continue; // Hide system messages
+        continue; // Sorok mesej sistem
       } else if (msg.content.startsWith('__TASK_CARD__:')) {
         final parts = msg.content.replaceFirst('__TASK_CARD__:', '').split('|');
         if (parts.isNotEmpty) currentContextId = parts[0];
       }
       
-      // If no context explicitly set yet, default it to the very first gig
-      // so old messages don't bleed into every other task tab.
+      // Kalau tak ada context set lagi, default ambil gig yang pertama
+      // supaya mesej lama task tu tak melimpah masuk tab task lain.
       if (currentContextId == null && _sharedGigs.isNotEmpty) {
         currentContextId = _sharedGigs.first.id;
       }
@@ -656,14 +656,14 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       },
     );
 
-    // Removed global markMessagesAsRead from initState
-    // It is now handled in _loadGigDetails and onPageChanged
+    // Dah buang markMessagesAsRead global dari initState
+    // Sekarang dia handle waktu _loadGigDetails dengan onPageChanged je
   }
 
   void _onTextChanged(String text) {
     if (_typingTimer?.isActive ?? false) _typingTimer!.cancel();
     
-    // Save draft
+    // Save draf chat
     SharedPreferences.getInstance().then((prefs) {
       prefs.setString('draft_${widget.conversation.id}', text);
     });
@@ -702,7 +702,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 }
               });
             } else {
-              // Fallback if not found in shared
+              // Fallback kalau tak terjumpa dalam shared cache
               GigService.fetchGigById(targetGigId).then((g) {
                 if (mounted) setState(() => _linkedGig = g);
               });
@@ -742,7 +742,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 
     final currentOffset = _messages.length;
 
-    // 1. Instantly load from local cache
+    // 1. Terus load dari cache local supaya laju
     final localMessages = await LocalDatabaseService.instance.getMessages(widget.conversation.id, offset: currentOffset, limit: 50);
     
     if (mounted) {
@@ -757,11 +757,11 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         if (addedLocal) {
           _messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         }
-        _isLoading = false; // Hide loading spinner instantly
+        _isLoading = false; // Cepat-cepat sorok loading spinner tu
       });
     }
 
-    // 2. Fetch from network in background to sync missing/updated messages
+    // 2. Tarik dari database (background) untuk sync mesej baru
     try {
       final networkMessages = await ChatService.getMessages(widget.conversation.id, offset: currentOffset, limit: 50);
       if (mounted) {
@@ -770,7 +770,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           for (var msg in networkMessages) {
             final index = _messages.indexWhere((m) => m.id == msg.id);
             if (index != -1) {
-              _messages[index] = msg; // Update status (e.g. read receipts)
+              _messages[index] = msg; // Update status (contoh: blue tick read receipt)
             } else {
               _messages.add(msg);
               addedNetwork = true;
@@ -786,7 +786,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         });
       }
     } catch (_) {
-      // Ignored if offline
+      // Ignore je kalau tengah offline
     }
   }
   void _scrollToMessage(String messageId) async {
@@ -799,7 +799,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         alignment: 0.5,
       );
     } else {
-      // Not rendered yet, try to jump closer
+      // Tak render lagi, cuba jump kasi dekat sikit
       final index = _messages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         _scrollController.animateTo(
@@ -822,7 +822,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
 
     await _ensureContextIsSet();
 
-    // Clear draft
+    // Buang draf chat
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove('draft_${widget.conversation.id}');
     });
@@ -1265,7 +1265,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
         conversationId: widget.conversation.id,
         senderId: currentUserId,
         content: '__SYSTEM__Context:${_linkedGig!.id}',
-        isRead: true, // System messages are inherently read
+        isRead: true, // Mesej sistem ni kira read secara auto la
         createdAt: DateTime.now().subtract(const Duration(milliseconds: 1)),
         status: 'sending',
       );
@@ -1465,7 +1465,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    // Stats Section
+                    // Bahagian Statistik
                     FutureBuilder<List<dynamic>>(
                       future: Future.wait([
                         GigService.getPostedCount(userId),
@@ -1653,8 +1653,8 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
-          // ─── Main Content ──────────────────────────────────────────
-          // ─── Messages ────────────────────────────────────────
+          // ─── Content Utama ──────────────────────────────────────────
+          // ─── Ruangan Mesej ───────────────────────────────────
           Positioned.fill(
             child: Builder(
               builder: (context) {
@@ -1662,7 +1662,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 return ListView.builder(
                   reverse: true,
                   controller: _scrollController,
-                  padding: EdgeInsets.fromLTRB(16, _sharedGigs.isNotEmpty ? 170 : 80, 16, 160), // Extra top padding for the top bar and carousel, bottom for input
+                  padding: EdgeInsets.fromLTRB(16, _sharedGigs.isNotEmpty ? 170 : 80, 16, 160), // Bagi padding extra kat atas untuk top bar & carousel, bawah untuk type chat
                   physics: const BouncingScrollPhysics(),
                   itemCount: displayMessages.length + (_isLoading ? 1 : 0) + (_isOtherTyping ? 1 : 0),
                   itemBuilder: (context, index) {
@@ -1710,7 +1710,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     
                     final msg = displayMessages[index];
                     
-                    // Grouping logic: hide avatar if next message (index + 1 because reversed) is from same sender within 1 minute
+                    // Logic grouping: sorok avatar kalau mesej sebelah dari orang sama (selang masa bawah 1 minit)
                     bool showAvatar = true;
                     if (index < displayMessages.length - 1) {
                       final nextMsg = displayMessages[index + 1];
@@ -1804,7 +1804,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           }),
         ),
 
-          // ─── Input Bar ───────────────────────────────────────
+          // ─── Tempat Taip Chat ────────────────────────────────
           Positioned(
             left: 16,
             right: 16,
@@ -2011,7 +2011,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
           ],
         ),
       ),
-      // ─── Custom Glass Floating Top Bar ─────────────────────────────────
+      // ─── Top Bar Floating Custom ───────────────────────────────────────
       Positioned(
         top: 0,
         left: 0,
@@ -2408,7 +2408,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   }
 }
 
-// ─── Message Bubble ───────────────────────────────────────────
+// ─── Bubble Chat ──────────────────────────────────────────────
 class _MessageBubble extends StatefulWidget {
   final MessageModel message;
   final bool isDark;
@@ -2946,7 +2946,7 @@ class _MessageBubbleState extends State<_MessageBubble> {
   }
 }
 
-// ─── Message Status Indicator ──────────────────────────────────
+// ─── Indicator Status Mesej (Blue Tick) ───────────────────────
 class MessageStatusIndicator extends StatelessWidget {
   final String status;
   final bool isRead;

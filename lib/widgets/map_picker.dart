@@ -120,14 +120,14 @@ class _MapPickerState extends State<MapPicker> {
             ],
           ),
           
-          // Map Controls (Right Side)
+          // Control untuk Map (Belah Kanan)
           Positioned(
             right: 12,
             bottom: 24,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Reset North Button
+                // Butang pusing Utara balik
                 if (_rotation != 0.0)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
@@ -145,7 +145,7 @@ class _MapPickerState extends State<MapPicker> {
                       ),
                     ),
                   ),
-                // Current Location Button
+                // Butang cari aku kat mana
                 FloatingActionButton.small(
                   heroTag: 'gps_btn',
                   backgroundColor: Theme.of(context).primaryColor,

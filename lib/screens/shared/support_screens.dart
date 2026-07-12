@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 // ============================================================
-// Ngam App — Support Screens
-// Help Center + Contact Us
+// Ngam App — Skrin Support (Bantuan)
+// Help Center dengan ruang Hubungi Kami
 // ============================================================
 
 LiquidGlassSettings _glassSettings(bool isDark) => LiquidGlassSettings(
@@ -15,7 +15,7 @@ LiquidGlassSettings _glassSettings(bool isDark) => LiquidGlassSettings(
   saturation: 1.0, chromaticAberration: 0.0,
 );
 
-// ─── Help Center ──────────────────────────────────────────────
+// ─── Pusat Bantuan ───────────────────────────────────────────
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
 
@@ -79,7 +79,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               Text("support.greeting".tr(), style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87, height: 1.2)),
               const SizedBox(height: 24),
 
-              // Search bar
+              // Kotak Cari
               GlassContainer(
                 useOwnLayer: true, quality: GlassQuality.standard, shape: LiquidRoundedSuperellipse(borderRadius: 16.0), settings: _glassSettings(isDark),
                 child: Container(
@@ -165,7 +165,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 }
 
-// ─── Contact Us ───────────────────────────────────────────────
+// ─── Hubungi Kami ────────────────────────────────────────────
 class ContactUsScreen extends StatelessWidget {
   const ContactUsScreen({super.key});
 

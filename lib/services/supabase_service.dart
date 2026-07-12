@@ -2,14 +2,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/constants.dart';
 
 // ============================================================
-// Ngam App — Supabase Service
-// Central Supabase client accessor
+// Ngam App — Servis Supabase
+// Pusat kawalan utama untuk panggil Supabase
 // ============================================================
 
 class SupabaseService {
   static SupabaseClient get client => Supabase.instance.client;
 
-  /// Initialize Supabase — call this in main.dart before runApp
+  /// Setup Supabase — panggil benda ni kat main.dart sebelum runApp
   static Future<void> initialize() async {
     await Supabase.initialize(
       url: supabaseUrl,
@@ -17,14 +17,14 @@ class SupabaseService {
     );
   }
 
-  /// Update the current user's password
-  /// Returns an error string on failure, null on success
+  /// Update password user yang tengah login sekarang
+  /// Return error text kalau fail, return null kalau berjaya
   static Future<String?> updatePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
     try {
-      // Re-authenticate first (Supabase requires valid session — just update)
+      // Log masuk balik kejap (Supabase perlukan session on-the-spot baru jalan)
       await client.auth.updateUser(UserAttributes(password: newPassword));
       return null;
     } catch (e) {
@@ -32,7 +32,7 @@ class SupabaseService {
     }
   }
 
-  /// Update display name and phone in the profiles table
+  /// Update nama display dengan nombor fon kat table profiles
   static Future<String?> updateProfile({
     required String userId,
     String? name,

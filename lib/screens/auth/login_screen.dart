@@ -13,7 +13,7 @@ import '../../widgets/animated_background.dart';
 import '../../widgets/glass_card.dart';
 
 // ============================================================
-// Ngam App — Login Screen
+// Ngam App — Skrin Login
 // ============================================================
 
 class LoginScreen extends StatefulWidget {
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 16),
       
-                        // ─── App Name ──────────────────────────
+                        // ─── Nama App ──────────────────────────
                         Text(
                           'Ngam',
                           style: GoogleFonts.outfit(
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 40),
       
-                        // ─── Email Field ───────────────────────
+                        // ─── Ruangan Email ─────────────────────
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -158,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 16),
       
-                        // ─── Password Field ────────────────────
+                        // ─── Ruangan Password ──────────────────
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -187,12 +187,12 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 12),
 
-                        // ─── Forgot Password ───────────────────
+                        // ─── Lupa Password ─────────────────────
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () {
-                              // TODO: Navigate to forgot password screen
+                              // TODO: Kena hantar pegi skrin forgot password nanti
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: AppTheme.primary,
@@ -211,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 24),
       
-                        // ─── Error Message ─────────────────────
+                        // ─── Mesej Error ───────────────────────
                         Consumer<AuthProvider>(
                           builder: (context, auth, _) {
                             if (auth.error != null) {
@@ -246,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen>
                           },
                         ),
       
-                        // ─── Login Button ──────────────────────
+                        // ─── Butang Login ──────────────────────
                         Consumer<AuthProvider>(
                           builder: (context, auth, _) {
                             return SizedBox(
@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 32),
 
-                        // ─── Social Login ──────────────────────
+                        // ─── Login Guna Social Media ───────────
                         Row(
                           children: [
                             const Expanded(child: Divider(color: Colors.grey, thickness: 0.5)),
@@ -327,7 +327,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 32),
       
-                        // ─── Sign Up Link ──────────────────────
+                        // ─── Link Sign Up ──────────────────────
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -355,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
                 ),
-                // ─── Top Right Action Buttons (Theme & Language) ───
+                // ─── Butang Atas Kanan (Theme & Bahasa) ───
                 Positioned(
                   top: 16,
                   right: 24,
@@ -382,7 +382,7 @@ class _LoginScreenState extends State<LoginScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Language Button
+                          // Butang Bahasa
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
@@ -406,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen>
                             height: 20,
                             color: isDark ? Colors.white30 : Colors.black26,
                           ),
-                          // Theme Button
+                          // Butang Theme
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {

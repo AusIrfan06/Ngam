@@ -1,5 +1,5 @@
 // ============================================================
-// Ngam App — Review Model
+// Ngam App — Model Review
 // ============================================================
 
 class ReviewModel {
@@ -10,7 +10,7 @@ class ReviewModel {
   final String comment;
   final DateTime createdAt;
 
-  // Joined field
+  // Field yang di-join
   final String? reviewerName;
 
   ReviewModel({

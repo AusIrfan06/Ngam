@@ -1,5 +1,5 @@
 // ============================================================
-// Ngam App — Gig Model
+// Ngam App — Model Gig
 // ============================================================
 
 class GigModel {
@@ -11,15 +11,17 @@ class GigModel {
   final String description;
   final String category;
   final double bountyAmount;
-  final String status; // OPEN, LOCKED, IN-PROGRESS, COMPLETED, CANCELLED, SERVICE, DISABLED_SERVICE, PENDING
+  final String
+  status; // OPEN, LOCKED, IN-PROGRESS, COMPLETED, CANCELLED, SERVICE, DISABLED, PENDING
   final String location;
   final double? latitude;
   final double? longitude;
   final double? runnerLatitude;
   final double? runnerLongitude;
+  final String? proofImageUrl;
   final DateTime createdAt;
 
-  // Joined fields (from related tables)
+  // Field yang dah join (dari table berkaitan)
   final String? customerName;
   final String? runnerName;
   final double? runnerRating;
@@ -39,6 +41,7 @@ class GigModel {
     this.longitude,
     this.runnerLatitude,
     this.runnerLongitude,
+    this.proofImageUrl,
     required this.createdAt,
     this.customerName,
     this.runnerName,
@@ -62,14 +65,23 @@ class GigModel {
       longitude: (json['longitude'] as num?)?.toDouble(),
       runnerLatitude: (json['runner_latitude'] as num?)?.toDouble(),
       runnerLongitude: (json['runner_longitude'] as num?)?.toDouble(),
+      proofImageUrl: json['proof_image_url'] as String?,
       createdAt: _parseUtcDate(json['created_at'] as String),
-      customerName: json['customer_name'] as String? ?? (json['customer'] != null ? json['customer']['name'] as String? : null),
-      runnerName: json['runner_name'] as String? ?? (json['runner'] != null ? json['runner']['name'] as String? : null),
+      customerName:
+          json['customer_name'] as String? ??
+          (json['customer'] != null
+              ? json['customer']['name'] as String?
+              : null),
+      runnerName:
+          json['runner_name'] as String? ??
+          (json['runner'] != null ? json['runner']['name'] as String? : null),
     );
   }
 
   static DateTime _parseUtcDate(String dateString) {
-    if (!dateString.endsWith('Z') && !dateString.contains('+') && !dateString.contains(RegExp(r'-[0-9]{2}:'))) {
+    if (!dateString.endsWith('Z') &&
+        !dateString.contains('+') &&
+        !dateString.contains(RegExp(r'-[0-9]{2}:'))) {
       dateString += 'Z';
     }
     return DateTime.parse(dateString).toLocal();

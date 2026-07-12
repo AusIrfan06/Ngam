@@ -3,8 +3,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'custom_bottom_nav.dart';
 
 // ============================================================
-// Ngam App — Customer Bottom Navigation
-// Home, Post, My Tasks, Profile
+// Ngam App — Menu Bawah (Customer)
+// Utama, Post, Task Aku, Profil
 // ============================================================
 
 class BottomNavCustomer extends StatelessWidget {

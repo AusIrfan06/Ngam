@@ -8,7 +8,7 @@ import '../utils/constants.dart';
 
 // ============================================================
 // Ngam App — Gig Provider
-// Manages gig state, filtering, and real-time subscriptions
+// Handle state gig, filter, dengan real-time subscriptions
 // ============================================================
 
 class GigProvider extends ChangeNotifier {
@@ -47,14 +47,14 @@ class GigProvider extends ChangeNotifier {
         .toList();
   }
 
-  // ─── Category Filter ──────────────────────────────────────
+  // ─── Filter Kategori ──────────────────────────────────────
 
   void setCategory(String category) {
     _selectedCategory = category;
     notifyListeners();
   }
 
-  // ─── Fetch Operations ─────────────────────────────────────
+  // ─── Tarik Data (Fetch) ───────────────────────────────────
 
   /// Load all open gigs (runner feed)
   Future<void> loadOpenGigs() async {
@@ -132,7 +132,7 @@ class GigProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── Task Actions ─────────────────────────────────────────
+  // ─── Action untuk Task ────────────────────────────────────
 
   /// Customer creates a new task
   Future<GigModel?> createGig({
@@ -247,7 +247,7 @@ class GigProvider extends ChangeNotifier {
     } catch (e, st) {
       debugPrint('Error ordering service: $e\n$st');
       if (e is PostgrestException) {
-        _error = e.message; // Just show the clear message from the database
+        _error = e.message; // Tunjuk je direct error dari database tu
       } else {
         _error = 'Failed to order service: $e';
       }
@@ -257,7 +257,7 @@ class GigProvider extends ChangeNotifier {
     }
   }
 
-  // ─── TASK MANAGEMENT ─────────────────────────────────────────
+  // ─── PENGURUSAN TASK ──────────────────────────────────────
 
   Future<bool> updateGigBounty(String gigId, double newAmount) async {
     try {
@@ -371,7 +371,7 @@ class GigProvider extends ChangeNotifier {
 
     try {
       await GigService.acceptPendingGig(gigId, runnerId);
-      // Update local state by re-fetching
+      // Update local state dengan tarik data balik (re-fetch)
       _activeJob = await GigService.fetchGigById(gigId);
       final index = _myGigs.indexWhere((g) => g.id == gigId);
       if (index != -1) {
@@ -484,7 +484,7 @@ class GigProvider extends ChangeNotifier {
     _locationSubscription = null;
   }
 
-  // ─── Location Tracking ────────────────────────────────────
+  // ─── Tracking Lokasi ──────────────────────────────────────
 
   void _handleLocationTracking() async {
     if (_activeJob != null && _activeJob!.status == 'IN-PROGRESS') {
@@ -502,7 +502,7 @@ class GigProvider extends ChangeNotifier {
         _locationSubscription = Geolocator.getPositionStream(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
-            distanceFilter: 10, // Update every 10 meters
+            distanceFilter: 10, // Update lokasi setiap 10 meter
           ),
         ).listen((Position position) {
           if (_activeJob != null) {

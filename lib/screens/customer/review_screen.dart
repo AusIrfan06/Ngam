@@ -7,8 +7,8 @@ import '../../services/review_service.dart';
 import '../../utils/app_theme.dart';
 
 // ============================================================
-// Ngam App — Review Screen
-// Customer rates and reviews a runner after task completion
+// Ngam App — Skrin Review
+// Customer bagi rating kat runner lepas task siap
 // ============================================================
 
 class ReviewScreen extends StatefulWidget {
@@ -78,7 +78,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
           children: [
             const SizedBox(height: 20),
 
-            // ─── Runner Avatar ───────────────────────
+            // ─── Avatar Runner ───────────────────────
             Container(
               width: 80,
               height: 80,
@@ -111,7 +111,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
             const SizedBox(height: 32),
 
-            // ─── Star Rating ─────────────────────────
+            // ─── Rating Bintang ──────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
@@ -152,7 +152,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
             const SizedBox(height: 32),
 
-            // ─── Comment Field ───────────────────────
+            // ─── Ruangan Komen ───────────────────────
             TextFormField(
               controller: _commentController,
               maxLines: 4,
@@ -164,7 +164,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
             const SizedBox(height: 32),
 
-            // ─── Submit Button ───────────────────────
+            // ─── Butang Submit ───────────────────────
             SizedBox(
               width: double.infinity,
               height: 54,

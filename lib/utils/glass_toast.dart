@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 // ============================================================
-// Ngam App — Glass Toast / Snackbar Utility
-// Customizable glassmorphic popup with icon, color, text
-// Usage:
+// Ngam App — Glass Toast / Snackbar (Alert Cantik)
+// Popup alert kaca yang boleh custom letak ikon, warna dengan ayat
+// Cara guna:
 //   showGlassToast(context, 'Berjaya!');
 //   showGlassToast(context, 'Ralat', isError: true);
 //   showGlassToast(context, 'Info', color: Colors.blue, icon: HugeIcons.strokeRoundedInformationCircle);
@@ -19,21 +19,21 @@ void showGlassToast(
   bool isError = false,
   GlassToastType? type,
   Color? color,
-  dynamic icon, // HugeIcons icon data or IconData
+  dynamic icon, // Nak guna HugeIcons atau IconData biasa pun boleh
   Duration duration = const Duration(seconds: 4),
 }) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  // Resolve type — explicit 'type' wins, then 'isError' fallback
+  // Resolve jenis toast — kalau letak 'type' dia amik tu dulu, kalau tak dia check 'isError'
   final resolvedType = type ?? (isError ? GlassToastType.error : GlassToastType.success);
 
-  // Resolve color
+  // Cari warna yang sesuai
   final resolvedColor = color ?? _colorForType(resolvedType);
 
-  // Resolve icon
+  // Cari icon yang sesuai
   final resolvedIcon = icon ?? _iconForType(resolvedType);
 
-  // Clean error messages
+  // Bersihkan mesej error jangan kasi nampak code sangat
   final displayMessage = resolvedType == GlassToastType.error
       ? _cleanErrorMessage(message)
       : message;
@@ -75,7 +75,7 @@ void showGlassToast(
               onTap: () => scaffoldMessenger.hideCurrentSnackBar(),
               child: Row(
                 children: [
-                  // Icon — supports both HugeIcon and regular Icon
+                  // Icon — dia support dua-dua tau, HugeIcon dengan Icon biasa
                   _ToastIcon(icon: resolvedIcon, color: resolvedColor),
                   const SizedBox(width: 12),
                   Expanded(
@@ -99,7 +99,7 @@ void showGlassToast(
   );
 }
 
-// ─── Icon Widget (handles both HugeIcon + IconData) ──────────
+// ─── Widget Ikon (Boleh belasah HugeIcon & IconData) ─────────
 class _ToastIcon extends StatelessWidget {
   final dynamic icon;
   final Color color;
@@ -111,7 +111,7 @@ class _ToastIcon extends StatelessWidget {
     if (icon is IconData) {
       return Icon(icon as IconData, color: color, size: 20);
     }
-    // Assume HugeIcons path data
+    // Kita anggap ni path data HugeIcons
     try {
       return HugeIcon(icon: icon, color: color, size: 20);
     } catch (_) {
@@ -120,7 +120,7 @@ class _ToastIcon extends StatelessWidget {
   }
 }
 
-// ─── Color for type ───────────────────────────────────────────
+// ─── Warna ikut jenis alert ───────────────────────────────────
 Color _colorForType(GlassToastType type) {
   switch (type) {
     case GlassToastType.success:
@@ -134,7 +134,7 @@ Color _colorForType(GlassToastType type) {
   }
 }
 
-// ─── Icon for type ────────────────────────────────────────────
+// ─── Ikon ikut jenis alert ────────────────────────────────────
 dynamic _iconForType(GlassToastType type) {
   switch (type) {
     case GlassToastType.success:
@@ -148,7 +148,7 @@ dynamic _iconForType(GlassToastType type) {
   }
 }
 
-// ─── Error message cleaner ────────────────────────────────────
+// ─── Tukang sapu/bersih Mesej Error ───────────────────────────
 String _cleanErrorMessage(String rawMessage) {
   String msg = rawMessage
       .replaceAll(

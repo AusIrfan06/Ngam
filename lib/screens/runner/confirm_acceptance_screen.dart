@@ -9,8 +9,8 @@ import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
 
 // ============================================================
-// Ngam App — Confirm Acceptance Screen (Runner)
-// Confirmation dialog before locking a task
+// Ngam App — Skrin Confirm Accept (Runner)
+// Dialog kepastian sebelum runner sapu task ni
 // ============================================================
 
 class ConfirmAcceptanceScreen extends StatelessWidget {
@@ -43,7 +43,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // ─── Task Summary Card ───────────────────
+            // ─── Kad Ringkasan Task ──────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -92,7 +92,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // ─── Warning Banner ──────────────────────
+            // ─── Banner Amaran ───────────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
@@ -134,10 +134,10 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
 
             const Spacer(),
 
-            // ─── Action Buttons ──────────────────────
+            // ─── Butang Action ───────────────────────
             Row(
               children: [
-                // Cancel
+                // Batal
                 Expanded(
                   child: SizedBox(
                     height: 54,
@@ -154,7 +154,7 @@ class ConfirmAcceptanceScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Confirm
+                // Confirm/Setuju
                 Expanded(
                   child: SizedBox(
                     height: 54,

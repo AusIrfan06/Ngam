@@ -15,7 +15,7 @@ import '../../utils/constants.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 // ============================================================
-// Ngam App — Runner Stats Screen (Premium Glassmorphism)
+// Ngam App — Skrin Runner Stats (Premium Glassmorphism)
 // ============================================================
 
 class StatsScreen extends StatefulWidget {
@@ -142,7 +142,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
       }
     }
 
-    // Dynamic Chart Data
+    // Data chart yang dynamic
     List<double> chartData = [];
     if (_selectedTimeframe == 'Today') {
       chartData = List.filled(24, 0.0);
@@ -197,7 +197,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     super.dispose();
   }
 
-  // ── Glass Container Helper ──────────────────────────────────
+  // ── Helper untuk Glass Container ────────────────────────────
   Widget _glassCard({
     required Widget child,
     double borderRadius = 24,
@@ -241,7 +241,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Timeframe Pill Selector ─────────────────────────────────
+  // ── Pill Selector untuk Tempoh Masa ─────────────────────────
   Widget _buildTimeframeSelector(bool isDark) {
     final labels = ['Today', 'Week', 'Month', 'Custom'];
     return Container(
@@ -332,7 +332,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Hero Earnings Card ──────────────────────────────────────
+  // ── Kad Jumlah Pendapatan (Hero) ────────────────────────────
   Widget _buildHeroEarningsCard(bool isDark) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -374,7 +374,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header row
+                // Baris header
                 Row(
                   children: [
                     Container(
@@ -402,7 +402,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    // Trend indicator
+                    // Indicator trend naik/turun
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
@@ -428,7 +428,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                   ],
                 ),
                 const SizedBox(height: 20),
-                // Big earnings number
+                // Nombor duit kawkaw besar
                 TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0.0, end: _totalEarnings),
                   duration: const Duration(milliseconds: 1400),
@@ -447,7 +447,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                   },
                 ),
                 const SizedBox(height: 24),
-                // Mini stats row
+                // Row statik mini (kecil)
                 Row(
                   children: [
                     _buildMiniGlassStat(
@@ -525,7 +525,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Earnings Trend Chart ────────────────────────────────────
+  // ── Chart Trend Pendapatan ──────────────────────────────────
   Widget _buildEarningsChart(bool isDark) {
     return _glassCard(
       isDark: isDark,
@@ -710,7 +710,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Task Completion Donut ───────────────────────────────────
+  // ── Donut Chart untuk Task Siap ─────────────────────────────
   Widget _buildTaskCompletionCard(bool isDark) {
     final completed = _statusCounts['COMPLETED'] ?? 0;
     final inProgress = _statusCounts['IN-PROGRESS'] ?? 0;
@@ -774,7 +774,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
           else
             Row(
               children: [
-                // Donut chart
+                // Chart donut (bukan boleh makan)
                 SizedBox(
                   width: 130,
                   height: 130,
@@ -819,7 +819,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                   ),
                 ),
                 const SizedBox(width: 24),
-                // Legend
+                // Legend / petunjuk chart
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -877,7 +877,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Category Breakdown ──────────────────────────────────────
+  // ── Pecahan ikut Kategori ───────────────────────────────────
   Widget _buildCategoryBreakdown(bool isDark) {
     if (_earningsByCategory.isEmpty) return const SizedBox.shrink();
 
@@ -985,7 +985,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Recent Transactions ─────────────────────────────────────
+  // ── Transaksi Paling Baru ───────────────────────────────────
   Widget _buildTransactionList(bool isDark) {
     if (_recentTransactions.isEmpty) return const SizedBox.shrink();
 
@@ -1116,7 +1116,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Loading Shimmer ─────────────────────────────────────────
+  // ── Shimmer Loading Effect ──────────────────────────────────
   Widget _buildLoadingShimmer(bool isDark) {
       final baseColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05);
       final highlightColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.15);
@@ -1127,7 +1127,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
         width: width ?? double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24), // matching the glass superellipse
+          borderRadius: BorderRadius.circular(24), // bagi ngam dengan shape superellipse glass tu
         ),
       );
     }
@@ -1142,10 +1142,10 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              // App Bar Skeleton
+              // Rangka App Bar (Skeleton)
               buildSkeletonBox(40, 150),
               const SizedBox(height: 24),
-              // Timeframe Selector Skeleton
+              // Rangka Timeframe Selector
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1156,13 +1156,13 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                 ],
               ),
               const SizedBox(height: 16),
-              // Hero Earnings Skeleton
+              // Rangka Hero Earnings
               buildSkeletonBox(140),
               const SizedBox(height: 16),
-              // Chart Skeleton
+              // Rangka Chart
               buildSkeletonBox(220),
               const SizedBox(height: 16),
-              // Task Completion Skeleton
+              // Rangka Task Completion
               Row(
                 children: [
                   Expanded(child: buildSkeletonBox(100)),
@@ -1171,7 +1171,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                 ],
               ),
               const SizedBox(height: 16),
-              // List item skeleton
+              // Rangka item dalam list
               buildSkeletonBox(70),
             ],
           ),
@@ -1180,7 +1180,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     );
   }
 
-  // ── Main Build ──────────────────────────────────────────────
+  // ── Build Utama ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1189,7 +1189,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // ── Animated Abstract BG ──
+          // ── Background Abstrak Beranimasi ──
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _bgAnimController,
@@ -1199,7 +1199,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                     Container(
                       color: isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF0F2F5),
                     ),
-                    // Floating orbs
+                    // Bebola bercahaya melayang-layang
                     Positioned(
                       top: -80 + 60 * sin(_bgAnimController.value * 2 * pi),
                       right: -40 + 40 * cos(_bgAnimController.value * 2 * pi),
@@ -1257,7 +1257,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
             ),
           ),
 
-          // ── Content ──
+          // ── Content/Isi ──
           _isLoading
               ? _buildLoadingShimmer(isDark)
               : CustomScrollView(

@@ -133,7 +133,7 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
 
     for (var c in widget.conversations) {
       if (c.lastMessageSenderId == widget.currentUserId) {
-        continue; // I sent the last message, so it's not unread for me
+        continue; // Aku yang hantar chat tu tadi, so tak payah la tunjuk unread
       }
 
       int specificUnreads = 0;
@@ -200,7 +200,7 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // User Header
+            // Header User
             InkWell(
               onTap: () {
                 setState(() {
@@ -334,7 +334,7 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
               ),
             ),
             
-            // Content
+            // Isi Kandungan
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -359,7 +359,7 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
                       ),
                     )
                   else ...[
-                    // Show General Chat if there's a conversation with no gigId
+                    // Tunjuk General Chat kalau ada perbualan tanpa gigId (sembang biasa)
                     if (widget.conversations.any((c) => c.gigId == null))
                       ConversationSubTile(
                         conversation: widget.conversations.firstWhere((c) => c.gigId == null),
@@ -368,7 +368,7 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
                         onTap: () => widget.onTap(widget.conversations.firstWhere((c) => c.gigId == null), null),
                         onLongPress: () => widget.onLongPress(widget.conversations.firstWhere((c) => c.gigId == null)),
                       ),
-                    // Specific Gigs
+                    // Gig / Task Tertentu
                     ..._sharedGigs!.map((gig) {
                       final conv = widget.conversations.firstWhere(
                         (c) => c.gigId == gig.id,

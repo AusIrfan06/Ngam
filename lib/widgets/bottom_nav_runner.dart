@@ -3,8 +3,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'custom_bottom_nav.dart';
 
 // ============================================================
-// Ngam App — Runner Bottom Navigation
-// Home, My Jobs, Chat, Profile
+// Ngam App — Menu Bawah (Runner)
+// Utama, Job Aku, Chat, Profil
 // ============================================================
 
 class BottomNavRunner extends StatelessWidget {
@@ -36,7 +36,7 @@ class BottomNavRunner extends StatelessWidget {
           title: 'Chat',
         ),
         NavItem(
-          icon: HugeIcons.strokeRoundedChartHistogram, // Fixed inverted icon
+          icon: HugeIcons.strokeRoundedChartHistogram, // Dah repair icon terbalik
           title: 'Stats',
         ),
         NavItem(

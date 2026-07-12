@@ -6,8 +6,8 @@ import '../utils/constants.dart';
 import 'supabase_service.dart';
 
 // ============================================================
-// Ngam App — Auth Service
-// Handles registration, login, logout, and user profile
+// Ngam App — Servis Auth
+// Handle pendaftaran, login, logout dengan info profil
 // ============================================================
 
 class AuthService {
@@ -21,7 +21,7 @@ class AuthService {
     required String phone,
     required String role,
   }) async {
-    // 1. Create auth account
+    // 1. Buat akaun kat Supabase Auth dulu
     final authResponse = await _client.auth.signUp(
       email: email,
       password: password,
@@ -33,7 +33,7 @@ class AuthService {
 
     final userId = authResponse.user!.id;
 
-    // 2. Insert user profile into users table
+    // 2. Lepas tu sumbat profil dia masuk table 'users'
     final userData = {
       'id': userId,
       'name': name,
@@ -63,7 +63,7 @@ class AuthService {
       throw Exception('Login failed. Invalid credentials.');
     }
 
-    // Fetch user profile from users table
+    // Tarik info profil dari table 'users'
     final userId = authResponse.user!.id;
     final response = await _client
         .from(DbTable.users)
@@ -79,7 +79,7 @@ class AuthService {
     final webClientId = dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
     final iosClientId = dotenv.env['GOOGLE_IOS_CLIENT_ID'] ?? '';
 
-    // Initialize Google Sign In instance
+    // Setup benda-benda nak Google Sign In
     await g_sign_in.GoogleSignIn.instance.initialize(
       serverClientId: webClientId.isNotEmpty ? webClientId : null,
       clientId: iosClientId.isNotEmpty ? iosClientId : null,
@@ -105,7 +105,7 @@ class AuthService {
 
     final userId = authResponse.user!.id;
     
-    // Check if the user exists in our users table
+    // Check tengok user ni dah wujud tak kat table 'users'
     final response = await _client
         .from(DbTable.users)
         .select()
@@ -113,13 +113,13 @@ class AuthService {
         .maybeSingle();
 
     if (response == null) {
-      // New user! Insert into public.users
+      // User baru! Kita masukkan dia dalam public.users
       final userData = {
         'id': userId,
         'name': authResponse.user!.userMetadata?['full_name'] ?? 'Google User',
         'email': authResponse.user!.email,
         'phone': '',
-        'role': 'customer', // Default role for OAuth
+        'role': 'customer', // Bagi role default untuk OAuth (social login)
         'is_verified_runner': false,
         'created_at': DateTime.now().toIso8601String(),
         'avatar_url': authResponse.user!.userMetadata?['avatar_url'],
@@ -170,7 +170,7 @@ class AuthService {
     required String vehicleType,
     String? plateNumber,
   }) async {
-    // 1. Insert into runner_verifications
+    // 1. Sumbat masuk dalam runner_verifications
     await _client.from('runner_verifications').insert({
       'user_id': userId,
       'full_name': fullName,

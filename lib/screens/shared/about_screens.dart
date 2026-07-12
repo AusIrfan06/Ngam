@@ -6,8 +6,8 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../utils/glass_toast.dart';
 
 // ============================================================
-// Ngam App — About Screens
-// Legal Text (Terms & Privacy), Rate App
+// Ngam App — Skrin About
+// Teks perundangan & Rate App
 // ============================================================
 
 LiquidGlassSettings _glassSettings(bool isDark) => LiquidGlassSettings(
@@ -16,7 +16,7 @@ LiquidGlassSettings _glassSettings(bool isDark) => LiquidGlassSettings(
   saturation: 1.0, chromaticAberration: 0.0,
 );
 
-// ─── Press Animation Wrapper ──────────────────────────────────
+// ─── Wrapper Animasi Tekan-tekan ────────────────────────────
 class _AnimatedPressable extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
@@ -49,7 +49,7 @@ class _AnimatedPressableState extends State<_AnimatedPressable> with SingleTicke
   );
 }
 
-// ─── Legal Text Screen (Terms & Privacy) ─────────────────────
+// ─── Skrin Legal Teks ───────────────────────────────────────
 class LegalTextScreen extends StatelessWidget {
   final String title;
   final String content;
@@ -93,7 +93,7 @@ class LegalTextScreen extends StatelessWidget {
   }
 }
 
-// ─── Rate the App Screen ──────────────────────────────────────
+// ─── Skrin Rate App Kita ────────────────────────────────────
 class RateAppScreen extends StatefulWidget {
   const RateAppScreen({super.key});
 
@@ -215,7 +215,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
   }
 }
 
-// ─── Legal Content Strings ────────────────────────────────────
+// ─── Teks Panjang untuk Legal ───────────────────────────────
 const String ngamTermsText = """
 Dikemas kini: Jun 2026
 

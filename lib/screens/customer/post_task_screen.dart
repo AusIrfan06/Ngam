@@ -16,8 +16,8 @@ import '../shared/wallet_screen.dart';
 import '../../services/supabase_service.dart';
 
 // ============================================================
-// Ngam App — Post Task Screen
-// Customer creates and broadcasts a new task
+// Ngam App — Skrin Post Task
+// Customer buat dan broadcast task baru
 // ============================================================
 
 class PostTaskScreen extends StatefulWidget {
@@ -235,13 +235,13 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
       );
     }
 
-    // Refresh balance after payment
+    // Refresh wallet balance lepas bayar
     if (!authProvider.isRunner && mounted) {
       authProvider.refreshBalance();
     }
 
     if (gig != null && mounted) {
-      // Save the used location to user profile
+      // Save lokasi ni terus ke profil user
       final userId = authProvider.user?.id;
       if (userId != null) {
         await SupabaseService.updateProfile(
@@ -250,7 +250,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
           addressLat: _selectedLocation!.latitude,
           addressLng: _selectedLocation!.longitude,
         );
-        // Refresh auth provider to get updated address
+        // Refresh auth supaya dapat address yang latest
         await authProvider.initialize();
       }
 
@@ -324,7 +324,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ─── Task Title ──────────────────────────
+                      // ─── Tajuk Task ──────────────────────────
                       TextFormField(
                         controller: _titleController,
                         decoration: InputDecoration(
@@ -345,7 +345,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // ─── Task Description ────────────────────
+                      // ─── Penerangan Task ─────────────────────
                       TextFormField(
                         controller: _descriptionController,
                         maxLines: 4,
@@ -371,7 +371,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // ─── Category Dropdown ───────────────────
+                      // ─── Dropdown Kategori ───────────────────
                       DropdownButtonFormField<String>(
                         value: _selectedCategory,
                         decoration: InputDecoration(
@@ -393,13 +393,13 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         onChanged: (value) {
                           setState(() {
                             _selectedCategory = value!;
-                            // Update bounty hint
+                            // Update harga anggaran bounty
                           });
                         },
                       ),
                       const SizedBox(height: 16),
 
-                      // ─── Location ────────────────────────────
+                      // ─── Lokasi ──────────────────────────────
                       TextFormField(
                         controller: _locationController,
                         decoration: InputDecoration(
@@ -449,7 +449,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         ),
                       const SizedBox(height: 16),
 
-                      // ─── Bounty Amount ───────────────────────
+                      // ─── Harga Upah (Bounty) ─────────────────
                       TextFormField(
                         controller: _bountyController,
                         keyboardType: TextInputType.number,
@@ -484,7 +484,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       ),
                       const SizedBox(height: 8),
 
-                      // ─── Bounty Matrix Info ──────────────────
+                      // ─── Info Matrik Bounty ──────────────────
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -523,7 +523,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // ─── Submit Button ───────────────────────
+                      // ─── Butang Submit ───────────────────────
                       Consumer<GigProvider>(
                         builder: (context, gig, _) {
                           return SizedBox(

@@ -1,14 +1,14 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // ============================================================
-// Ngam App — Constants & Configuration
+// Ngam App — Constants (Pemalar) & Konfigurasi
 // ============================================================
 
-// ─── Supabase Credentials ────────────────────────────────────
+// ─── Kunci Supabase ──────────────────────────────────────────
 String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
 String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
-// ─── Task Categories ─────────────────────────────────────────
+// ─── Kategori Task ───────────────────────────────────────────
 class TaskCategory {
   static const String food = 'Food';
   static const String shopping = 'Shopping';
@@ -31,7 +31,7 @@ class TaskCategory {
     petCare,
     errands,
     automotive,
-    others
+    others,
   ];
 
   /// Returns an icon for each category
@@ -63,7 +63,7 @@ class TaskCategory {
   }
 }
 
-// ─── Gig Status ──────────────────────────────────────────────
+// ─── Status Task/Gig ─────────────────────────────────────────
 class GigStatus {
   static const String open = 'OPEN';
   static const String pending = 'PENDING';
@@ -74,16 +74,16 @@ class GigStatus {
   static const String cancelled = 'CANCELLED';
   static const String service = 'SERVICE';
   static const String disabled = 'DISABLED';
-  static const String disabledService = 'DISABLED_SERVICE';
+  static const String disabledService = 'DISABLED';
 }
 
-// ─── User Roles ──────────────────────────────────────────────
+// ─── Role User ───────────────────────────────────────────────
 class UserRole {
   static const String customer = 'customer';
   static const String runner = 'runner';
 }
 
-// ─── SLA Durations (in minutes) per category ─────────────────
+// ─── Tempoh Masa SLA (dalam minit) ikut Kategori ─────────────
 class SlaDuration {
   static int forCategory(String category) {
     switch (category) {
@@ -113,7 +113,7 @@ class SlaDuration {
   }
 }
 
-// ─── Table Names ─────────────────────────────────────────────
+// ─── Nama Table DB ───────────────────────────────────────────
 class DbTable {
   static const String users = 'users';
   static const String gigs = 'gigs';

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/gig_model.dart';
 import '../../providers/gig_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/gig_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
@@ -12,12 +13,14 @@ import 'package:hugeicons/hugeicons.dart';
 import '../shared/chat_screen.dart';
 import '../../services/location_service.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // ============================================================
-// Ngam App — Active Job Screen (Runner)
-// Current active gig view with completion controls
+// Ngam App — Skrin Active Job (Runner)
+// View untuk job tengah jalan dengan control untuk siapkan task
 // ============================================================
 
 class ActiveJobScreen extends StatefulWidget {
@@ -30,6 +33,8 @@ class ActiveJobScreen extends StatefulWidget {
 class _ActiveJobScreenState extends State<ActiveJobScreen> {
   final _notesController = TextEditingController();
   GigModel? _gig;
+  File? _proofImage;
+  bool _isUploadingProof = false;
 
   @override
   void initState() {
@@ -39,12 +44,46 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
       if (gig != null) {
         setState(() => _gig = gig);
         
-        // Start tracking location if gig is IN-PROGRESS
+        // Start hantar location kalau gig tu IN-PROGRESS
         if (gig.status == 'IN-PROGRESS' && gig.gigWorkerId != null) {
           LocationService.instance.startTracking(gig.id, gig.gigWorkerId!);
         }
       }
     });
+  }
+
+  Future<void> _pickAndUploadProof() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1024,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null && _gig != null && mounted) {
+      setState(() {
+        _proofImage = File(pickedFile.path);
+        _isUploadingProof = true;
+      });
+
+      final url = await GigService.uploadProofImage(_gig!.id, _proofImage!);
+      
+      if (mounted) {
+        setState(() {
+          _isUploadingProof = false;
+        });
+        
+        if (url != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gambar bukti berjaya dimuat naik!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal muat naik gambar.')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -63,6 +102,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
     }
 
     final gig = _gig!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +131,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Active Job Header ───────────────────
+            // ─── Header Active Job ───────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -151,7 +191,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Status Badge
+                  // Badge status
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -178,7 +218,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             ),
             const SizedBox(height: 24),
 
-            // ─── Navigate Button & Map ────────────────────
+            // ─── Butang Navigate & Map ───────────────
             if (gig.latitude != null && gig.longitude != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 24),
@@ -245,7 +285,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                 ),
               ),
 
-            // ─── Upload Proof (Optional) ─────────────
+            // ─── Upload Bukti (Optional) ─────────────
             Text(
               'runner.upload_proof'.tr(),
               style: TextStyle(
@@ -255,47 +295,55 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             ),
             const SizedBox(height: 12),
             GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('runner.photo_upload_soon'.tr()),
-                  ),
-                );
-              },
+              onTap: _isUploadingProof ? null : _pickAndUploadProof,
               child: Container(
                 width: double.infinity,
-                height: 120,
+                height: 180,
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: Colors.grey.shade300,
-                    style: BorderStyle.solid,
+                    color: isDark ? Colors.white12 : Colors.grey.shade300,
                   ),
+                  image: _proofImage != null 
+                      ? DecorationImage(
+                          image: FileImage(_proofImage!),
+                          fit: BoxFit.cover,
+                        ) 
+                      : (_gig?.proofImageUrl != null 
+                          ? DecorationImage(
+                              image: NetworkImage(_gig!.proofImageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.camera_alt_outlined,
-                      size: 36,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'runner.tap_upload'.tr(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                  ],
-                ),
+                child: (_proofImage == null && _gig?.proofImageUrl == null && !_isUploadingProof)
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedCamera01,
+                            color: Colors.grey.shade400,
+                            size: 32,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'runner.tap_upload'.tr(),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
+                      )
+                    : (_isUploadingProof
+                        ? const Center(child: CircularProgressIndicator())
+                        : null),
               ),
             ),
             const SizedBox(height: 24),
 
-            // ─── Notes for Requester ─────────────────
+            // ─── Nota untuk Customer ─────────────────
             Text(
               'runner.notes_requester'.tr(),
               style: TextStyle(
@@ -312,7 +360,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // ─── Chat with Customer Button ─────────────
+            // ─── Butang Chat Customer ────────────────
             Consumer<AuthProvider>(
               builder: (context, auth, _) {
                 if (auth.user?.id == gig.customerId) {
@@ -324,7 +372,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       if (auth.user == null) return;
-                      // Show loading indicator
+                      // Keluarkan loading spinner jap
                       showDialog(
                         context: context,
                         barrierDismissible: false,
@@ -332,15 +380,15 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                       );
                       
                       try {
-                        // Import ChatService at the top!
+                        // Make sure ChatService dah import kat atas!
                         final conversation = await ChatService.createOrGetConversation(
                           auth.user!.id,
-                          gig.customerId, // The other person is the customer
+                          gig.customerId, // Orang seberang tu adalah customer
                           gigId: gig.id,
                         );
                         if (context.mounted) {
-                          Navigator.pop(context); // Close loading dialog
-                          // Navigate to ChatThreadScreen
+                          Navigator.pop(context); // Tutup loading tu
+                          // Gerak pi ChatThreadScreen
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -375,7 +423,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ─── Mark Delivered Button ────────────────
+            // ─── Butang Tanda Delivered ──────────────
             Consumer<GigProvider>(
               builder: (context, gigProvider, _) {
                 if (gig.status == 'DELIVERED') {
@@ -421,10 +469,10 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                         : () async {
                             final success = await gigProvider.deliverGig(gig.id);
                             if (success && context.mounted) {
-                              // Stop tracking once delivered
+                              // Stop hantar location bila dah delivered
                               LocationService.instance.stopTracking();
                               
-                              // Show delivery dialog
+                              // Keluarkan dialog delivery
                               showDialog(
                                 context: context,
                                 barrierDismissible: false,

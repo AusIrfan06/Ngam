@@ -15,7 +15,7 @@ class PaymentService {
         .eq('user_id', userId)
         .order('created_at', ascending: true);
 
-    // Map the Supabase rows to the UI format expected by WalletScreen
+    // Gubah baris data Supabase jadi bentuk yang WalletScreen faham
     return response.map((row) {
       final type = row['type'] as String;
       final map = <String, dynamic>{
@@ -23,7 +23,7 @@ class PaymentService {
         'type': type,
         'isPrimary': row['is_primary'] ?? false,
         'color': row['color_index'] ?? 0,
-        'holder': row['holder_name'], // Newly added
+        'holder': row['holder_name'], // Baru ditambah
       };
 
       if (type == 'card') {
@@ -45,14 +45,14 @@ class PaymentService {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) throw Exception("Not logged in");
 
-    // Convert UI map back to DB row
+    // Convert UI punya data balik jadi baris DB
     final row = <String, dynamic>{
       'id': const Uuid().v4(),
       'user_id': userId,
       'type': methodData['type'],
       'is_primary': methodData['isPrimary'] ?? false,
       'color_index': methodData['color'] ?? 0,
-      'holder_name': methodData['holder'], // Newly added
+      'holder_name': methodData['holder'], // Baru ditambah
     };
 
     if (methodData['type'] == 'card') {
@@ -88,7 +88,7 @@ class PaymentService {
         .update({'is_primary': false})
         .eq('user_id', userId);
 
-    // Then set the specific one to true
+    // Lepas tu set option yang dia pilih tu jadi true
     await _supabase
         .from('payment_methods')
         .update({'is_primary': true})

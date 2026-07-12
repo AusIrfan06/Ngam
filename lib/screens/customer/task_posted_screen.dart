@@ -6,8 +6,8 @@ import '../../utils/app_theme.dart';
 import '../../widgets/category_chip.dart';
 
 // ============================================================
-// Ngam App — Task Posted Screen
-// Success confirmation after posting a task
+// Ngam App — Skrin Task Posted
+// Confirm/Setujuation berjaya lepas post task
 // ============================================================
 
 class TaskPostedScreen extends StatefulWidget {
@@ -56,7 +56,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
             children: [
               const Spacer(),
 
-              // ─── Success Icon ──────────────────────
+              // ─── Icon Success ────────────────────────
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: Container(
@@ -75,7 +75,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
               ),
               const SizedBox(height: 24),
 
-              // ─── Title ─────────────────────────────
+              // ─── Tajuk ───────────────────────────────
               Text(
                 'post_task.submitted_title'.tr(),
                 style: GoogleFonts.outfit(
@@ -103,7 +103,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
               ),
               const SizedBox(height: 32),
 
-              // ─── Task Summary Card ─────────────────
+              // ─── Kad Ringkasan Task ──────────────────
               if (gig != null)
                 Container(
                   width: double.infinity,
@@ -165,7 +165,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
 
               const Spacer(),
 
-              // ─── Action Buttons ────────────────────
+              // ─── Butang Action ───────────────────────
               SizedBox(
                 width: double.infinity,
                 height: 54,

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 
 // ============================================================
-// Ngam App — Status Timeline Widget
-// Vertical stepper showing task progress stages
+// Ngam App — Widget Timeline Status
+// Stepper menegak untuk tunjuk task ni dah sampai level mana
 // ============================================================
 
 class StatusTimeline extends StatelessWidget {
@@ -76,10 +76,10 @@ class StatusTimeline extends StatelessWidget {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Timeline indicator
+            // Ikon/Indicator timeline
             Column(
               children: [
-                // Circle
+                // Bulatan
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   width: 36,
@@ -105,7 +105,7 @@ class StatusTimeline extends StatelessWidget {
                     color: step.isCompleted ? Colors.white : Colors.grey.shade500,
                   ),
                 ),
-                // Line connector
+                // Garisan penyambung bawah
                 if (!isLast)
                   Container(
                     width: 2,
@@ -118,7 +118,7 @@ class StatusTimeline extends StatelessWidget {
             ),
             const SizedBox(width: 16),
 
-            // Content
+            // Isi Kandungan
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 24),

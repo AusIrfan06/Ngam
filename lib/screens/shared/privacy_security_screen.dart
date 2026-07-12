@@ -42,7 +42,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     super.initState();
   }
 
-  // Mocks
+  // Data olok-olok (Mocks)
 
   Future<void> _clearCache() async {
     setState(() => _cacheSize = "0.0 MB");
@@ -89,7 +89,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
         }
       }
 
-      // If authentication succeeds or if device doesn't support biometrics
+      // Kalau face/fingerprint berjaya (ataupun phone tu jenis lama tak support)
       await SecurityData.toggleSecuritySetting('appLockEnabled', enable);
       if (mounted) {
         showGlassToast(context, enable ? "App Lock Enabled" : "App Lock Disabled");
@@ -149,7 +149,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 🟢 Phone Security Icon
+              // 🟢 Ikon Security Phone
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -164,7 +164,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 🟢 Title
+              // 🟢 Tajuk Utama
               Text(
                 "privacy.enable_2fa".tr(),
                 style: TextStyle(
@@ -176,7 +176,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               ),
               const SizedBox(height: 12),
 
-              // 🟢 Content
+              // 🟢 Isi Kandungan
               Text(
                 "We will use your registered number (${SecurityData.userPhone.value}) to send verification codes.",
                 textAlign: TextAlign.center,
@@ -189,7 +189,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               ),
               const SizedBox(height: 28),
 
-              // 🟢 Actions
+              // 🟢 Tindakan (Butang)
               Row(
                 children: [
                   Expanded(
@@ -218,7 +218,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
                       ),
-                      onPressed: () => Navigator.pop(context, true), // 🟢 Returns 'true' to enable
+                      onPressed: () => Navigator.pop(context, true), // 🟢 Pulangkan 'true' untuk enable benda ni
                       child: Text(
                         "privacy.enable".tr(),
                         style: const TextStyle(
@@ -274,18 +274,18 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 )),
             const SizedBox(height: 12),
 
-            // 1. Expanding App Lock Section
+            // 1. Seksyen App Lock boleh buka/tutup
             _buildAppLockSection(isDark, cardColor),
 
             const SizedBox(height: 16),
 
-            // 2. Secondary Settings Container
+            // 2. Kotak setting nombor dua
             _buildSystemGlass(
               isDark: isDark,
               borderRadius: 20,
               child: Column(
                 children: [
-                  // 1. Hide in App Switcher
+                  // 1. Sorok dari App Switcher
                   ValueListenableBuilder<bool>(
                     valueListenable: SecurityData.hideContentEnabled,
                     builder: (context, val, _) => _buildToggleTile(
@@ -295,7 +295,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                   _buildDivider(isDark),
 
-                  // 2. Location Services (Synced)
+                  // 2. Servis Lokasi (Yang dah di-sync)
                   ValueListenableBuilder<bool>(
                     valueListenable: SecurityData.locationEnabled,
                     builder: (context, val, _) => _buildToggleTile(
@@ -305,7 +305,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   ),
                   _buildDivider(isDark),
 
-                  // 3. Two-Factor Authentication (Correct Notifier)
+                  // 3. 2FA Authentication (Guna Notifier yang betul)
                   ValueListenableBuilder<bool>(
                     valueListenable: SecurityData.twoFactorEnabled,
                     builder: (context, val, _) => _buildToggleTile(
@@ -319,7 +319,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
             const SizedBox(height: 32),
 
-            // --- 🟢 DATA & PRIVACY SECTION ---
+            // --- 🟢 SEKSYEN DATA & PRIVACY ---
             _buildSectionHeader("privacy.data_privacy".tr()),
             const SizedBox(height: 12),
             _buildSystemGlass(
@@ -348,7 +348,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
             const SizedBox(height: 32),
 
-            // --- 🟢 SESSIONS SECTION ---
+            // --- 🟢 SEKSYEN SESSIONS ---
             _buildSectionHeader("privacy.active_sessions".tr()),
             const SizedBox(height: 12),
             _buildSystemGlass(
@@ -356,8 +356,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               borderRadius: 20,
               child: Column(
                 children: [
-                  // 🟢 Reactive Device Tile: Syncs with GPS Refresh from Profile
-                  // Inside Column for ACTIVE SESSIONS
+                  // 🟢 Tile Device (Reaktif): Dia akan sync dengan Refresh GPS dari Profil
+                  // Dalam Column untuk SESSION YANG AKTIF
                   ValueListenableBuilder<String>(
                     valueListenable: SecurityData.userLocation,
                     builder: (context, location, _) {
@@ -611,7 +611,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     children: [
                       Flexible(child: Text(_deviceName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, fontFamily: 'Inter'), overflow: TextOverflow.ellipsis)),
                       const SizedBox(width: 8),
-                      // 🟢 The Green Badge
+                      // 🟢 Lencana Hijau
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
@@ -620,7 +620,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  // 🟢 Reactive location text
+                  // 🟢 Teks lokasi (berubah ikut keadaan)
                   Text("${"privacy.active_now".tr()}  •  $syncedLocation", style: const TextStyle(fontSize: 12, color: Colors.grey, fontFamily: 'Inter')),
                 ],
               ),
@@ -632,7 +632,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     );
   }
 
-  // 🟢 FIXED: Added 'syncedLocation' to the parameters
+  // 🟢 FIXED: Dah tambah parameter 'syncedLocation'
   void _showCurrentDeviceDetails(BuildContext context, String syncedLocation) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -658,7 +658,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // --- 🟢 Device Icon ---
+                // --- 🟢 Ikon Peranti ---
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -678,11 +678,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // --- 🟢 Details List ---
+                // --- 🟢 Senarai Details ---
                 _buildDetailRow("Model", _deviceName, isDark),
                 _buildDivider(isDark),
 
-                // 🟢 FIXED: Uses the synced GPS location instead of the old local IP variables
+                // 🟢 FIXED: Pakai lokasi GPS yang dah sync berbanding IP variables lama
                 _buildDetailRow("Location", syncedLocation.isNotEmpty ? syncedLocation : "Detecting...", isDark),
 
                 _buildDivider(isDark),
@@ -690,7 +690,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
 
                 const SizedBox(height: 32),
 
-                // --- 🟢 Close Button ---
+                // --- 🟢 Butang Pangkah (Tutup) ---
                 SizedBox(
                   width: double.infinity,
                   child: TextButton(
@@ -714,7 +714,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     );
   }
 
-  // Helper for the Details Rows
+  // Helper function untuk buat Barisan Details
   Widget _buildDetailRow(String label, String value, bool isDark, {bool isStatus = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -828,14 +828,14 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
                         ),
                         onPressed: () {
-                          Navigator.pop(context); // Close Dialog
+                          Navigator.pop(context); // Tutup dialog ni
 
-                          // 🟢 THE LOGIC
+                          // 🟢 LOGIK UTAMA
                           HapticFeedback.heavyImpact();
 
-                          // Simulate Supabase/Auth logout here...
+                          // Berlakon macam buat Supabase/Auth logout kat sini...
 
-                          // 🟢 FIXED: Swapped to the new global glass helper
+                          // 🟢 FIXED: Tukar pakai global glass helper yang baru
                           showGlassToast(context, "Other sessions secured successfully");
                         },
                         child: Text("auth.logout".tr(), style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontFamily: 'Inter')),
@@ -879,7 +879,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 🟢 Storage Icon
+                // 🟢 Ikon Storage (Storan)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -894,7 +894,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // 🟢 Title
+                // 🟢 Tajuk Utama
                 Text(
                   "privacy.clear_cache".tr(),
                   style: TextStyle(
@@ -906,7 +906,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // 🟢 Content
+                // 🟢 Isi Kandungan
                 Text(
                   "privacy.free_storage".tr(),
                   textAlign: TextAlign.center,
@@ -919,7 +919,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                // 🟢 Actions
+                // 🟢 Tindakan (Butang)
                 Row(
                   children: [
                     Expanded(
@@ -949,11 +949,11 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                           backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
                         ),
                         onPressed: () {
-                          Navigator.pop(context); // Close dialog first
-                          _clearCache(); // Run your existing clear logic
+                          Navigator.pop(context); // Kita tutup dialog ni dulu
+                          _clearCache(); // Jalankan logik buang cache yang sedia ada
                         },
                         child: Text(
-                          "privacy.clear_cache".tr().split(" ")[0], // using "Clear"
+                          "privacy.clear_cache".tr().split(" ")[0], // kita pakai terma "Buang"
                           style: TextStyle(
                               color: Colors.blueAccent,
                               fontWeight: FontWeight.w700,

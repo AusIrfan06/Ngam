@@ -4,8 +4,8 @@ import '../utils/app_theme.dart';
 import '../utils/constants.dart';
 
 // ============================================================
-// Ngam App — SLA Countdown Widget
-// Animated timer for Service Level Agreement tracking
+// Ngam App — Widget Countdown Masa SLA
+// Timer beranimasi untuk track berapa minit je tinggal untuk siapkan job
 // ============================================================
 
 class SlaCountdown extends StatefulWidget {
@@ -128,7 +128,7 @@ class _SlaCountdownState extends State<SlaCountdown>
               ),
               const SizedBox(height: 10),
 
-              // Timer display
+              // Ruang display masa tu
               Text(
                 isExpired ? 'OVERDUE' : _formatDuration(_remaining),
                 style: TextStyle(
@@ -140,7 +140,7 @@ class _SlaCountdownState extends State<SlaCountdown>
               ),
               const SizedBox(height: 10),
 
-              // Progress bar
+              // Bar loading timeline
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(

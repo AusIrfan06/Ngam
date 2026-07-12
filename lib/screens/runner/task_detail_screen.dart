@@ -17,8 +17,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'active_job_screen.dart';
 
 // ============================================================
-// Ngam App — Task Detail Screen (Runner)
-// Detailed view of a gig before accepting
+// Ngam App — Skrin Detail Task (Runner)
+// Bagi runner usha detail task dulu sebelum sapu
 // ============================================================
 
 class TaskDetailScreen extends StatefulWidget {
@@ -41,8 +41,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   Widget build(BuildContext context) {
     final currentUserId = context.read<AuthProvider>().user?.id;
     final gig = _gig;
-    
-    if (gig == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+    if (gig == null)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
       body: CustomScrollView(
@@ -54,7 +55,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              titlePadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 16,
+              ),
               title: Text(
                 'runner.task_detail'.tr(),
                 style: GoogleFonts.outfit(
@@ -66,7 +70,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       Theme.of(context).scaffoldBackgroundColor,
                     ],
                     begin: Alignment.topCenter,
@@ -84,7 +90,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ─── Task Title ──────────────────────────
+                    // ─── Tajuk Task ──────────────────────────
                     Text(
                       gig.title,
                       style: GoogleFonts.outfit(
@@ -94,14 +100,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // ─── Category Tag ────────────────────────
+                    // ─── Tag Kategori ────────────────────────
                     CategoryChip(label: gig.category),
                     const SizedBox(height: 20),
 
-                    // ─── Location ────────────────────────────
+                    // ─── Lokasi ──────────────────────────────
                     Row(
                       children: [
-                        HugeIcon(icon: HugeIcons.strokeRoundedLocation01,
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedLocation01,
                           size: 20,
                           color: AppTheme.primary,
                         ),
@@ -119,24 +126,31 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // ─── Mini Map ────────────────────────────
+                    // ─── Map Kecil (Mini Map) ────────────────
                     if (gig.latitude != null && gig.longitude != null)
                       Container(
                         height: 180,
                         margin: const EdgeInsets.only(bottom: 20),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                          ),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: FlutterMap(
                           options: MapOptions(
-                            initialCenter: LatLng(gig.latitude!, gig.longitude!),
+                            initialCenter: LatLng(
+                              gig.latitude!,
+                              gig.longitude!,
+                            ),
                             initialZoom: 15.0,
                           ),
                           children: [
                             TileLayer(
-                              urlTemplate: Theme.of(context).brightness == Brightness.dark
+                              urlTemplate:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
                                   : 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                               userAgentPackageName: 'com.example.ngam',
@@ -148,7 +162,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                   point: LatLng(gig.latitude!, gig.longitude!),
                                   width: 40,
                                   height: 40,
-                                  child: HugeIcon(icon: HugeIcons.strokeRoundedLocation01,
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedLocation01,
                                     color: Colors.red,
                                     size: 40,
                                   ),
@@ -159,7 +174,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         ),
                       ),
 
-                    // ─── Navigate Button ─────────────────────
+                    // ─── Butang Navigate ─────────────────────
                     if (gig.latitude != null && gig.longitude != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 20),
@@ -167,18 +182,36 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () async {
-                              final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${gig.latitude},${gig.longitude}');
+                              final url = Uri.parse(
+                                'https://www.google.com/maps/search/?api=1&query=${gig.latitude},${gig.longitude}',
+                              );
                               try {
-                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                                await launchUrl(
+                                  url,
+                                  mode: LaunchMode.externalApplication,
+                                );
                               } catch (e) {
                                 debugPrint("Could not launch maps: $e");
                               }
                             },
-                            icon: const HugeIcon(icon: HugeIcons.strokeRoundedNavigation01, color: AppTheme.primary, size: 20),
-                            label: Text('task_detail.navigate'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            icon: const HugeIcon(
+                              icon: HugeIcons.strokeRoundedNavigation01,
+                              color: AppTheme.primary,
+                              size: 20,
+                            ),
+                            label: Text(
+                              'task_detail.navigate'.tr(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: const BorderSide(color: AppTheme.primary, width: 1.5),
+                              side: const BorderSide(
+                                color: AppTheme.primary,
+                                width: 1.5,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
@@ -187,7 +220,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         ),
                       ),
 
-                    // ─── Posted Time ─────────────────────────
+                    // ─── Waktu Kena Post ─────────────────────
                     Row(
                       children: [
                         Icon(
@@ -207,7 +240,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    // ─── Description ─────────────────────────
+                    // ─── Penerangan ──────────────────────────
                     _buildGlassSection(
                       isDark: Theme.of(context).brightness == Brightness.dark,
                       child: Container(
@@ -215,16 +248,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         padding: const EdgeInsets.all(20),
                         child: Text(
                           gig.description,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            height: 1.6,
-                          ),
+                          style: const TextStyle(fontSize: 16, height: 1.6),
                         ),
                       ),
                     ),
                     const SizedBox(height: 28),
 
-                    // ─── Poster Info ───────────────────────
+                    // ─── Info Tukang Post ────────────────────
                     _buildGlassSection(
                       isDark: Theme.of(context).brightness == Brightness.dark,
                       child: Container(
@@ -232,23 +262,30 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         padding: const EdgeInsets.all(20),
                         child: Builder(
                           builder: (context) {
-                            final isService = gig.status == 'SERVICE' || gig.status == 'DISABLED_SERVICE';
-                            final posterName = isService ? (gig.runnerName ?? 'Runner') : (gig.customerName ?? 'Customer');
-                            
+                            final isService =
+                                gig.status == 'SERVICE' ||
+                                gig.status == 'DISABLED';
+                            final posterName = isService
+                                ? (gig.runnerName ?? 'Runner')
+                                : (gig.customerName ?? 'Customer');
+
                             return Row(
                               children: [
                                 CircleAvatar(
                                   radius: 26,
-                                  backgroundColor: AppTheme.info.withValues(alpha: 0.1),
+                                  backgroundColor: AppTheme.info.withValues(
+                                    alpha: 0.1,
+                                  ),
                                   backgroundImage: NetworkImage(
                                     'https://ui-avatars.com/api/?name=${Uri.encodeComponent(posterName)}&background=random&color=fff',
                                   ),
                                   onBackgroundImageError: (e, s) {},
                                 ),
-                          const SizedBox(width: 16),
+                                const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         posterName,
@@ -259,71 +296,95 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                const SizedBox(height: 4),
-                                const Row(
-                                  children: [
-                                    HugeIcon(icon: HugeIcons.strokeRoundedStar, size: 16, color: Colors.amber),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      '4.8 (12 tasks)',
-                                      style: TextStyle(fontSize: 14),
+                                      const SizedBox(height: 4),
+                                      const Row(
+                                        children: [
+                                          HugeIcon(
+                                            icon: HugeIcons.strokeRoundedStar,
+                                            size: 16,
+                                            color: Colors.amber,
+                                          ),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            '4.8 (12 tasks)',
+                                            style: TextStyle(fontSize: 14),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Butang chat
+                                if (gig.customerId != currentUserId)
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Chat Button
-                          if (gig.customerId != currentUserId)
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppTheme.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: IconButton(
-                                onPressed: () async {
-                                  if (currentUserId == null) return;
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (_) => const Center(child: CircularProgressIndicator()),
-                                  );
-                                  try {
-                                    final conversation = await ChatService.createOrGetConversation(
-                                      currentUserId,
-                                      gig.customerId,
-                                      gigId: gig.id,
-                                    );
-                                    if (context.mounted) {
-                                      Navigator.pop(context); // Close loading dialog
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ChatThreadScreen(conversation: conversation),
-                                        ),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if (context.mounted) {
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error starting chat: $e')));
-                                    }
-                                  }
-                                },
-                                icon: HugeIcon(icon: HugeIcons.strokeRoundedChatting01,
-                                  color: AppTheme.primary,
-                                ),
-                              ),
-                            ),
+                                    child: IconButton(
+                                      onPressed: () async {
+                                        if (currentUserId == null) return;
+                                        showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (_) => const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        );
+                                        try {
+                                          final conversation =
+                                              await ChatService.createOrGetConversation(
+                                                currentUserId,
+                                                gig.customerId,
+                                                gigId: gig.id,
+                                              );
+                                          if (context.mounted) {
+                                            Navigator.pop(
+                                              context,
+                                            ); // Tutup loading tu
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    ChatThreadScreen(
+                                                      conversation:
+                                                          conversation,
+                                                    ),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Error starting chat: $e',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: HugeIcon(
+                                        icon: HugeIcons.strokeRoundedChatting01,
+                                        color: AppTheme.primary,
+                                      ),
+                                    ),
+                                  ),
                               ],
                             );
-                          }
+                          },
                         ),
                       ),
                     ),
                     const SizedBox(height: 40),
 
-                    // ─── Bounty Amount ───────────────────────
+                    // ─── Harga Upah (Bounty) ─────────────────
                     Center(
                       child: Column(
                         children: [
@@ -349,14 +410,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 40),
 
-                    // ─── Accept Button ───────────────────────
+                    // ─── Butang Accept/Ambil Task ────────────
                     if (gig.customerId != currentUserId) ...[
                       if (gig.status == 'OPEN')
                         SizedBox(
                           width: double.infinity,
                           height: 56,
                           child: _buildGlassButton(
-                            isDark: Theme.of(context).brightness == Brightness.dark,
+                            isDark:
+                                Theme.of(context).brightness == Brightness.dark,
                             icon: HugeIcons.strokeRoundedCheckmarkBadge01,
                             label: 'runner.accept_task'.tr(),
                             onTap: () {
@@ -373,7 +435,8 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           width: double.infinity,
                           height: 56,
                           child: _buildGlassButton(
-                            isDark: Theme.of(context).brightness == Brightness.dark,
+                            isDark:
+                                Theme.of(context).brightness == Brightness.dark,
                             icon: HugeIcons.strokeRoundedBriefcase01,
                             label: 'View Active Job',
                             onTap: () {
@@ -392,19 +455,20 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           width: double.infinity,
                           height: 56,
                           child: _buildGlassButton(
-                            isDark: Theme.of(context).brightness == Brightness.dark,
+                            isDark:
+                                Theme.of(context).brightness == Brightness.dark,
                             icon: HugeIcons.strokeRoundedLockKey,
                             label: 'Job Unavailable',
                             onTap: null,
                           ),
                         ),
-                    ]
-                    else
+                    ] else
                       SizedBox(
                         width: double.infinity,
                         height: 56,
                         child: _buildGlassButton(
-                          isDark: Theme.of(context).brightness == Brightness.dark,
+                          isDark:
+                              Theme.of(context).brightness == Brightness.dark,
                           icon: HugeIcons.strokeRoundedSettings01,
                           label: 'Manage Service',
                           onTap: _showManageServiceMenu,
@@ -419,7 +483,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       ),
     );
   }
-
 
   LiquidGlassSettings _getGlassSettings(bool isDark) {
     return LiquidGlassSettings(
@@ -460,11 +523,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     );
   }
 
-  Widget _buildGlassButton(
-      {required bool isDark,
-      required dynamic icon,
-      required String label,
-      required VoidCallback? onTap}) {
+  Widget _buildGlassButton({
+    required bool isDark,
+    required dynamic icon,
+    required String label,
+    required VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16.0),
@@ -516,46 +580,99 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('task_detail.manage_service'.tr(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+              Text(
+                'task_detail.manage_service'.tr(),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
               const SizedBox(height: 16),
               ListTile(
-                leading: HugeIcon(icon: HugeIcons.strokeRoundedMoney03, color: isDark ? Colors.white70 : Colors.black87),
-                title: Text('task_detail.adjust_bounty'.tr(), style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                leading: HugeIcon(
+                  icon: HugeIcons.strokeRoundedMoney03,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                title: Text(
+                  'task_detail.adjust_bounty'.tr(),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   _showAdjustBountyDialog();
                 },
               ),
               ListTile(
-                leading: HugeIcon(icon: gig.status == 'DISABLED_SERVICE' ? HugeIcons.strokeRoundedPlay : HugeIcons.strokeRoundedPause, color: isDark ? Colors.white70 : Colors.black87),
-                title: Text(gig.status == 'DISABLED_SERVICE' ? 'Resume Service' : 'Pause Service', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+                leading: HugeIcon(
+                  icon: gig.status == 'DISABLED'
+                      ? HugeIcons.strokeRoundedPlay
+                      : HugeIcons.strokeRoundedPause,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+                title: Text(
+                  gig.status == 'DISABLED' ? 'Resume Service' : 'Pause Service',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
                 onTap: () async {
                   Navigator.pop(sheetContext);
-                  final isPausing = gig.status != 'DISABLED_SERVICE';
+                  final isPausing = gig.status != 'DISABLED';
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (c) => AlertDialog(
-                      title: Text(isPausing ? 'Pause Service?' : 'Resume Service?'),
-                      content: Text(isPausing ? 'Are you sure you want to pause this service? It will not be visible to customers.' : 'Are you sure you want to resume this service?'),
+                      title: Text(
+                        isPausing ? 'Pause Service?' : 'Resume Service?',
+                      ),
+                      content: Text(
+                        isPausing
+                            ? 'Are you sure you want to pause this service? It will not be visible to customers.'
+                            : 'Are you sure you want to resume this service?',
+                      ),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-                        TextButton(onPressed: () => Navigator.pop(c, true), child: Text(isPausing ? 'Pause' : 'Resume', style: const TextStyle(color: Colors.blue))),
+                        TextButton(
+                          onPressed: () => Navigator.pop(c, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(c, true),
+                          child: Text(
+                            isPausing ? 'Pause' : 'Resume',
+                            style: const TextStyle(color: Colors.blue),
+                          ),
+                        ),
                       ],
                     ),
                   );
                   if (confirm == true) {
                     if (!mounted) return;
-                    await context.read<GigProvider>().toggleGigStatus(gig.id, gig.status);
+                    await context.read<GigProvider>().toggleGigStatus(
+                      gig.id,
+                      gig.status,
+                    );
                     if (!mounted) return;
                     setState(() {
-                      _gig = _gig!.copyWith(status: gig.status == 'DISABLED_SERVICE' ? 'SERVICE' : 'DISABLED_SERVICE');
+                      _gig = _gig!.copyWith(
+                        status: gig.status == 'DISABLED'
+                            ? 'SERVICE'
+                            : 'DISABLED',
+                      );
                     });
                   }
                 },
               ),
               ListTile(
-                leading: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, color: Colors.red),
-                title: Text('task_detail.delete_service'.tr(), style: TextStyle(color: Colors.red)),
+                leading: HugeIcon(
+                  icon: HugeIcons.strokeRoundedDelete01,
+                  color: Colors.red,
+                ),
+                title: Text(
+                  'task_detail.delete_service'.tr(),
+                  style: TextStyle(color: Colors.red),
+                ),
                 onTap: () async {
                   Navigator.pop(sheetContext);
                   final confirm = await showDialog<bool>(
@@ -564,8 +681,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                       title: Text('task_detail.delete_service_title'.tr()),
                       content: Text('task_detail.delete_service_desc'.tr()),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(c, false), child: Text('task_detail.cancel'.tr())),
-                        TextButton(onPressed: () => Navigator.pop(c, true), child: Text('task_detail.delete'.tr(), style: TextStyle(color: Colors.red))),
+                        TextButton(
+                          onPressed: () => Navigator.pop(c, false),
+                          child: Text('task_detail.cancel'.tr()),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(c, true),
+                          child: Text(
+                            'task_detail.delete'.tr(),
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
                       ],
                     ),
                   );
@@ -584,7 +710,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   }
 
   void _showAdjustBountyDialog() {
-    final TextEditingController controller = TextEditingController(text: _gig!.bountyAmount.toStringAsFixed(2));
+    final TextEditingController controller = TextEditingController(
+      text: _gig!.bountyAmount.toStringAsFixed(2),
+    );
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -606,7 +734,10 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             onPressed: () async {
               final val = double.tryParse(controller.text);
               if (val != null && val > 0) {
-                await context.read<GigProvider>().updateGigBounty(_gig!.id, val);
+                await context.read<GigProvider>().updateGigBounty(
+                  _gig!.id,
+                  val,
+                );
                 setState(() {
                   _gig = _gig!.copyWith(bountyAmount: val);
                 });

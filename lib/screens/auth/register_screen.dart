@@ -12,7 +12,7 @@ import '../../widgets/animated_background.dart';
 import '../../widgets/glass_card.dart';
 
 // ============================================================
-// Ngam App — Register Screen
+// Ngam App — Skrin Register
 // ============================================================
 
 class RegisterScreen extends StatefulWidget {
@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   bool _obscureConfirmPassword = true;
   String _selectedRole = UserRole.customer;
 
-  // Runner Details
+  // Detail untuk Runner
   final _icNumberController = TextEditingController();
   final _vehicleTypeController = TextEditingController();
   final _plateNumberController = TextEditingController();
@@ -83,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
     if (success && mounted) {
       if (_selectedRole == UserRole.runner) {
-        // Submit runner verification data
+        // Hantar data verification runner
         await authProvider.submitRunnerVerification(
           fullName: _nameController.text.trim(),
           icNumber: _icNumberController.text.trim().isEmpty ? 'N/A' : _icNumberController.text.trim(),
@@ -153,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             ),
                             const SizedBox(height: 32),
 
-                            // ─── Full Name ───────────────────────────
+                            // ─── Nama Penuh ──────────────────────────
                             TextFormField(
                               controller: _nameController,
                               textCapitalization: TextCapitalization.words,
@@ -190,7 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
                 const SizedBox(height: 16),
 
-                // ─── Phone ───────────────────────────────
+                // ─── Nombor Fon ──────────────────────────
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
@@ -237,7 +237,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
                 const SizedBox(height: 16),
 
-                // ─── Confirm Password ────────────────────
+                // ─── Sahkan Password ─────────────────────
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
@@ -265,7 +265,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
                 const SizedBox(height: 28),
 
-                // ─── Role Selection ──────────────────────
+                // ─── Pilihan Role ────────────────────────
                 Text(
                   'auth.role_select'.tr(),
                   style: TextStyle(
@@ -302,7 +302,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
                 const SizedBox(height: 32),
 
-                // ─── Runner Details Form (Show only for runner) ───
+                // ─── Form Detail Runner (Tunjuk kalau pilih runner je) ───
                 if (_selectedRole == UserRole.runner) ...[
                   Text(
                     'Runner Details',
@@ -339,7 +339,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   const SizedBox(height: 32),
                 ],
 
-                // ─── Error Message ───────────────────────
+                // ─── Mesej Error ─────────────────────────
                 Consumer<AuthProvider>(
                   builder: (context, auth, _) {
                     if (auth.error != null) {
@@ -374,7 +374,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   },
                 ),
 
-                // ─── Create Account Button ──────────────
+                // ─── Butang Buat Akaun ───────────────────
                 Consumer<AuthProvider>(
                   builder: (context, auth, _) {
                     return SizedBox(
@@ -398,7 +398,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
                 const SizedBox(height: 20),
 
-                // ─── Login Link ─────────────────────────
+                // ─── Link Login ──────────────────────────
                   Wrap(
                     alignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -428,7 +428,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         ),
       ),
     ),
-                // ─── Top Right Action Buttons (Theme & Language) ───
+                // ─── Butang Atas Kanan (Theme & Bahasa) ───
                 Positioned(
                   top: 16,
                   right: 24,
@@ -455,7 +455,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Language Button
+                          // Butang Bahasa
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
@@ -479,7 +479,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             height: 20,
                             color: isDark ? Colors.white30 : Colors.black26,
                           ),
-                          // Theme Button
+                          // Butang Theme
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
@@ -510,7 +510,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   }
 }
 
-// ─── Role Selection Button Widget ────────────────────────────
+// ─── Widget Butang Pilih Role ────────────────────────────────
 class _RoleButton extends StatelessWidget {
   final String label;
   final IconData icon;

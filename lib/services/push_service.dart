@@ -52,7 +52,7 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
             'updated_at': now,
           }).eq('id', conversationId);
           
-          // Cancel the notification to dismiss the inline reply loading spinner
+          // Batal notification tu supaya spinner loading inline reply hilang
           await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
         } else {
           await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
@@ -77,7 +77,7 @@ class PushService {
     try {
       await Firebase.initializeApp();
       
-      // Request permissions (Required for iOS and Android 13+)
+      // Minta kebenaran notification (Wajib untuk iOS dan Android 13+)
       await FirebaseMessaging.instance.requestPermission(
         alert: true,
         badge: true,
@@ -97,11 +97,11 @@ class PushService {
         onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
 
-      // Create Android Notification Channel
+      // Buat Notification Channel kat Android
       const AndroidNotificationChannel channel = AndroidNotificationChannel(
         'ngam_high_importance_channel', // id
-        'High Importance Notifications', // title
-        description: 'This channel is used for important notifications.', // description
+        'High Importance Notifications', // tajuk
+        description: 'This channel is used for important notifications.', // penerangan
         importance: Importance.max,
       );
 
@@ -110,7 +110,7 @@ class PushService {
               AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
 
-      // Explicitly ask for Android 13+ local notification permission
+      // Minta secara explicit permission notification Android 13+
       await _localNotifications
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
@@ -125,12 +125,12 @@ class PushService {
         }
       });
 
-      // Handle tap when app is in background
+      // Handle bila user tap masa app kat background
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         _handleTap(message);
       });
 
-      // Handle tap when app was completely terminated
+      // Handle bila user tap masa app dah tutup habis
       final initialMsg = await FirebaseMessaging.instance.getInitialMessage();
       if (initialMsg != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -139,7 +139,7 @@ class PushService {
       }
     } catch (e) {
       debugPrint('Firebase not configured: $e');
-      // User needs to add google-services.json
+      // User kena bubuh google-services.json baru jadi
     }
   }
 
@@ -147,8 +147,8 @@ class PushService {
     if (message.data.containsKey('type')) {
       final context = navigatorKey.currentContext;
       if (context != null) {
-        // For chat messages or updates, route to the unified Chat/Messages list
-        // where users can see their active conversations and gig chats
+        // Untuk chat dengan update, kita campak user terus ke list Chat
+        // tempat mana diorang boleh tengok chat aktif dan chat dalam task
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ChatScreen()),
@@ -179,7 +179,7 @@ class PushService {
         return line;
       }).toList();
 
-      body = lines.first; // The first line is the newest message now
+      body = lines.first; // Baris nombor 1 sekarang ni mesej yang paling baru
 
       if (lines.length > 1) {
         styleInfo = InboxStyleInformation(
@@ -197,7 +197,7 @@ class PushService {
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'ngam_high_importance_channel', // id
-      'High Importance Notifications', // title
+      'High Importance Notifications', // tajuk
       channelDescription: 'This channel is used for important notifications.',
       importance: Importance.max,
       priority: Priority.high,
@@ -221,7 +221,7 @@ class PushService {
     final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
-    // Group notifications by conversation or gig ID so they replace each other
+    // Groupkan notifikasi ikut gig ID supaya dia replace notification yang lama
     final String tagId = message.data['conversation_id'] ?? message.data['gig_id'] ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
     await _localNotifications.show(

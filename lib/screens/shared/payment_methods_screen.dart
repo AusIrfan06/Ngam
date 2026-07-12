@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 
-// Dummy state for Payment Methods
+// Data dummy untuk cara pembayaran
 class PaymentData {
   static final savedPaymentMethods = ValueNotifier<List<Map<String, dynamic>>>([]);
 
@@ -58,15 +58,15 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
   // ==========================================
-  // ðŸŸ¢ REALISTIC WALLET LOGO & CHIP ENGINE
+  // ðŸŸ¢ ENJIN CHIP & LOGO DOMPET PALING REALISTIK
   // ==========================================
 
-  // ðŸ’Ž Draws a highly realistic golden EMV Chip
+  // ðŸ’Ž Lukis cip emas EMV biar nampak macam kad betul
   Widget _buildRealisticChip() {
     return SizedBox(
-      width: 42, // Scaled slightly to show the beautiful details
+      width: 42, // Bagi kecil sikit supaya nampak detail cip yang gempak tu
       child: AspectRatio(
-        aspectRatio: 1.586, // ðŸŸ¢ EXACT SAME RATIO AS THE CARD
+        aspectRatio: 1.586, // ðŸŸ¢ RATIO SAMA SEBIJIK MACAM KAD SEBENAR
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),
@@ -78,9 +78,9 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 2, offset: const Offset(1, 1))],
           ),
           child: Stack(
-            alignment: Alignment.center, // ðŸŸ¢ GUARANTEES IT IS PERFECTLY CENTERED
+            alignment: Alignment.center, // ðŸŸ¢ KONFEM NGAM-NGAM CENTER, TAK LARI
             children: [
-              // Horizontal contact lines
+              // Line garisan melintang
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -88,7 +88,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   Container(height: 0.5, color: Colors.black.withValues(alpha: 0.3)),
                 ],
               ),
-              // Vertical contact lines
+              // Line garisan menegak
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -96,7 +96,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   Container(width: 0.5, color: Colors.black.withValues(alpha: 0.3)),
                 ],
               ),
-              // Center plate (hides the crossing lines inside)
+              // Plat tengah (untuk cover line bersilang kat dalam)
               Container(
                 width: 14, height: 10,
                 decoration: BoxDecoration(
@@ -197,7 +197,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedCreditCard, title: "Credit / Debit Card", subtitle: "Visa, Mastercard, Amex", color: Colors.blue, onTap: () { Navigator.pop(dialogContext); _showAddCardSheet(context, isDark); }),
                 const SizedBox(height: 8),
                 _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedBank, title: "Link Bank Account", subtitle: "For quick payments & refunds", color: Colors.green, onTap: () { Navigator.pop(dialogContext); _showAddBankSheet(context, isDark); }),
-                // DuitNow QR — Runner only
+                // DuitNow QR — Hanya untuk runner je
                 if (context.read<AuthProvider>().isRunner) ...[  
                   const SizedBox(height: 8),
                   _buildTypeOption(isDark: isDark, icon: HugeIcons.strokeRoundedQrCode, title: "DuitNow QR", subtitle: "Upload your QR code for customers to pay", color: const Color(0xFF00A86B), onTap: () { Navigator.pop(dialogContext); _showAddDuitNowSheet(context, isDark); }),
@@ -448,7 +448,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  // ─── DuitNow QR Sheet (Runner only) ──────────────────────────
+  // ─── DuitNow QR Sheet (Runner je boleh pakai) ────────────────
   void _showAddDuitNowSheet(BuildContext context, bool isDark) {
     File? pickedQr;
     final picker = ImagePicker();
@@ -500,10 +500,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Name label removed because DuitNow QR includes the name in the image.
+                          // Label nama dibuang sebab QR DuitNow tu sendiri dah ada nama kat gambar.
 
 
-                          // QR Upload area
+                          // Kawasan upload QR
                           Text("wallet.your_qr_code".tr().toUpperCase(), style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                           const SizedBox(height: 8),
                           GestureDetector(
@@ -544,7 +544,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                             ),
                           ),
 
-                          // Info box
+                          // Kotak info
                           const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(12),
@@ -568,7 +568,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Save button
+                          // Butang Save
                           _AnimatedPressable(
                             onTap: () {
                               if (pickedQr == null) {
@@ -640,7 +640,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   }
 
   // ==========================================
-  // FLOATING LAYOUT WITH STACK
+  // SUSUNAN FLOATING (PAKAI STACK)
   // ==========================================
   @override
   Widget build(BuildContext context) {
@@ -650,7 +650,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     final cardWidth = screenWidth - 64;
     final cardHeight = cardWidth / 1.586;
 
-    // We wrap this inside the ValueListenableBuilder since cardMethods isn't defined up here.
+    // Kita balut pakai ValueListenableBuilder sebab cardMethods tak wujud kat atas ni.
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -671,10 +671,10 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               final bankMethods = methods.where((m) => m["type"] == "bank").toList();
               final duitnowMethods = methods.where((m) => m["type"] == "duitnow_qr").toList();
 
-              // ðŸŸ¢ ADD THE DYNAMIC HEIGHT HERE:
-              double extraHeight = 10; // Padding for 1 card
-              if (cardMethods.length == 2) extraHeight = 20; // Matches 2nd card offset
-              if (cardMethods.length >= 3) extraHeight = 30 ; // Matches 3rd card offset
+              // ðŸŸ¢ TAMBAH TINGGI (DYNAMIC HEIGHT) DEKAT SINI:
+              double extraHeight = 10; // Padding untuk satu kad
+              if (cardMethods.length == 2) extraHeight = 20; // Kasi sama offset macam kad nombor 2
+              if (cardMethods.length >= 3) extraHeight = 30 ; // Kasi sama offset macam kad nombor 3
               final stackHeight = cardHeight + extraHeight;
 
               return Stack(
@@ -704,7 +704,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                           else
                             Column(children: bankMethods.map((bank) => _buildBankTile(bank, isDark)).toList()),
 
-                          // ─── DuitNow QR Section ─────────────────────────────
+                          // ─── Bahagian QR DuitNow ─────────────────────────────
                           if (duitnowMethods.isNotEmpty) ...[  
                             const SizedBox(height: 24),
                             Row(
@@ -775,7 +775,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
-  // ðŸ’Ž THE PHOTOREALISTIC CARD ENGINE
+  // ðŸ’Ž ENJIN KAD FOTOREALISTIK YANG TERPALING GEMPAK
   Widget _buildCardStack(List<Map<String, dynamic>> cardMethods, bool isDark, double cardHeight, double stackHeight) {
     int safeIndex = _frontCardIndex >= cardMethods.length ? 0 : _frontCardIndex;
     List<int> orderedIndices = List.generate(cardMethods.length, (i) => i);
@@ -796,11 +796,11 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           onVerticalDragEnd: (DragEndDetails details) {
             if (details.primaryVelocity == null) return;
 
-            // ðŸŸ¢ Swipe DOWN (positive velocity): Bring the BACK card to the front
+            // ðŸŸ¢ Swipe BAWAH: Bawa kad belakang pergi depan
             if (details.primaryVelocity! > 300) {
               setState(() => _frontCardIndex = (safeIndex - 1 + cardMethods.length) % cardMethods.length);
             }
-            // ðŸŸ¢ Swipe UP (negative velocity): Push the FRONT card to the back
+            // ðŸŸ¢ Swipe ATAS: Tolak kad depan pergi belakang
             else if (details.primaryVelocity! < -300) {
               setState(() => _frontCardIndex = (safeIndex + 1) % cardMethods.length);
             }
@@ -821,14 +821,14 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
 
                 final method = cardMethods[index];
 
-                // Premium Dark Wallet Gradients
+                // Gradients Wallet Gelap (Tema Premium)
                 List<Color> cardColors;
                 if (method["name"] == "MASTERCARD") {
                   cardColors = [const Color(0xFF141E30), const Color(0xFF243B55)];
                 } else if (method["name"] == "AMEX") {
                   cardColors = [const Color(0xFF004D40), const Color(0xFF00838F)];
                 } else {
-                  cardColors = [const Color(0xFF1A1F3B), const Color(0xFF2B3A67)]; // Visa Default
+                  cardColors = [const Color(0xFF1A1F3B), const Color(0xFF2B3A67)]; // Default untuk Visa
                 }
 
                 return AnimatedPositioned(
@@ -855,7 +855,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                           ),
                           child: Stack(
                             children: [
-                              // ðŸ’Ž 1. The Glossy Plastic Overlay
+                              // ðŸ’Ž 1. Overlay plastik kasi kilat sikit
                               Container(
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(16),
@@ -865,21 +865,21 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                                       )
                                   )
                               ),
-                              // ðŸ’Ž 2. The Subtle Globe Watermark
+                              // ðŸ’Ž 2. Watermark bentuk bumi (jangan terang sangat)
                               Positioned(
                                 right: -20, bottom: -20,
                                 child: Icon(Icons.public, size: 160, color: Colors.white.withValues(alpha: 0.04)),
                               ),
 
-                              // ðŸ’Ž 3. The Card Content
-                              // ðŸ’Ž 3. The Card Content
+                              // ðŸ’Ž 3. Isi dalam kad
+                              // ðŸ’Ž 3. Isi dalam kad
                               Padding(
                                 padding: const EdgeInsets.all(22),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  // ðŸŸ¢ REMOVED spaceBetween: We use Spacer() now to perfectly center the chip!
+                                  // ðŸŸ¢ DAH BUANG spaceBetween: Sekarang kita pakai Spacer() je biar cip ni center betul-betul!
                                   children: [
-                                    // TOP: Name & Primary Tag
+                                    // BAHAGIAN ATAS: Nama dengan Primary Tag
                                     Align(
                                       alignment: Alignment.topCenter,
                                       child: Row(
@@ -889,21 +889,21 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                                             Text("wallet.platinum".tr(), style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 2.0)),
                                             if (method["isPrimary"] == true)
                                               Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // ðŸŸ¢ Minimized padding
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // ðŸŸ¢ Kurangkan padding biar kemas
                                                 decoration: BoxDecoration(
-                                                    color: Colors.black.withValues(alpha: 0.3), // ðŸŸ¢ Restored black background
+                                                    color: Colors.black.withValues(alpha: 0.3), // ðŸŸ¢ Pakaikan balik background hitam
                                                     borderRadius: BorderRadius.circular(4),
                                                     border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 0.5)
                                                 ),
-                                                child: Text("wallet.primary".tr(), style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5)), // ðŸŸ¢ Minimized text
+                                                child: Text("wallet.primary".tr(), style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5)), // ðŸŸ¢ Kecilkan tulisan
                                               )
                                           ]
                                       ),
                                     ),
 
-                                    const Spacer(), // ðŸŸ¢ Pushes chip exactly to the vertical center
+                                    const Spacer(), // ðŸŸ¢ Tolak cip tepat kat center memanjang
 
-                                    // MIDDLE: Chip & Contactless
+                                    // TENGAH: Cip dengan simbol Contactless
                                     Row(
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
@@ -913,17 +913,17 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                                       ],
                                     ),
 
-                                    const Spacer(), // ðŸŸ¢ Pushes the bottom details down
+                                    const Spacer(), // ðŸŸ¢ Tolak detail bawah pergi ke bawah sekali
 
-                                    // BOTTOM ROW 1: Embossed Number (12 Stars + 4 Digits)
+                                    // BARIS BAWAH 1: Nombor timbul (12 bintang + 4 nombor hujung)
                                     Text(
-                                      // ðŸŸ¢ Forces 12 stars and retrieves only the last 4 digits dynamically
+                                      // ðŸŸ¢ Paksa letak 12 bintang lepas tu ambil 4 nombor last je secara dinamik
                                         "**** **** **** ${method["number"].toString().length >= 4 ? method["number"].toString().substring(method["number"].toString().length - 4) : "0000"}",
                                         style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 3.0, shadows: [Shadow(color: Colors.black45, offset: Offset(1, 1), blurRadius: 2)])
                                     ),
                                     const SizedBox(height: 8),
 
-                                    // BOTTOM ROW 2: Details & Logo
+                                    // BARIS BAWAH 2: Segala info dengan logo
                                     Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -968,13 +968,13 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ),
         ),
 
-        // ðŸŸ¢ FIXED: Smart dynamic spacing based on card count
+        // ðŸŸ¢ FIXED: Spacing pandai ubah sendiri ikut bilangan kad
         if (cardMethods.length > 1) ...[
           const SizedBox(height: 12),
           Center(child: Text("wallet.swipe_hint".tr(), style: TextStyle(color: isDark ? Colors.white30 : Colors.black38, fontSize: 11))),
           const SizedBox(height: 16),
         ] else ...[
-          const SizedBox(height: 24), // ðŸŸ¢ Clean gap for a single card
+          const SizedBox(height: 24), // ðŸŸ¢ Gap yang kemas kalau cuma ada sekeping kad
         ],
 
         SizedBox(
@@ -1033,7 +1033,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       ),
       child: Column(
         children: [
-          // ─── Standardized DuitNow Header (clean, no bank branding)
+          // ─── Standard Header DuitNow (bersih, takde brand bank merepek)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -1046,7 +1046,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
             child: Row(
               children: [
-                // DuitNow logo mark
+                // Logo DuitNow tu
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
@@ -1072,12 +1072,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
           ),
 
-          // ─── Clean QR code display (standardized, no bank branding)
+          // ─── Display QR Code yang bersih (standard je, tak payah brand bank)
           Container(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Clean white QR container — strips all bank-specific styling
+                // Kotak QR putih bersih — kita buang habis gaya dari bank lain
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -1107,7 +1107,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             ),
           ),
 
-          // ─── Action row
+          // ─── Barisan action (butang)
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Row(

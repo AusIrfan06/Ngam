@@ -1,5 +1,5 @@
 // ============================================================
-// Ngam App — User Model
+// Ngam App — Model User
 // ============================================================
 
 class UserModel {
@@ -7,7 +7,7 @@ class UserModel {
   final String name;
   final String email;
   final String phone;
-  final String role; // 'customer' or 'runner'
+  final String role; // 'customer' atau 'runner'
   final bool isVerifiedRunner;
   final String? avatarUrl;
   final String? bio;

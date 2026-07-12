@@ -9,7 +9,7 @@ import '../services/push_service.dart';
 
 // ============================================================
 // Ngam App — Auth Provider
-// Manages authentication state and role switching
+// Untuk control state auth dengan tukar role (customer/runner)
 // ============================================================
 
 class AuthProvider extends ChangeNotifier {

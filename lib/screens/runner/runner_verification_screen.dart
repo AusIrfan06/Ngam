@@ -10,8 +10,8 @@ import '../../utils/app_theme.dart';
 import '../../utils/glass_toast.dart';
 
 // ============================================================
-// Ngam App — Runner Verification Screen
-// Form to collect KYC details before becoming a runner
+// Ngam App — Skrin Verify Runner
+// Borang KYC (kena isi sebelum jadi runner sah)
 // ============================================================
 
 class RunnerVerificationScreen extends StatefulWidget {
@@ -64,7 +64,7 @@ class _RunnerVerificationScreenState extends State<RunnerVerificationScreen> {
 
       if (mounted) {
         showGlassToast(context, 'Verification successful! Welcome to the team.');
-        // Automatically switch to runner role and go to runner home
+        // Auto tukar pegi role runner lepas tu gerak ke home runner
         await context.read<AuthProvider>().setRole('runner');
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(context, '/runner-home', (route) => false);

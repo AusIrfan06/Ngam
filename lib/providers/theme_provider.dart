@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // ============================================================
 // Ngam App — Theme Provider
-// Manages Light/Dark mode toggle
+// Handle butang toggle Light/Dark mode
 // ============================================================
 
 class ThemeProvider extends ChangeNotifier {

@@ -4,8 +4,8 @@ import '../utils/constants.dart';
 import 'supabase_service.dart';
 
 // ============================================================
-// Ngam App — Review Service
-// Handles review/rating submission and retrieval
+// Ngam App — Servis Review
+// Handle hal ehwal hantar & ambil rating/review
 // ============================================================
 
 class ReviewService {
@@ -35,7 +35,7 @@ class ReviewService {
 
   /// Fetch all reviews for gigs completed by a specific runner
   static Future<List<ReviewModel>> fetchRunnerReviews(String runnerId) async {
-    // Get all gig IDs completed by this runner
+    // Dapatkan semua gig ID yang runner ni dah berjaya setelkan
     final gigsResponse = await _client
         .from(DbTable.gigs)
         .select('id')

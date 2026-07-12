@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 
 // ============================================================
-// Ngam App — Category Chip Widget
-// Reusable colored chip for task categories
+// Ngam App — Widget Chip Kategori
+// Kotak tag kategori warna-warni yang boleh guna banyak kali
 // ============================================================
 
 class CategoryChip extends StatelessWidget {
