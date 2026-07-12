@@ -68,8 +68,6 @@ class GigService {
         'p_location': location,
         'p_latitude': latitude,
         'p_longitude': longitude,
-        'p_customer_name': customerName ?? '',
-        'p_runner_name': runnerName ?? '',
       });
       // Assuming response['success'] == true, otherwise it would throw
     } else {
@@ -200,8 +198,6 @@ class GigService {
         'p_location': location,
         'p_latitude': latitude,
         'p_longitude': longitude,
-        'p_customer_name': '', // Could pass if needed
-        'p_runner_name': '',
     });
 
     return gig;

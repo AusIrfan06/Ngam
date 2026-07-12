@@ -165,7 +165,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                         // Action Button
                         GestureDetector(
                           onTap: () {
-                            Navigator.pushNamed(context, '/post-service');
+                            Navigator.pushNamed(context, '/post-task');
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

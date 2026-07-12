@@ -799,6 +799,15 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             label: "wallet.withdraw".tr(), 
             isDark: isDark, 
             onTap: () async {
+              final bankMethods = _savedMethods.value.where((m) => m["type"] == "bank").toList();
+              if (bankMethods.isEmpty) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sila tambah akaun bank terlebih dahulu.')),
+                  );
+                }
+                return;
+              }
               final amount = await _showAmountDialog(context, 'Withdraw Amount', 'Withdraw', isWithdrawal: true);
               if (amount != null && amount > 0) {
                 final authProvider = context.read<AuthProvider>();

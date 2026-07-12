@@ -289,69 +289,41 @@ class _LoginScreenState extends State<LoginScreen>
                           ],
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () async {
-                                  final authProvider = context.read<AuthProvider>();
-                                  final success = await authProvider.signInWithGoogle();
-                                  if (success && mounted) {
-                                    final role = authProvider.userRole;
-                                    if (role == 'runner') {
-                                      Navigator.pushReplacementNamed(context, '/runner-home');
-                                    } else {
-                                      Navigator.pushReplacementNamed(context, '/customer-home');
-                                    }
-                                  }
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const FaIcon(FontAwesomeIcons.google, size: 20),
-                                    const SizedBox(width: 8),
-                                    Flexible(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text('auth.google_signin'.tr()),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () async {
+                              final authProvider = context.read<AuthProvider>();
+                              final success = await authProvider.signInWithGoogle();
+                              if (success && mounted) {
+                                final role = authProvider.userRole;
+                                if (role == 'runner') {
+                                  Navigator.pushReplacementNamed(context, '/runner-home');
+                                } else {
+                                  Navigator.pushReplacementNamed(context, '/customer-home');
+                                }
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () {},
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const FaIcon(FontAwesomeIcons.google, size: 20),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text('auth.google_signin'.tr()),
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const FaIcon(FontAwesomeIcons.apple, size: 22),
-                                    const SizedBox(width: 8),
-                                    Flexible(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text('auth.apple_signin'.tr()),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                         const SizedBox(height: 32),
       

@@ -10,7 +10,6 @@ import '../../utils/bounty_calculator.dart';
 import '../../utils/constants.dart';
 import 'package:latlong2/latlong.dart';
 import '../../widgets/map_picker.dart';
-import '../../services/ai_service.dart';
 
 // ============================================================
 // Ngam App — Post Task Screen
@@ -32,7 +31,6 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   final _bountyController = TextEditingController();
   String _selectedCategory = TaskCategory.food;
   LatLng? _selectedLocation;
-  bool _isAiLoading = false;
 
   @override
   void dispose() {
@@ -43,57 +41,13 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     super.dispose();
   }
 
-  Future<void> _handleAiAssist() async {
-    if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please type a short title first (e.g. "Beli kfc")')),
-      );
-      return;
-    }
-
-    setState(() => _isAiLoading = true);
-    
-    try {
-      final aiResult = await AiService().enhanceTask(_titleController.text.trim());
-      
-      if (aiResult != null && mounted) {
-        setState(() {
-          if (aiResult['title'] != null) _titleController.text = aiResult['title'];
-          if (aiResult['description'] != null) _descriptionController.text = aiResult['description'];
-          
-          if (aiResult['category'] != null) {
-            String cat = aiResult['category'].toString().toLowerCase();
-            if (TaskCategory.all.contains(cat)) {
-              _selectedCategory = cat;
-            }
-          }
-          
-          if (aiResult['suggestedBounty'] != null) {
-            _bountyController.text = aiResult['suggestedBounty'].toString();
-          }
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✨ Magic applied!')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('AI Error: \$e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isAiLoading = false);
-      }
-    }
-  }
-
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please tap on the map to pin the exact location')),
+        const SnackBar(
+          content: Text('Please tap on the map to pin the exact location'),
+        ),
       );
       return;
     }
@@ -110,7 +64,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Baki Tidak Mencukupi'),
-            content: Text('Baki dompet anda (RM ${balance.toStringAsFixed(2)}) tidak mencukupi untuk membayar tugasan ini (RM ${amount.toStringAsFixed(2)}). Sila tambah nilai.'),
+            content: Text(
+              'Baki dompet anda (RM ${balance.toStringAsFixed(2)}) tidak mencukupi untuk membayar tugasan ini (RM ${amount.toStringAsFixed(2)}). Sila tambah nilai.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -128,7 +84,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Sahkan Pembayaran'),
-          content: Text('RM ${amount.toStringAsFixed(2)} akan ditolak daripada baki dompet anda. Teruskan?'),
+          content: Text(
+            'RM ${amount.toStringAsFixed(2)} akan ditolak daripada baki dompet anda. Teruskan?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -178,15 +136,15 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
       if (authProvider.isRunner) {
         Navigator.pop(context);
       } else {
-        Navigator.pushNamed(
-          context,
-          '/task-posted',
-          arguments: gig,
-        );
+        Navigator.pushNamed(context, '/task-posted', arguments: gig);
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(gigProvider.error ?? 'Failed to post task. Check logs.')),
+        SnackBar(
+          content: Text(
+            gigProvider.error ?? 'Failed to post task. Check logs.',
+          ),
+        ),
       );
     }
   }
@@ -204,9 +162,14 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              titlePadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 16,
+              ),
               title: Text(
-                isRunner ? 'post_task.title_runner'.tr() : 'post_task.title_customer'.tr(),
+                isRunner
+                    ? 'post_task.title_runner'.tr()
+                    : 'post_task.title_customer'.tr(),
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w700,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -216,7 +179,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       Theme.of(context).scaffoldBackgroundColor,
                     ],
                     begin: Alignment.topCenter,
@@ -240,23 +205,13 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       TextFormField(
                         controller: _titleController,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'post_task.service_title_label'.tr() : 'customer.task_title'.tr(),
-                          hintText: isRunner ? 'post_task.service_title_hint'.tr() : 'post_task.task_title_hint'.tr(),
+                          labelText: isRunner
+                              ? 'post_task.service_title_label'.tr()
+                              : 'customer.task_title'.tr(),
+                          hintText: isRunner
+                              ? 'post_task.service_title_hint'.tr()
+                              : 'post_task.task_title_hint'.tr(),
                           prefixIcon: const Icon(Icons.title_rounded),
-                          suffixIcon: _isAiLoading
-                              ? const Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  ),
-                                )
-                              : IconButton(
-                                  icon: const Text('✨', style: TextStyle(fontSize: 20)),
-                                  tooltip: 'AI Magic Assist',
-                                  onPressed: _handleAiAssist,
-                                ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -272,8 +227,12 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         controller: _descriptionController,
                         maxLines: 4,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'post_task.service_desc_label'.tr() : 'post_task.task_desc_label'.tr(),
-                          hintText: isRunner ? 'post_task.service_desc_hint'.tr() : 'customer.task_desc'.tr(),
+                          labelText: isRunner
+                              ? 'post_task.service_desc_label'.tr()
+                              : 'post_task.task_desc_label'.tr(),
+                          hintText: isRunner
+                              ? 'post_task.service_desc_hint'.tr()
+                              : 'customer.task_desc'.tr(),
                           alignLabelWithHint: true,
                           prefixIcon: const Padding(
                             padding: EdgeInsets.only(bottom: 60),
@@ -335,7 +294,10 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'post_task.pin_location'.tr(),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       MapPicker(
@@ -349,13 +311,18 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       if (_selectedLocation != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              'post_task.location_pinned'.tr(args: [
+                          child: Text(
+                            'post_task.location_pinned'.tr(
+                              args: [
                                 _selectedLocation!.latitude.toStringAsFixed(4),
                                 _selectedLocation!.longitude.toStringAsFixed(4),
-                              ]),
-                              style: const TextStyle(color: AppTheme.primary, fontSize: 12),
+                              ],
                             ),
+                            style: const TextStyle(
+                              color: AppTheme.primary,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       const SizedBox(height: 16),
 
@@ -364,10 +331,16 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         controller: _bountyController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: isRunner ? 'post_task.price_runner'.tr() : 'customer.bounty'.tr(),
-                          hintText: 'post_task.min_rm'.tr(args: [
-                            BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)
-                          ]),
+                          labelText: isRunner
+                              ? 'post_task.price_runner'.tr()
+                              : 'customer.bounty'.tr(),
+                          hintText: 'post_task.min_rm'.tr(
+                            args: [
+                              BountyCalculator.getMinimum(
+                                _selectedCategory,
+                              ).toStringAsFixed(2),
+                            ],
+                          ),
                           prefixIcon: const Icon(Icons.payments_outlined),
                           prefixText: 'RM ',
                         ),
@@ -379,8 +352,10 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                           if (amount == null) {
                             return 'post_task.err_valid_number'.tr();
                           }
-                          final error =
-                              BountyCalculator.validate(_selectedCategory, amount);
+                          final error = BountyCalculator.validate(
+                            _selectedCategory,
+                            amount,
+                          );
                           return error;
                         },
                       ),
@@ -398,15 +373,22 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.info_outline,
-                                color: AppTheme.info, size: 18),
+                            const Icon(
+                              Icons.info_outline,
+                              color: AppTheme.info,
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'post_task.min_bounty_info'.tr(args: [
-                                  _selectedCategory,
-                                  BountyCalculator.getMinimum(_selectedCategory).toStringAsFixed(2)
-                                ]),
+                                'post_task.min_bounty_info'.tr(
+                                  args: [
+                                    _selectedCategory,
+                                    BountyCalculator.getMinimum(
+                                      _selectedCategory,
+                                    ).toStringAsFixed(2),
+                                  ],
+                                ),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppTheme.info,
@@ -437,9 +419,11 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                                     )
                                   : const Icon(Icons.send_rounded),
                               label: Text(
-                                gig.isLoading 
-                                    ? 'post_task.posting'.tr() 
-                                    : (isRunner ? 'post_task.submit_service'.tr() : 'post_task.submit_task'.tr()),
+                                gig.isLoading
+                                    ? 'post_task.posting'.tr()
+                                    : (isRunner
+                                          ? 'post_task.submit_service'.tr()
+                                          : 'post_task.submit_task'.tr()),
                               ),
                             ),
                           );
@@ -448,7 +432,9 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                       const SizedBox(height: 12),
                       Center(
                         child: Text(
-                          isRunner ? 'post_task.service_visible'.tr() : 'post_task.task_visible'.tr(),
+                          isRunner
+                              ? 'post_task.service_visible'.tr()
+                              : 'post_task.task_visible'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade400,

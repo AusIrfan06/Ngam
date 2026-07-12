@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class MapPicker extends StatefulWidget {
   final LatLng initialCenter;
@@ -108,8 +109,8 @@ class _MapPickerState extends State<MapPicker> {
                       point: _selectedLocation!,
                       width: 40,
                       height: 40,
-                      child: const Icon(
-                        Icons.location_on,
+                      child: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedPinLocation02,
                         color: Colors.red,
                         size: 40,
                       ),
@@ -122,7 +123,7 @@ class _MapPickerState extends State<MapPicker> {
           // Map Controls (Right Side)
           Positioned(
             right: 12,
-            bottom: 12,
+            bottom: 24,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -206,7 +206,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     if (!mounted) return;
     final currentUser = context.read<AuthProvider>().user;
     final gigProvider = context.read<GigProvider>();
-    final available = gigProvider.filteredGigs.where((g) => g.customerId != currentUser?.id && g.latitude != null && g.longitude != null).toList();
+    final available = gigProvider.filteredGigs.where((g) => g.latitude != null && g.longitude != null).toList();
     
     available.sort((a, b) {
       double distanceA = Geolocator.distanceBetween(
@@ -525,7 +525,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
 
     final gigProvider = context.read<GigProvider>();
     final currentUser = context.read<AuthProvider>().user;
-    final allOpenGigs = gigProvider.openGigs.where((g) => g.customerId != currentUser?.id).toList();
+    final allOpenGigs = gigProvider.openGigs.toList();
     List<GigModel> results = [];
 
     if (q.isNotEmpty) {
@@ -682,7 +682,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       // Build live job context for the AI
       final gigProvider = context.read<GigProvider>();
       final currentUser = context.read<AuthProvider>().user;
-      final allGigs = gigProvider.openGigs.where((g) => g.customerId != currentUser?.id).toList();
+      final allGigs = gigProvider.openGigs.toList();
       final currentLoc = _currentLocation;
       
       allGigs.sort((a, b) {
