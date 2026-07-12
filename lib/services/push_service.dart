@@ -41,20 +41,32 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
       final parts = notificationResponse.payload?.split('|') ?? [];
       final conversationId = parts.isNotEmpty ? parts[0] : null;
       final payloadUserId = parts.length > 1 ? parts[1] : null;
+      final payloadToken = parts.length > 2 ? parts[2] : null;
       
       if (conversationId != null && conversationId.isNotEmpty) {
         final notificationId = getConsistentNotificationId(conversationId);
         final userId = Supabase.instance.client.auth.currentUser?.id ?? payloadUserId;
-        if (userId != null) {
+        
+        if (userId != null && userId.isNotEmpty) {
           final now = DateTime.now().toUtc().toIso8601String();
-          await Supabase.instance.client.from('messages').insert({
+          
+          // Guna custom client supaya tak bergantung pada session restore di background isolate
+          final customClient = SupabaseClient(
+            dotenv.env['SUPABASE_URL']!,
+            dotenv.env['SUPABASE_ANON_KEY']!,
+            headers: (payloadToken != null && payloadToken.isNotEmpty) 
+                ? {'Authorization': 'Bearer $payloadToken'}
+                : {},
+          );
+
+          await customClient.from('messages').insert({
             'conversation_id': conversationId,
             'sender_id': userId,
             'content': inputMessage,
             'created_at': now,
           });
           
-          await Supabase.instance.client.from('conversations').update({
+          await customClient.from('conversations').update({
             'last_message': inputMessage,
             'last_message_sender_id': userId,
             'last_message_is_read': false,
@@ -67,10 +79,10 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
           // Papar notification ringkas secara senyap (tanpa sound/heads-up)
           final plugin = FlutterLocalNotificationsPlugin();
           await plugin.show(
-            notificationId,
-            'Ngam',
-            'You: $inputMessage',
-            const NotificationDetails(
+            id: notificationId,
+            title: 'Ngam',
+            body: 'You: $inputMessage',
+            notificationDetails: const NotificationDetails(
               android: AndroidNotificationDetails(
                 'ngam_high_importance_channel',
                 'High Importance Notifications',
@@ -136,10 +148,10 @@ void _handleForegroundNotificationResponse(NotificationResponse notificationResp
           
           // Smooth update without popping up again
           await FlutterLocalNotificationsPlugin().show(
-            notificationId,
-            'Ngam',
-            'You: $inputMessage',
-            const NotificationDetails(
+            id: notificationId,
+            title: 'Ngam',
+            body: 'You: $inputMessage',
+            notificationDetails: const NotificationDetails(
               android: AndroidNotificationDetails(
                 'ngam_high_importance_channel',
                 'High Importance Notifications',
@@ -335,12 +347,15 @@ class PushService {
     // Groupkan notifikasi ikut gig ID supaya dia replace notification yang lama
     final String tagId = message.data['conversation_id'] ?? message.data['gig_id'] ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
+    final session = Supabase.instance.client.auth.currentSession;
+    final payloadStr = "${message.data['conversation_id']}|${session?.user.id ?? ''}|${session?.accessToken ?? ''}";
+
     await _localNotifications.show(
       id: getConsistentNotificationId(tagId),
       title: title,
       body: body,
       notificationDetails: platformChannelSpecifics,
-      payload: "${message.data['conversation_id']}|${Supabase.instance.client.auth.currentUser?.id ?? ''}",
+      payload: payloadStr,
     );
   }
 
