@@ -63,8 +63,8 @@ class GigModel {
       runnerLatitude: (json['runner_latitude'] as num?)?.toDouble(),
       runnerLongitude: (json['runner_longitude'] as num?)?.toDouble(),
       createdAt: DateTime.parse(json['created_at'] as String),
-      customerName: json['customer_name'] as String?,
-      runnerName: json['runner_name'] as String?,
+      customerName: json['customer_name'] as String? ?? (json['customer'] != null ? json['customer']['name'] as String? : null),
+      runnerName: json['runner_name'] as String? ?? (json['runner'] != null ? json['runner']['name'] as String? : null),
     );
   }
 

@@ -1768,7 +1768,7 @@ RULES:
                       children: [
                         HugeIcon(icon: HugeIcons.strokeRoundedSearchArea, color: isDark ? Colors.white38 : _lightModeGray.withValues(alpha: 0.3), size: 30, strokeWidth: 1.5),
                         const SizedBox(height: 8),
-                        Text('No jobs within ${_searchRadiusKm.toStringAsFixed(0)} km', style: TextStyle(color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.5), fontSize: 14, fontWeight: FontWeight.w600)),
+                        Text(context.locale.languageCode == 'ms' ? 'Tiada servis dalam ${_searchRadiusKm.toStringAsFixed(0)} km' : 'No services within ${_searchRadiusKm.toStringAsFixed(0)} km', style: TextStyle(color: isDark ? Colors.white54 : _lightModeGray.withValues(alpha: 0.5), fontSize: 14, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 4),
                         GestureDetector(
                           onTap: _showRadiusDialog,
@@ -2059,7 +2059,42 @@ RULES:
                                           _searchFocus.unfocus();
                                           Navigator.pop(context);
                                           // Note: You might want to redirect to a different page for booking success later.
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Service booked successfully!')));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              elevation: 0,
+                                              backgroundColor: Colors.transparent,
+                                              behavior: SnackBarBehavior.floating,
+                                              margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+                                              content: GlassContainer(
+                                                useOwnLayer: true,
+                                                quality: GlassQuality.standard,
+                                                shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                                                settings: _getGlassSettings(isDark, blur: 8),
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.5)),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Container(
+                                                        padding: const EdgeInsets.all(6),
+                                                        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.2), shape: BoxShape.circle),
+                                                        child: const HugeIcon(icon: HugeIcons.strokeRoundedTick02, color: Colors.greenAccent, size: 20),
+                                                      ),
+                                                      const SizedBox(width: 12),
+                                                      Expanded(
+                                                        child: Text(
+                                                          'Service booked successfully!', 
+                                                          style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600, fontSize: 15)
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
                                         }
                                       } else {
                                         final success = await provider.acceptGig(gig.id, currentUser.id);

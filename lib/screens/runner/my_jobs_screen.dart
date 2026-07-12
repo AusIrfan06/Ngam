@@ -29,6 +29,7 @@ class MyJobsScreen extends StatefulWidget {
 
 class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderStateMixin {
   late AnimationController _bgAnimationController;
+  bool _isSortNewest = true;
 
   @override
   void initState() {
@@ -149,18 +150,39 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'runner.my_jobs_title'.tr(),
-                              style: GoogleFonts.outfit(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : Colors.black87,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Text(
+                                'runner.my_jobs_title'.tr(),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isSortNewest = !_isSortNewest;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    _isSortNewest ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                                    size: 16,
+                                    color: isDark ? Colors.white70 : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         
                         // Action Button
@@ -297,6 +319,13 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
       );
     }
 
+    final sortedGigs = List<GigModel>.from(gigs);
+    sortedGigs.sort((a, b) {
+      return _isSortNewest
+          ? b.createdAt.compareTo(a.createdAt)
+          : a.createdAt.compareTo(b.createdAt);
+    });
+
     return RefreshIndicator(
       onRefresh: () async {
         final userId = context.read<AuthProvider>().user?.id;
@@ -306,9 +335,9 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
       },
       child: ListView.builder(
         padding: const EdgeInsets.only(bottom: 100),
-        itemCount: gigs.length,
+        itemCount: sortedGigs.length,
         itemBuilder: (context, index) {
-          final gig = gigs[index];
+          final gig = sortedGigs[index];
           return _GlassTaskCard(
             gig: gig,
             isDark: isDark,

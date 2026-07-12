@@ -224,34 +224,41 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    // ─── Customer Info ───────────────────────
+                    // ─── Poster Info ───────────────────────
                     _buildGlassSection(
                       isDark: Theme.of(context).brightness == Brightness.dark,
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
-                        child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 26,
-                            backgroundColor: AppTheme.info.withValues(alpha: 0.1),
-                            backgroundImage: NetworkImage(
-                              'https://ui-avatars.com/api/?name=${Uri.encodeComponent(gig.customerName ?? 'Customer')}&background=random&color=fff',
-                            ),
-                            onBackgroundImageError: (e, s) {},
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Builder(
+                          builder: (context) {
+                            final isService = gig.status == 'SERVICE' || gig.status == 'DISABLED_SERVICE';
+                            final posterName = isService ? (gig.runnerName ?? 'Runner') : (gig.customerName ?? 'Customer');
+                            
+                            return Row(
                               children: [
-                                Text(
-                                  gig.customerName ?? 'Customer',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                CircleAvatar(
+                                  radius: 26,
+                                  backgroundColor: AppTheme.info.withValues(alpha: 0.1),
+                                  backgroundImage: NetworkImage(
+                                    'https://ui-avatars.com/api/?name=${Uri.encodeComponent(posterName)}&background=random&color=fff',
                                   ),
+                                  onBackgroundImageError: (e, s) {},
                                 ),
+                          const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        posterName,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                 const SizedBox(height: 4),
                                 const Row(
                                   children: [
@@ -308,9 +315,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                 ),
                               ),
                             ),
-                        ],
+                              ],
+                            );
+                          }
+                        ),
                       ),
-                    ),
                     ),
                     const SizedBox(height: 40),
 
@@ -359,7 +368,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                             },
                           ),
                         )
-                      else if (gig.runnerId == currentUserId)
+                      else if (gig.gigWorkerId == currentUserId)
                         SizedBox(
                           width: double.infinity,
                           height: 56,
@@ -455,7 +464,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       {required bool isDark,
       required dynamic icon,
       required String label,
-      required VoidCallback onTap}) {
+      required VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16.0),

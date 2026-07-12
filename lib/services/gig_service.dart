@@ -85,7 +85,7 @@ class GigService {
   static Future<List<GigModel>> fetchOpenGigs({String? category}) async {
     var query = _client
         .from(DbTable.gigs)
-        .select()
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
         .eq('status', GigStatus.open);
 
     if (category != null && category.isNotEmpty && category != 'All') {
@@ -103,7 +103,7 @@ class GigService {
   static Future<List<GigModel>> fetchServices({String? category}) async {
     var query = _client
         .from(DbTable.gigs)
-        .select()
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
         .eq('status', GigStatus.service);
 
     if (category != null && category.isNotEmpty && category != 'All') {
@@ -121,7 +121,7 @@ class GigService {
   static Future<List<GigModel>> fetchCustomerGigs(String customerId) async {
     final response = await _client
         .from(DbTable.gigs)
-        .select()
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
         .eq('customer_id', customerId)
         .order('created_at', ascending: false);
 
@@ -133,7 +133,7 @@ class GigService {
   static Future<List<GigModel>> fetchRunnerGigs(String runnerId) async {
     final response = await _client
         .from(DbTable.gigs)
-        .select()
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
         .or('gig_worker_id.eq.$runnerId,customer_id.eq.$runnerId')
         .order('created_at', ascending: false);
 
@@ -147,7 +147,7 @@ class GigService {
   static Future<List<GigModel>> fetchBookingsForService(String serviceId) async {
     final response = await _client
         .from(DbTable.gigs)
-        .select()
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
         .eq('service_id', serviceId)
         .order('created_at', ascending: false);
 
@@ -198,6 +198,7 @@ class GigService {
         'p_location': location,
         'p_latitude': latitude,
         'p_longitude': longitude,
+        'p_service_id': serviceId,
     });
 
     return gig;

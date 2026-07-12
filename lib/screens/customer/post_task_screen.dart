@@ -112,6 +112,8 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         category: _selectedCategory,
         price: amount,
         location: _locationController.text.trim(),
+        latitude: _selectedLocation!.latitude,
+        longitude: _selectedLocation!.longitude,
       );
     } else {
       gig = await gigProvider.createGig(

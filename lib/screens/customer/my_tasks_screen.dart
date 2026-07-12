@@ -25,6 +25,7 @@ class MyTasksScreen extends StatefulWidget {
 
 class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProviderStateMixin {
   late AnimationController _bgAnimationController;
+  bool _isSortNewest = true;
 
   @override
   void initState() {
@@ -147,20 +148,36 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'nav.my_tasks'.tr(),
-                                style: GoogleFonts.outfit(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'my_tasks.tasks_posted'.tr(args: [gigProvider.myGigs.length.toString()]),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isDark ? Colors.white70 : Colors.black87,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'nav.my_tasks'.tr(),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isSortNewest = !_isSortNewest;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        _isSortNewest ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+                                        size: 16,
+                                        color: isDark ? Colors.white70 : Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -244,12 +261,20 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                   await gigProvider.loadCustomerGigs(userId);
                                 }
                               },
-                              child: ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 100), // padding for bottom nav
-                                itemCount: gigProvider.myGigs.length,
-                                itemBuilder: (context, index) {
-                                  final gig = gigProvider.myGigs[index];
-                                  return _GlassTaskCard(
+                            child: Builder(
+                              builder: (context) {
+                                final sortedGigs = List<GigModel>.from(gigProvider.myGigs);
+                                sortedGigs.sort((a, b) {
+                                  return _isSortNewest
+                                      ? b.createdAt.compareTo(a.createdAt)
+                                      : a.createdAt.compareTo(b.createdAt);
+                                });
+                                return ListView.builder(
+                                  padding: const EdgeInsets.only(bottom: 100), // padding for bottom nav
+                                  itemCount: sortedGigs.length,
+                                  itemBuilder: (context, index) {
+                                    final gig = sortedGigs[index];
+                                    return _GlassTaskCard(
                                     gig: gig,
                                     isDark: isDark,
                                     onTap: () {
@@ -269,8 +294,10 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                     actionWidget: null,
                                   );
                                 },
-                              ),
-                            ),
+                              );
+                            },
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -514,16 +541,16 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                               children: [
                                 CategoryChip(label: widget.gig.category, showIcon: false),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: _getStatusColor().withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: _getStatusColor().withValues(alpha: 0.3)),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: _getStatusColor().withValues(alpha: 0.3), width: 1.5),
                                   ),
                                   child: Text(
                                     widget.gig.status,
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w800,
                                       color: _getStatusColor(),
                                     ),
