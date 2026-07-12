@@ -145,6 +145,9 @@ class AuthProvider extends ChangeNotifier {
 
   /// Sign out
   Future<void> signOut() async {
+    if (_user != null) {
+      await PushService.clearTokenFromSupabase(_user!.id);
+    }
     await AuthService.signOut();
     _user = null;
     _error = null;

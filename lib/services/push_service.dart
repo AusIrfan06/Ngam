@@ -37,11 +37,14 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
       await SupabaseService.initialize();
       
       final String inputMessage = notificationResponse.input!;
-      final conversationId = notificationResponse.payload;
+      
+      final parts = notificationResponse.payload?.split('|') ?? [];
+      final conversationId = parts.isNotEmpty ? parts[0] : null;
+      final payloadUserId = parts.length > 1 ? parts[1] : null;
       
       if (conversationId != null && conversationId.isNotEmpty) {
         final notificationId = getConsistentNotificationId(conversationId);
-        final userId = Supabase.instance.client.auth.currentUser?.id;
+        final userId = Supabase.instance.client.auth.currentUser?.id ?? payloadUserId;
         if (userId != null) {
           final now = DateTime.now().toUtc().toIso8601String();
           await Supabase.instance.client.from('messages').insert({
@@ -61,22 +64,20 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
           // Notify chat screen supaya auto-refresh
           lastNotificationReplyConversationId.value = conversationId;
           
-          // Tunjuk confirmation notification dan batal yang lama
+          // Papar notification ringkas secara senyap (tanpa sound/heads-up)
           final plugin = FlutterLocalNotificationsPlugin();
-          await plugin.cancel(id: notificationId);
-          
-          // Papar notification ringkas "Message sent" supaya user yakin dah hantar
           await plugin.show(
-            id: notificationId,
-            title: 'Ngam',
-            body: 'You: $inputMessage',
-            notificationDetails: const NotificationDetails(
+            notificationId,
+            'Ngam',
+            'You: $inputMessage',
+            const NotificationDetails(
               android: AndroidNotificationDetails(
                 'ngam_high_importance_channel',
                 'High Importance Notifications',
                 channelDescription: 'This channel is used for important notifications.',
-                importance: Importance.min,
-                priority: Priority.low,
+                importance: Importance.max, // Mesti sama dengan channel
+                priority: Priority.high,
+                onlyAlertOnce: true, // INI PENTING! Update senyap je
                 showWhen: true,
                 autoCancel: true,
               ),
@@ -89,7 +90,10 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
     } catch (e) {
       debugPrint('Background reply error: $e');
       if (notificationResponse.payload != null) {
-        await FlutterLocalNotificationsPlugin().cancel(id: getConsistentNotificationId(notificationResponse.payload!));
+        final parts = notificationResponse.payload!.split('|');
+        if (parts.isNotEmpty) {
+          await FlutterLocalNotificationsPlugin().cancel(id: getConsistentNotificationId(parts[0]));
+        }
       } else if (notificationResponse.id != null) {
         await FlutterLocalNotificationsPlugin().cancel(id: notificationResponse.id!);
       }
@@ -103,11 +107,14 @@ void _handleForegroundNotificationResponse(NotificationResponse notificationResp
     isReplyingFromNotification.value = true;
     try {
       final String inputMessage = notificationResponse.input!;
-      final conversationId = notificationResponse.payload;
+      
+      final parts = notificationResponse.payload?.split('|') ?? [];
+      final conversationId = parts.isNotEmpty ? parts[0] : null;
+      final payloadUserId = parts.length > 1 ? parts[1] : null;
       
       if (conversationId != null && conversationId.isNotEmpty) {
         final notificationId = getConsistentNotificationId(conversationId);
-        final userId = Supabase.instance.client.auth.currentUser?.id;
+        final userId = Supabase.instance.client.auth.currentUser?.id ?? payloadUserId;
         if (userId != null) {
           final now = DateTime.now().toUtc().toIso8601String();
           await Supabase.instance.client.from('messages').insert({
@@ -126,8 +133,28 @@ void _handleForegroundNotificationResponse(NotificationResponse notificationResp
           
           // Notify chat screen supaya auto-refresh
           lastNotificationReplyConversationId.value = conversationId;
+          
+          // Smooth update without popping up again
+          await FlutterLocalNotificationsPlugin().show(
+            notificationId,
+            'Ngam',
+            'You: $inputMessage',
+            const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'ngam_high_importance_channel',
+                'High Importance Notifications',
+                channelDescription: 'This channel is used for important notifications.',
+                importance: Importance.max,
+                priority: Priority.high,
+                onlyAlertOnce: true,
+                showWhen: true,
+                autoCancel: true,
+              ),
+            ),
+          );
+        } else {
+          await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
         }
-        await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
       }
     } catch (e) {
       debugPrint('Foreground reply error: $e');
@@ -313,7 +340,7 @@ class PushService {
       title: title,
       body: body,
       notificationDetails: platformChannelSpecifics,
-      payload: message.data['conversation_id'],
+      payload: "${message.data['conversation_id']}|${Supabase.instance.client.auth.currentUser?.id ?? ''}",
     );
   }
 
@@ -333,6 +360,14 @@ class PushService {
       }
     } catch (e) {
       debugPrint('Failed to save FCM token: $e');
+    }
+  }
+
+  static Future<void> clearTokenFromSupabase(String userId) async {
+    try {
+      await SupabaseService.updateProfile(userId: userId, fcmToken: '');
+    } catch (e) {
+      debugPrint('Failed to clear FCM token: $e');
     }
   }
 }
