@@ -11,6 +11,9 @@ import '../../widgets/category_chip.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../shared/chat_screen.dart';
 import '../../services/location_service.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ============================================================
 // Ngam App — Active Job Screen (Runner)
@@ -169,6 +172,73 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
               ),
             ),
             const SizedBox(height: 24),
+
+            // ─── Navigate Button & Map ────────────────────
+            if (gig.latitude != null && gig.longitude != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: SizedBox(
+                        height: 180,
+                        width: double.infinity,
+                        child: FlutterMap(
+                          options: MapOptions(
+                            initialCenter: LatLng(gig.latitude!, gig.longitude!),
+                            initialZoom: 15.0,
+                            interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.rezrv.ngam',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(gig.latitude!, gig.longitude!),
+                                  width: 40,
+                                  height: 40,
+                                  child: const HugeIcon(
+                                    icon: HugeIcons.strokeRoundedLocation01,
+                                    color: Colors.red,
+                                    size: 40,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${gig.latitude},${gig.longitude}');
+                          try {
+                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                          } catch (e) {
+                            debugPrint("Could not launch maps: $e");
+                          }
+                        },
+                        icon: const HugeIcon(icon: HugeIcons.strokeRoundedNavigation01, color: AppTheme.primary, size: 20),
+                        label: Text('task_detail.navigate'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: AppTheme.primary, width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
             // ─── Upload Proof (Optional) ─────────────
             Text(
