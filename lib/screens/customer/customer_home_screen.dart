@@ -37,6 +37,7 @@ class CustomerHomeScreen extends StatefulWidget {
 }
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _currentIndex = 0;
+  final List<bool> _initializedPages = List.filled(4, false);
   @override
   void initState() {
     super.initState();
@@ -52,18 +53,22 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    _initializedPages[_currentIndex] = true;
     final pages = [
-      _CustomerHomeFeed(),
-      const MyTasksScreen(),
-      const ChatScreen(),
-      const ProfileScreen(),
+      _initializedPages[0] ? _CustomerHomeFeed() : const SizedBox.shrink(),
+      _initializedPages[1] ? const MyTasksScreen() : const SizedBox.shrink(),
+      _initializedPages[2] ? const ChatScreen() : const SizedBox.shrink(),
+      _initializedPages[3] ? const ProfileScreen() : const SizedBox.shrink(),
     ];
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          pages[_currentIndex],
+          IndexedStack(
+            index: _currentIndex,
+            children: pages,
+          ),
           Positioned(
             left: 0,
             right: 0,

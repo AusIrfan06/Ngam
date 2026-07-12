@@ -2,7 +2,7 @@
 
 [![Download APK](https://img.shields.io/badge/Download-Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/AusIrfan06/Ngam/releases/latest/download/app-release.apk)
 
-[Atau klik sini untuk ke halaman Releases](https://github.com/AusIrfan06/Ngam/releases)
+[Or click here to go to the Releases page](https://github.com/AusIrfan06/Ngam/releases)
 
 
 Ngam is a community-driven Flutter application that connects people who need help with local errands (Customers) and people willing to do them (Runners). Whether it's buying food, doing a quick grocery run, printing documents, or heavy lifting, Ngam provides a seamless platform to get tasks done.
@@ -42,195 +42,195 @@ Ngam emphasizes trust. When a Runner uploads their DuitNow QR for payment, the a
 
 ---
 
-# Buku Panduan Pengguna (User Manual) Aplikasi Ngam
+# Ngam App User Manual
 
-Selamat datang ke **Ngam - Roger Anything, Kautim Instantly**. Ngam adalah aplikasi komunitari yang menghubungkan orang yang perlukan bantuan untuk tugasan harian (Customer) dengan mereka yang sedia membantu (Runner). 
+Welcome to **Ngam - Roger Anything, Kautim Instantly**. Ngam is a community app that connects people who need help with daily tasks (Customer) with those ready to help (Runner). 
 
-Panduan ini merangkumi semua fungsi utama dan ciri-ciri unik (advanced features) aplikasi, daripada pendaftaran sehinggalah proses penyiapan tugasan.
-
----
-
-## 1. Permulaan (Getting Started)
-
-### 1.1 Pendaftaran & Log Masuk
-- **Pendaftaran Emel Biasa**: Semasa mendaftar dengan emel dan kata laluan, anda boleh terus memilih peranan anda sama ada sebagai **Customer** atau **Runner**. Jika anda memilih Runner, borang *Runner Details* (IC & Kenderaan) akan terpapar untuk dilengkapkan terus semasa pendaftaran.
-- **Log Masuk Google**: Untuk proses yang pantas, anda boleh menggunakan Akaun Google. Secara lalai (default), log masuk melalui Google akan mendaftarkan anda sebagai **Customer**.
-- Selepas pendaftaran, pastikan anda mengemaskini profil asas anda (Nama Penuh, Gambar Profil, Nombor Telefon) untuk memudahkan pengguna lain menghubungi anda.
-
-### 1.2 Dwi-Peranan (Dual-Role System) & Pengesahan Runner
-- **Satu Akaun, Dua Fungsi**: Anda tidak perlu mendaftar akaun berasingan untuk menjadi pengguna atau penghantar.
-- **Dari Customer ke Runner**: Jika anda mendaftar menggunakan akaun Google (atau mendaftar sebagai Customer pada mulanya), anda sentiasa boleh memohon menjadi Runner di dalam aplikasi.
-- **Langkah Menjadi Runner (Bila Sudah Ada Akaun)**: Jika anda cuba mendaftar sekali lagi di halaman *Register* sebagai Runner menggunakan e-mel Customer yang sama, sistem tidak akan membenarkan pertindihan akaun. Sebaliknya, anda hanya perlu **Log Masuk** seperti biasa, pergi ke menu **Profil** dan tekan butang *Toggle* ke Runner. Borang *Runner Verification* (IC, Nombor Plat, Jenis Kenderaan) akan terpapar secara automatik untuk diisi.
-- **Bertukar Peranan**: Setelah pengesahan berjaya, anda kini seorang Runner berdaftar. Selepas ini, anda bebas bertukar peranan antara Customer <-> Runner pada bila-bila masa dengan sekelip mata!
-
-### 1.3 Tetapan Bahasa & Tema (Language & Theme)
-- **Dwi-Bahasa**: Aplikasi Ngam menyokong **Bahasa Inggeris (English)** dan **Bahasa Melayu**.
-- **Mod Gelap (Dark Mode)**: Anda juga boleh menukar paparan kepada *Light* atau *Dark Mode*.
-- **Cara Menukar**: Anda boleh membuat tetapan Bahasa & Tema ini secara terus di:
-  1. **Halaman Log Masuk (Sign In / Register)**: Tekan butang di bahagian atas kanan skrin sebelum mendaftar.
-  2. **Halaman Profil (Profile)**: Terdapat butang togol yang dikhususkan untuk menukar tema dan bahasa bila-bila masa. Sistem akan menyimpan pilihan anda secara automatik.
+This manual covers all the core functions and advanced features of the app, from registration to task completion.
 
 ---
 
-## 2. Ngam Pay (Sistem Dompet Digital)
+## 1. Getting Started
 
-Ngam dilengkapi dengan dompet digital terbina dalam iaitu **Ngam Pay** bagi memastikan setiap transaksi berjalan lancar, selamat, dan bebas penipuan.
+### 1.1 Registration & Login
+- **Standard Email Registration**: While registering with an email and password, you can immediately choose your role as a **Customer** or **Runner**. If you choose Runner, the *Runner Details* form (IC & Vehicle) will appear to be completed during registration.
+- **Google Login**: For a fast process, you can use your Google Account. By default, logging in via Google will register you as a **Customer**.
+- After registration, make sure to update your basic profile (Full Name, Profile Picture, Phone Number) to make it easier for other users to contact you.
 
-### 2.1 Top Up (Tambah Nilai)
-1. Pergi ke halaman **Wallet**.
-2. Anda boleh tambah kaedah pembayaran (Payment Method) seperti Kad Kredit/Debit atau guna Perbankan Dalam Talian.
-3. Tekan butang **Top Up**, masukkan jumlah yang dikehendaki, dan sahkan. Baki dompet akan dikemaskini secara serta-merta (real-time).
+### 1.2 Dual-Role System & Runner Verification
+- **One Account, Two Functions**: You don't need to register separate accounts to be a user or a deliverer.
+- **From Customer to Runner**: If you registered using a Google account (or registered as a Customer initially), you can always apply to be a Runner within the app.
+- **Steps to Become a Runner (For Existing Accounts)**: If you try to register again on the *Register* page as a Runner using the same Customer email, the system will not allow duplicate accounts. Instead, simply **Log In** normally, go to the **Profile** menu, and tap the *Toggle* button to Runner. The *Runner Verification* form (IC, License Plate, Vehicle Type) will automatically appear for you to fill in.
+- **Switching Roles**: Once verification is successful, you are now a registered Runner. After this, you are free to switch roles between Customer <-> Runner anytime in a blink of an eye!
 
-### 2.2 Tambah Kaedah Pembayaran (Kad / Akaun Bank / DuitNow QR)
-Sistem membolehkan anda menyimpan maklumat kad, akaun bank, atau DuitNow QR dengan selamat di dalam dompet.
-1. Di halaman **Wallet**, tatal (scroll) ke bawah sehingga anda jumpa bahagian **Payment Methods**.
-2. Tekan kotak kad bertanda **+ Add New**.
-3. Pilih jenis kaedah yang ingin ditambah:
-   - **Bank Account**: Pilih bank anda (cth: Maybank, CIMB) dan masukkan nombor akaun. Ini sangat penting untuk membolehkan anda membuat pengeluaran (Withdraw).
-   - **Credit / Debit Card**: Masukkan nombor kad, tarikh luput, dan CVV (disulitkan secara selamat).
-   - **DuitNow QR**: Khusus untuk Runner menerima bayaran, muat naik gambar QR yang disahkan (tiada suntingan).
-4. Maklumat ini akan disimpan sebagai "Kad" yang boleh diselak (swipe) di ruangan Payment Methods.
-
-### 2.3 Withdraw (Pengeluaran Wang)
-- Fungsi pengeluaran (*Withdraw*) membenarkan wang dari dompet dipindahkan terus ke akaun bank anda.
-- **Penting**: Anda WAJIB mendaftarkan Maklumat Akaun Bank (Rujuk 2.2) di dalam sistem terlebih dahulu sebelum fungsi pengeluaran boleh digunakan.
-- Proses pengeluaran adalah selamat dan baki dompet akan ditolak mengikut jumlah pengeluaran secara automatik.
-
-### 2.4 Sistem DuitNow QR & Anti-Penipuan
-- Runner boleh memuat naik gambar **DuitNow QR** mereka.
-- Apabila tiba masa pembayaran, Ngam akan memaparkan QR code asli (tanpa di-crop atau disunting) supaya Customer boleh menyemak nama penuh pendaftar secara visual di aplikasi bank mereka. Ini untuk mengelakkan kes penipuan profil palsu.
+### 1.3 Language & Theme Settings
+- **Dual-Language**: The Ngam app supports **English** and **Malay**.
+- **Dark Mode**: You can also switch the display to *Light* or *Dark Mode*.
+- **How to Change**: You can configure Language & Theme directly at:
+  1. **Login Page (Sign In / Register)**: Tap the button at the top right of the screen before registering.
+  2. **Profile Page**: There is a dedicated toggle button to change the theme and language anytime. The system will automatically save your preferences.
 
 ---
 
-## 3. Mod Customer (Bila Anda Perlukan Bantuan)
+## 2. Ngam Pay (Digital Wallet System)
 
-Gunakan mod ini apabila anda memerlukan Runner untuk selesaikan tugas harian seperti beli makanan, beli barang runcit, atau hantar bungkusan.
+Ngam comes with a built-in digital wallet, **Ngam Pay**, to ensure every transaction runs smoothly, securely, and free from scams.
 
-### 3.1 Post Task (Buat Permintaan Tugas)
-1. Pergi ke tab **Post Task** (ikon '+' di tengah menu bawah).
-2. Isi maklumat tugasan:
-   - **Tajuk Tugas** & **Penerangan Lengkap**.
-   - **Kategori** (Makanan, Barangan Runcit, Penghantaran, Baiki, dsb).
-   - **Bounty (Upah)**: Bayaran yang anda tawarkan. Sistem akan menolak jumlah ini dari Ngam Pay anda ke dalam sistem *Escrow* (pegangan selamat) sementara tugas dijalankan.
-   - **Lokasi**: Gunakan *Map Picker* pintar untuk set koordinat GPS (pin merah) dengan tepat.
-3. Tekan **Submit**. Tugas anda kini disiarkan secara *live* pada peta Runner.
+### 2.1 Top Up
+1. Go to the **Wallet** page.
+2. You can add a Payment Method like Credit/Debit Card or use Online Banking.
+3. Tap the **Top Up** button, enter the desired amount, and confirm. Your wallet balance will be updated in real-time.
 
-### 3.2 Discover (Cari Runner & Servis Paling Hampir)
-Skrin **Home** menyediakan **Peta Interaktif** yang menunjukkan tawaran servis dari pelbagai Runner yang berdekatan. Terdapat 2 cara utama untuk menempah servis dari halaman ini:
-1. **Tekan pada Pin di Peta**: Jika anda nampak pin servis berdekatan (contoh: "Baiki Paip Bocor - RM50"), anda boleh terus tekan pada pin tersebut. Satu kotak info akan keluar, tekan kotak tersebut dan tekan **Book Service**. Peringatan kejayaan tempahan akan terpapar sebagai notifikasi kaca (*Glass Toast*) yang elegan.
-2. **Gunakan Fungsi Carousel (Leret Kad)**: Di bahagian bawah peta, terdapat **Carousel** (senarai kad yang boleh dileret ke kiri/kanan). Apabila anda meleret (*swipe*) kad tersebut, peta secara automatik akan bergerak (*auto-focus*) dan menunjukkan lokasi sebenar servis tersebut. Ini membolehkan anda membuat tinjauan pantas tanpa perlu menekan pin di peta satu persatu.
+### 2.2 Add Payment Method (Card / Bank Account / DuitNow QR)
+The system allows you to securely save card, bank account, or DuitNow QR information in the wallet.
+1. On the **Wallet** page, scroll down until you find the **Payment Methods** section.
+2. Tap the card box marked **+ Add New**.
+3. Select the type of method you want to add:
+   - **Bank Account**: Choose your bank (e.g., Maybank, CIMB) and enter the account number. This is crucial for enabling Withdrawals.
+   - **Credit / Debit Card**: Enter the card number, expiry date, and CVV (securely encrypted).
+   - **DuitNow QR**: Specifically for Runners to receive payments, upload a verified QR image (unedited).
+4. This info will be saved as a "Card" that can be swiped in the Payment Methods section.
 
-### 3.3 Menguruskan Tugasan (My Tasks)
-Anda boleh memantau semua tugas anda di ruangan **My Tasks**.
-- **Fungsi Sort (Susun)**: Gunakan butang anak panah di sebelah tajuk "My Tasks" untuk menyusun senarai tugas dari **Paling Baru (Newest)** ke **Paling Lama (Oldest)**.
-- **Open**: Tugas masih mencari Runner. Anda boleh **Cancel/Delete** tugas di peringkat ini, dan wang akan dipulangkan 100% ke dompet anda.
-- **Locked**: Ada Runner berminat mengambil tugas anda. Anda perlu meluluskan / menerima Runner tersebut sebelum tugasan bermula.
-- **In-Progress**: Runner sedang melaksanakan tugas. Ruangan **Chat** peribadi akan dibuka.
-- **Delivered**: Runner memaklumkan tugas selesai.
-- **Completed**: Anda sahkan kerja selesai, dan sistem melepaskan wang *Bounty* ke dompet Runner.
+### 2.3 Withdraw
+- The *Withdraw* function allows funds from the wallet to be transferred directly to your bank account.
+- **Important**: You MUST register your Bank Account Information (Refer to 2.2) in the system first before the withdrawal function can be used.
+- The withdrawal process is secure, and your wallet balance will be deducted automatically based on the withdrawal amount.
 
----
-
-## 4. Mod Runner (Buat Duit Sampingan)
-
-Gunakan mod ini untuk mencari tugasan, membantu komuniti, dan menjana pendapatan fleksibel.
-
-### 4.1 Cari Tugas di Halaman Discover (Peta & Carousel)
-Sama seperti Customer, Runner juga menggunakan Peta **Home** untuk mencari tugasan pelanggan (*Job Requests*) yang berdekatan:
-- **Tekan Terus pada Pin**: Anda boleh terus tekan mana-mana pin tugas di atas peta, baca butiran (Bounty, jarak, penerangan), dan tekan **Accept Job** untuk mengambil kerja tersebut.
-- **Carousel (Senarai Kad)**: Leret kad-kad tugas di ruangan *Carousel* bawah skrin. Setiap kali anda leret ke kad baru, peta akan memfokus (*zoom in*) kepada lokasi pelanggan tersebut. Ini memudahkan anda membandingkan jarak tugasan tanpa membuka halaman baru.
-
-### 4.2 Menawarkan Servis (Service Listing)
-- Anda juga boleh menawarkan kepakaran anda sebagai pakej servis. Tekan butang **Post Service** di ruangan *My Jobs*.
-- Isikan maklumat servis yang anda sediakan seperti "Servis format laptop (RM50)" atau "Personal Shopper IKEA (RM30)". Gunakan peta untuk menetapkan lokasi di mana anda menawarkan perkhidmatan tersebut.
-- **100% Percuma**: Menyiarkan iklan servis adalah percuma dan tidak menolak sebarang jumlah dari baki *Ngam Pay* anda. Servis ini akan kekal di peta (halaman Discover) dan Customers boleh menempah perkhidmatan anda pada bila-bila masa. Tempahan yang masuk akan terpapar di ruangan "Customer Bookings" di profil anda.
-
-### 4.3 Aliran Kerja (Workflow)
-1. Selepas tekan *Accept Job*, tugas berpindah ke tab **My Jobs** di bawah kategori **In-Progress** atau **Locked**.
-2. **Fungsi Sort**: Anda boleh menyusun senarai kerja anda mengikut kronologi masa (Baru/Lama).
-3. Anda boleh berkomunikasi dan kemaskini status terus menerusi ruangan **Chat**. 
-4. Setelah anda siapkan tugas, tekan butang **Mark as Delivered**. 
-5. Apabila Customer sahkan, tugas menjadi **Completed** dan *bounty* (upah) akan terus masuk ke dalam Wallet Ngam Pay anda.
-
-### 4.4 Pengurusan Servis Sendiri (My Services)
-Sebagai Runner, anda boleh memantau iklan servis yang anda tawarkan di ruangan **My Jobs > My Services**:
-1. **Details**: Lihat butiran penuh iklan servis anda.
-2. **Pause / Resume**: Anda boleh *Pause* (Hentikan sementara) iklan servis anda jika anda sibuk, dan *Resume* (Teruskan) apabila anda sedia menerima tempahan semula.
-3. **Delete**: Memadam iklan servis secara kekal.
-4. **Customer Bookings**: Jika ada pelanggan yang membuat tempahan terhadap servis anda, ia akan disenaraikan terus di bawah iklan tersebut untuk anda uruskan.
+### 2.4 DuitNow QR & Anti-Scam System
+- Runners can upload their **DuitNow QR** image.
+- When it's time for payment, Ngam will display the original QR code (uncropped and unedited) so Customers can visually check the registrant's full name in their banking app. This prevents fake profile impersonation scams.
 
 ---
 
-## 5. Fungsi Canggih (Advanced AI & Fitur Unik)
+## 3. Customer Mode (When You Need Help)
 
-Ngam bukan sekadar aplikasi biasa, ia dilengkapi teknologi masa depan untuk memudahkan hidup anda:
+Use this mode when you need a Runner to complete daily tasks like buying food, groceries, or delivering parcels.
+
+### 3.1 Post Task
+1. Go to the **Post Task** tab (the '+' icon in the middle of the bottom menu).
+2. Fill in the task details:
+   - **Task Title** & **Full Description**.
+   - **Category** (Food, Groceries, Delivery, Repair, etc.).
+   - **Bounty (Reward)**: The payment you are offering. The system will deduct this amount from your Ngam Pay into the *Escrow* system (safe holding) while the task is ongoing.
+   - **Location**: Use the smart *Map Picker* to accurately set the GPS coordinates (red pin).
+3. Tap **Submit**. Your task is now broadcasted *live* on the Runners' map.
+
+### 3.2 Discover (Find Nearby Runners & Services)
+The **Home** screen provides an **Interactive Map** showing service offerings from various nearby Runners. There are 2 main ways to book a service from this page:
+1. **Tap on Map Pins**: If you see a nearby service pin (e.g., "Fix Leaking Pipe - RM50"), you can tap directly on that pin. An info box will appear, tap it and press **Book Service**. A successful booking reminder will appear as an elegant *Glass Toast* notification.
+2. **Use the Carousel Function (Swipe Cards)**: At the bottom of the map, there is a **Carousel** (a list of swipeable cards). When you swipe the cards, the map will automatically *auto-focus* and show the exact location of the service. This allows you to quickly browse without having to tap individual pins on the map.
+
+### 3.3 Managing Tasks (My Tasks)
+You can monitor all your tasks in the **My Tasks** section.
+- **Sort Function**: Use the arrow button next to the "My Tasks" title to sort the task list from **Newest** to **Oldest**.
+- **Open**: The task is still looking for a Runner. You can **Cancel/Delete** the task at this stage, and the money will be 100% refunded to your wallet.
+- **Locked**: A Runner is interested in taking your task. You need to approve/accept the Runner before the task begins.
+- **In-Progress**: The Runner is currently executing the task. The private **Chat** room will be opened.
+- **Delivered**: The Runner has marked the task as done.
+- **Completed**: You verify that the work is finished, and the system releases the *Bounty* money to the Runner's wallet.
+
+---
+
+## 4. Runner Mode (Make Extra Money)
+
+Use this mode to find tasks, help the community, and generate flexible income.
+
+### 4.1 Find Tasks on the Discover Page (Map & Carousel)
+Similar to Customers, Runners also use the **Home** Map to find nearby Customer tasks (*Job Requests*):
+- **Tap Directly on Pins**: You can tap any task pin on the map, read the details (Bounty, distance, description), and press **Accept Job** to take the job.
+- **Carousel (Card List)**: Swipe the task cards in the *Carousel* section at the bottom of the screen. Every time you swipe to a new card, the map will *zoom in* on that customer's location. This makes it easier for you to compare task distances without opening a new page.
+
+### 4.2 Offering Services (Service Listing)
+- You can also offer your expertise as a service package. Tap the **Post Service** button in the *My Jobs* section.
+- Fill in the details of the service you provide, such as "Laptop Formatting Service (RM50)" or "IKEA Personal Shopper (RM30)". Use the map to set the location where you offer the service.
+- **100% Free**: Posting service ads is free and does not deduct any amount from your *Ngam Pay* balance. This service will remain on the map (Discover page) and Customers can book your service anytime. Incoming bookings will appear in the "Customer Bookings" section in your profile.
+
+### 4.3 Workflow
+1. After pressing *Accept Job*, the task moves to the **My Jobs** tab under the **In-Progress** or **Locked** category.
+2. **Sort Function**: You can sort your job list chronologically (Newest/Oldest).
+3. You can communicate and update the status directly through the **Chat** room. 
+4. Once you have completed the task, press the **Mark as Delivered** button. 
+5. When the Customer confirms, the task becomes **Completed** and the *bounty* will go straight into your Ngam Pay Wallet.
+
+### 4.4 Managing Your Own Services (My Services)
+As a Runner, you can monitor the service ads you offer in the **My Jobs > My Services** section:
+1. **Details**: View full details of your service ad.
+2. **Pause / Resume**: You can *Pause* your service ad if you are busy, and *Resume* when you are ready to accept bookings again.
+3. **Delete**: Permanently delete a service ad.
+4. **Customer Bookings**: If a customer makes a booking for your service, it will be listed directly under that ad for you to manage.
+
+---
+
+## 5. Advanced AI & Unique Features
+
+Ngam is not just an ordinary app; it is equipped with future technology to make your life easier:
 
 ### 5.1 AI Voice Assistant (Ngam AI)
-- Di skrin utama, terdapat pembantu pintar AI. Anda boleh menaip atau **bercakap terus** (Speech-to-Text)!
-- **Contoh Arahan**:
-  - *"Tolong cari job paling mahal dekat sini."*
-  - *"Ada orang perlukan khidmat hantar makanan tak?"*
-- AI akan mengimbas (scan) secara *live* semua kerja berhampiran dan memberitahu anda hasilnya. 
-- AI Ngam menyokong bahasa santai/rojak (Manglish/Malay).
-- **Text-to-Speech (TTS)**: AI akan menjawab anda dengan suara supaya anda tak perlu baca teks ketika memandu atau berjalan.
+- On the main screen, there is an AI smart assistant. You can type or **speak directly** (Speech-to-Text)!
+- **Example Commands**:
+  - *"Please find the most expensive job around here."*
+  - *"Does anyone need food delivery services?"*
+- The AI will scan all nearby jobs *live* and tell you the results. 
+- Ngam AI supports casual language (Manglish/Malay).
+- **Text-to-Speech (TTS)**: The AI will reply to you with a voice so you don't have to read text while driving or walking.
 
-### 5.2 Real-time Chat & Suara
-- Setiap tugas menyediakan bilik perbualan khas.
-- Anda boleh menghantar mesej teks biasa.
-- **Voice Dictation**: Malas menaip? Gunakan ikon mikrofon terbina dalam chat untuk menukar percakapan anda menjadi teks secara automatik!
+### 5.2 Real-time Chat & Voice
+- Every task provides a dedicated chat room.
+- You can send normal text messages.
+- **Voice Dictation**: Too lazy to type? Use the built-in microphone icon in the chat to automatically convert your speech into text!
 
-### 5.3 Antara Muka "Liquid Glass" (Glassmorphism)
-- Aplikasi ini dibangunkan dengan tema rekabentuk moden yang dipanggil *Liquid Glass*. Anda akan perasan elemen-elemen telus (transparent blur), efek cahaya mikro, animasi licin yang memberikan rasa premium ala iOS, serta notifikasi **Glass Toast** yang elegan (seperti ketika anda berjaya tempah servis).
-- **Dark Mode / Light Mode**: Disokong secara automatik mengikut tetapan telefon pintar anda.
-
----
-
-## 6. Ciri-ciri Keselamatan Ngam (Security & Privacy)
-
-Aplikasi Ngam direka dengan pelbagai lapisan keselamatan untuk melindungi pengguna, wang, dan data peribadi anda:
-
-### 6.1 Keselamatan Data & Akses (Supabase & RLS)
-- **Log Masuk Selamat**: Sokongan pengesahan identiti (Authentication) bertaraf dunia menggunakan sistem Supabase Auth.
-- **Row Level Security (RLS)**: Ngam menggunakan dasar pangkalan data (Database Policies) yang ketat. Ini bermaksud data peribadi, mesej sembang (chat), dan baki dompet anda dikunci pada tahap pelayan (server) dan **hanya anda sahaja** yang boleh melihat/mengubahnya. Pihak ketiga tidak boleh menggodam data anda.
-
-### 6.2 Sistem Pembayaran "Escrow"
-- **Jaminan Kewangan**: Pihak Customer tidak perlu risau Runner lari tanpa buat kerja, dan Runner tidak perlu risau tidak dibayar setelah penat bekerja. 
-- Apabila tugas dipersetujui, wang akan ditarik ke dalam sistem *Escrow* (pegangan selamat Ngam). Wang ini hanya akan dilepaskan kepada Runner *selepas* Customer menekan butang sahkan kerja diselesaikan (Completed).
-
-### 6.3 Anti-Penipuan (Anti-Scam) DuitNow QR
-- Sistem kami mewajibkan Runner memuat naik gambar DuitNow QR asli (uncropped).
-- Apabila Customer ingin membayar/menyemak melalui aplikasi perbankan, mereka boleh melihat nama pemilik akaun berdaftar secara langsung untuk memastikan ia berpadanan dengan profil Runner. Ini menghalang penyamaran identiti.
-
-### 6.4 Privasi Lokasi Peta (Location Privacy)
-- Peta hanya memaparkan lokasi di mana tugasan (Task) itu perlu dilakukan. 
-- **Lokasi GPS sebenar anda sentiasa selamat dan disembunyikan** dari paparan awam demi mengelakkan sebarang pencerobohan privasi.
-
-### 6.5 Kawalan Privasi Peranti (App Lock & App Switcher)
-Anda boleh mengetatkan lagi keselamatan aplikasi Ngam di dalam telefon anda melalui menu **Profile > Privacy & Security**:
-1. **App Lock (Kunci Aplikasi)**: Anda boleh mengaktifkan App Lock menggunakan cap jari (Biometrics) atau PIN telefon. Anda boleh tetapkan masa (Immediately, 1 min, 15 min, 1 jam) supaya aplikasi terkunci secara automatik apabila anda keluar (minimize).
-2. **Hide in App Switcher (Skrin Kabur)**: Aktifkan ciri ini untuk mengaburkan (blur) paparan aplikasi Ngam apabila anda membuka fungsi *Recent Apps* atau *App Switcher* di telefon anda. Ini menghalang orang di sebelah anda dari mengintai baki Ngam Pay atau chat peribadi anda dari jauh.
+### 5.3 "Liquid Glass" Interface (Glassmorphism)
+- The app is built with a modern design theme called *Liquid Glass*. You will notice transparent blur elements, micro-light effects, smooth animations that give a premium iOS-like feel, as well as elegant **Glass Toast** notifications (like when you successfully book a service).
+- **Dark Mode / Light Mode**: Supported automatically according to your smartphone's settings.
 
 ---
 
-## 7. Sistem Sembang (In-App Chat)
+## 6. Ngam Security Features (Security & Privacy)
 
-Ngam mempunyai fungsi mesej/sembang (chat) terbina dalam yang sangat interaktif bagi memudahkan komunikasi antara Customer dan Runner:
-1. **Mesej Masa Nyata (Real-time)**: Mesej dihantar dan diterima serta-merta tanpa perlu *refresh*.
-2. **Status Kehadiran (Online/Offline)**: Anda boleh melihat jika pihak sana sedang 'Online'.
-3. **Petunjuk Penaipan (Typing Indicator)**: Anda akan nampak animasi kecil apabila pihak sana sedang menaip mesej.
-4. **Carian Mesej**: Anda boleh menggunakan fungsi *Search* (Cari) untuk mencari mesej-mesej lama.
-5. **Autoskrol Bawah**: Memastikan mesej baru yang tiba sentiasa muncul serta-merta di paparan.
+The Ngam app is designed with multiple layers of security to protect users, money, and your personal data:
 
-*(Nota Penting: Fungsi meleret / Carousel hanya wujud di halaman Peta/Discover. Jika anda mahu membuka Chat untuk tugas berlainan, anda perlu ke halaman My Tasks/My Jobs dan menekan butang Chat pada kad tugas berkenaan.)*
+### 6.1 Data & Access Security (Supabase & RLS)
+- **Secure Login**: World-class authentication support using the Supabase Auth system.
+- **Row Level Security (RLS)**: Ngam uses strict Database Policies. This means your personal data, chat messages, and wallet balance are locked at the server level and **only you** can view/modify them. Third parties cannot hack your data.
+
+### 6.2 "Escrow" Payment System
+- **Financial Guarantee**: Customers don't need to worry about Runners running away without doing the job, and Runners don't need to worry about not getting paid after working hard. 
+- When a task is agreed upon, the money will be pulled into the *Escrow* system (Ngam's safe holding). This money will only be released to the Runner *after* the Customer presses the confirm job completed button (Completed).
+
+### 6.3 Anti-Scam DuitNow QR
+- Our system requires Runners to upload an original (uncropped) DuitNow QR image.
+- When Customers want to pay/verify via their banking app, they can visually see the registered account owner's name directly to ensure it matches the Runner's profile. This prevents identity impersonation.
+
+### 6.4 Map Location Privacy (Location Privacy)
+- The map only displays the location where the Task needs to be done. 
+- **Your actual GPS location is always safe and hidden** from public view to avoid any privacy intrusion.
+
+### 6.5 Device Privacy Controls (App Lock & App Switcher)
+You can further tighten the security of the Ngam app on your phone via the **Profile > Privacy & Security** menu:
+1. **App Lock**: You can activate App Lock using a fingerprint (Biometrics) or phone PIN. You can set a time (Immediately, 1 min, 15 min, 1 hour) so the app locks automatically when you exit (minimize).
+2. **Hide in App Switcher (Blur Screen)**: Activate this feature to blur the Ngam app display when you open the *Recent Apps* or *App Switcher* function on your phone. This prevents people next to you from peeking at your Ngam Pay balance or private chats from afar.
 
 ---
 
-## 8. Bantuan & Sokongan (Support)
+## 7. In-App Chat System
 
-- Jika ada sebarang pertikaian atau masalah teknikal (contoh: Runner tidak siapkan kerja, atau refund tidak masuk), gunakan butang **Help & Support** di ruang Profil. 
-- Pasukan Ngam (Ngam Team) sentiasa bersedia membantu anda menyemak log sembang (chat) dan memulangkan wang dengan adil jika berlaku penipuan.
+Ngam has a highly interactive built-in messaging/chat function to facilitate communication between Customer and Runner:
+1. **Real-time Messaging**: Messages are sent and received instantly without needing to *refresh*.
+2. **Presence Status (Online/Offline)**: You can see if the other party is 'Online'.
+3. **Typing Indicator**: You will see a small animation when the other party is typing a message.
+4. **Message Search**: You can use the *Search* function to find old messages.
+5. **Auto-Scroll to Bottom**: Ensures new incoming messages always appear instantly on the screen.
+
+*(Important Note: The swiping / Carousel function only exists on the Map/Discover page. If you want to open Chat for different tasks, you need to go to the My Tasks/My Jobs page and press the Chat button on the respective task card.)*
+
+---
+
+## 8. Help & Support
+
+- If there are any disputes or technical issues (e.g., Runner didn't finish the job, or refund hasn't arrived), use the **Help & Support** button in the Profile section. 
+- The Ngam Team is always ready to help you review the chat logs and refund money fairly in the event of fraud.
 
 > [!TIP]
-> Sentiasa semak notifikasi *push* di telefon bimbit anda dan aktifkan kebenaran lokasi (GPS Permission - Always/While In Use) untuk merasai pengalaman optimum aplikasi Ngam.
+> Always check the *push* notifications on your mobile phone and enable location permissions (GPS Permission - Always/While In Use) to experience the optimal Ngam app experience.
 
-Terima kasih menggunakan Ngam. Teruskan **"Roger Anything, Kautim Instantly"**!
+Thank you for using Ngam. Keep on **"Roger Anything, Kautim Instantly"**!

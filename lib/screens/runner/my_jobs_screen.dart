@@ -354,8 +354,6 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
               } else {
                 if (gig.isActive) {
                   Navigator.pushNamed(context, '/active-job', arguments: gig);
-                } else if (gig.status == GigStatus.pending && currentUserId != null) {
-                  _showPendingOptions(context, gig, currentUserId, isDark);
                 } else {
                   Navigator.pushNamed(context, '/task-detail', arguments: gig);
                 }
@@ -368,76 +366,6 @@ class _MyJobsScreenState extends State<MyJobsScreen> with SingleTickerProviderSt
     );
   }
 
-  void _showPendingOptions(BuildContext context, GigModel gig, String runnerId, bool isDark) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext bottomSheetContext) {
-        return _buildSystemGlass(
-          borderRadius: 32,
-          isDark: isDark,
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Order Request',
-                    style: GoogleFonts.outfit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'A customer wants to hire you for:\n"${gig.title}"\n\nDo you want to accept this order?',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSystemGlass(
-                    borderRadius: 16,
-                    isDark: isDark,
-                    customColor: Theme.of(context).primaryColor.withValues(alpha: 0.8),
-                    child: InkWell(
-                      onTap: () async {
-                        Navigator.pop(bottomSheetContext);
-                        final gigProvider = context.read<GigProvider>();
-                        final success = await gigProvider.acceptPendingGig(gig.id, runnerId);
-                        if (success && context.mounted) {
-                          Navigator.pushNamed(context, '/active-job', arguments: gig);
-                        }
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: Center(child: Text('Accept Order', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () async {
-                      Navigator.pop(bottomSheetContext);
-                      final gigProvider = context.read<GigProvider>();
-                      await gigProvider.rejectPendingGig(gig.id, runnerId);
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.redAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Reject Order', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
 
 class _GlassTaskCard extends StatefulWidget {
@@ -947,6 +875,75 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
           ),
         ),
       ),
+    );
+  }
+
+  void _showPendingOptions(BuildContext context, GigModel gig, String runnerId, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext bottomSheetContext) {
+        return _buildSystemGlass(
+          borderRadius: 32,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Order Request',
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'A customer wants to hire you for:\n"${gig.title}"\n\nDo you want to accept this order?',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildSystemGlass(
+                    borderRadius: 16,
+                    customColor: Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                    child: InkWell(
+                      onTap: () async {
+                        Navigator.pop(bottomSheetContext);
+                        final gigProvider = context.read<GigProvider>();
+                        final success = await gigProvider.acceptPendingGig(gig.id, runnerId);
+                        if (success && context.mounted) {
+                          Navigator.pushNamed(context, '/active-job', arguments: gig);
+                        }
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: Text('Accept Order', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold))),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () async {
+                      Navigator.pop(bottomSheetContext);
+                      final gigProvider = context.read<GigProvider>();
+                      await gigProvider.rejectPendingGig(gig.id, runnerId);
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.redAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text('Reject Order', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

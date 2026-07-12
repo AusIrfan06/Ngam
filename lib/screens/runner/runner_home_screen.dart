@@ -37,6 +37,7 @@ class RunnerHomeScreen extends StatefulWidget {
 }
 class _RunnerHomeScreenState extends State<RunnerHomeScreen> {
   int _currentIndex = 0;
+  final List<bool> _initializedPages = List.filled(5, false);
   @override
   void initState() {
     super.initState();
@@ -49,19 +50,23 @@ class _RunnerHomeScreenState extends State<RunnerHomeScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    _initializedPages[_currentIndex] = true;
     final pages = [
-      _RunnerExploreFeed(),
-      const MyJobsScreen(),
-      const ChatScreen(),
-      const StatsScreen(),
-      const ProfileScreen(),
+      _initializedPages[0] ? _RunnerExploreFeed() : const SizedBox.shrink(),
+      _initializedPages[1] ? const MyJobsScreen() : const SizedBox.shrink(),
+      _initializedPages[2] ? const ChatScreen() : const SizedBox.shrink(),
+      _initializedPages[3] ? const StatsScreen() : const SizedBox.shrink(),
+      _initializedPages[4] ? const ProfileScreen() : const SizedBox.shrink(),
     ];
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          pages[_currentIndex],
+          IndexedStack(
+            index: _currentIndex,
+            children: pages,
+          ),
           Positioned(
             left: 0,
             right: 0,

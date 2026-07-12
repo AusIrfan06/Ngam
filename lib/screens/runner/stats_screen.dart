@@ -103,10 +103,10 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     if (_selectedTimeframe == 'Today') {
       filteredGigs = _allGigs.where((g) => g.createdAt.isAfter(today)).toList();
     } else if (_selectedTimeframe == 'This Week') {
-      final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+      final startOfWeek = today.subtract(const Duration(days: 6));
       filteredGigs = _allGigs.where((g) => g.createdAt.isAfter(startOfWeek)).toList();
     } else if (_selectedTimeframe == 'This Month') {
-      final startOfMonth = DateTime(now.year, now.month, 1);
+      final startOfMonth = today.subtract(const Duration(days: 29));
       filteredGigs = _allGigs.where((g) => g.createdAt.isAfter(startOfMonth)).toList();
     } else if (_selectedTimeframe == 'Custom Range') {
       if (_customStartDate != null && _customEndDate != null) {
@@ -155,18 +155,17 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     } else if (_selectedTimeframe == 'This Week') {
       chartData = List.filled(7, 0.0);
       for (var gig in completedGigs) {
-        final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
-        if (gig.createdAt.isAfter(startOfWeek)) {
-          chartData[gig.createdAt.weekday - 1] += gig.bountyAmount;
+        final diffDays = today.difference(DateTime(gig.createdAt.year, gig.createdAt.month, gig.createdAt.day)).inDays;
+        if (diffDays >= 0 && diffDays < 7) {
+          chartData[6 - diffDays] += gig.bountyAmount;
         }
       }
     } else if (_selectedTimeframe == 'This Month') {
-      chartData = List.filled(4, 0.0);
+      chartData = List.filled(30, 0.0);
       for (var gig in completedGigs) {
-        final diffDays = now.difference(gig.createdAt).inDays;
-        if (diffDays >= 0 && diffDays < 28) {
-          int weekIdx = diffDays ~/ 7;
-          chartData[3 - weekIdx] += gig.bountyAmount;
+        final diffDays = today.difference(DateTime(gig.createdAt.year, gig.createdAt.month, gig.createdAt.day)).inDays;
+        if (diffDays >= 0 && diffDays < 30) {
+          chartData[29 - diffDays] += gig.bountyAmount;
         }
       }
     } else {
@@ -644,15 +643,17 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                 String text = '';
                 if (_selectedTimeframe == 'Today') {
                   if (value.toInt() % 6 == 0) {
-                    text = '${value.toInt()}h';
+                    text = '${value.toInt().toString().padLeft(2, '0')}:00';
                   }
                 } else if (_selectedTimeframe == 'This Week') {
+                  final date = DateTime.now().subtract(Duration(days: 6 - value.toInt()));
                   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                  if (value.toInt() >= 0 && value.toInt() < 7) {
-                    text = days[value.toInt()];
-                  }
+                  text = days[date.weekday - 1];
                 } else if (_selectedTimeframe == 'This Month') {
-                  text = 'W${value.toInt() + 1}';
+                  if (value.toInt() == 29 || (value.toInt() % 7 == 0 && value.toInt() < 25)) {
+                    final date = DateTime.now().subtract(Duration(days: 29 - value.toInt()));
+                    text = '${date.day}/${date.month}';
+                  }
                 } else {
                   final date = DateTime.now().subtract(Duration(days: (5 - value.toInt()) * 30));
                   text = DateFormat('MMM').format(date);
@@ -684,24 +685,13 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
               _chartData.length,
               (i) => FlSpot(i.toDouble(), _chartData[i]),
             ),
-            isCurved: true,
-            curveSmoothness: 0.35,
+            isCurved: false,
             gradient: const LinearGradient(
               colors: [Color(0xFF00E676), Color(0xFF00BCD4)],
             ),
             barWidth: 3,
             isStrokeCapRound: true,
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) {
-                return FlDotCirclePainter(
-                  radius: 3,
-                  color: Colors.white,
-                  strokeWidth: 2,
-                  strokeColor: const Color(0xFF00E676),
-                );
-              },
-            ),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               gradient: LinearGradient(
@@ -1129,8 +1119,8 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
 
   // ── Loading Shimmer ─────────────────────────────────────────
   Widget _buildLoadingShimmer(bool isDark) {
-    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
-    final highlightColor = isDark ? Colors.grey.shade700 : Colors.grey.shade100;
+      final baseColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05);
+      final highlightColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.15);
     
     Widget buildSkeletonBox(double height, [double? width]) {
       return Container(
