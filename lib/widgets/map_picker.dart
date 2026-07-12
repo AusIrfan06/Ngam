@@ -150,7 +150,7 @@ class _MapPickerState extends State<MapPicker> {
                   onPressed: _fetchCurrentLocation,
                   child: _isLoadingLocation 
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Icon(Icons.my_location, color: Theme.of(context).primaryColor),
+                      : Icon(Icons.my_location, color: Theme.of(context).colorScheme.primary),
                 ),
               ],
             ),

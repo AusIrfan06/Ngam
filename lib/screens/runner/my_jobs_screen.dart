@@ -12,6 +12,7 @@ import '../../models/gig_model.dart';
 import '../../widgets/category_chip.dart';
 import '../../services/gig_service.dart';
 import 'task_detail_screen.dart';
+import 'active_job_screen.dart';
 import '../customer/post_task_screen.dart';
 
 // ============================================================
@@ -559,13 +560,23 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
             _fetchBookings();
           }
         } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const TaskDetailScreen(),
-              settings: RouteSettings(arguments: widget.gig),
-            ),
-          );
+          if (widget.gig.status != 'OPEN') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ActiveJobScreen(),
+                settings: RouteSettings(arguments: widget.gig),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const TaskDetailScreen(),
+                settings: RouteSettings(arguments: widget.gig),
+              ),
+            );
+          }
         }
       },
       onTapCancel: () => _scaleController.reverse(),
