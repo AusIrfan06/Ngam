@@ -6,6 +6,7 @@ import '../services/supabase_service.dart';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/push_service.dart';
+import '../services/chat_service.dart';
 
 // ============================================================
 // Ngam App — Auth Provider
@@ -36,6 +37,7 @@ class AuthProvider extends ChangeNotifier {
       _user = await AuthService.getCurrentUser();
       if (_user != null) {
         await PushService.saveTokenToSupabase(_user!.id);
+        ChatService.prefetchChats(_user!.id); // Auto-fetch chats background
       }
     } catch (e) {
       _user = null;
@@ -100,6 +102,7 @@ class AuthProvider extends ChangeNotifier {
       );
       if (_user != null) {
         await PushService.saveTokenToSupabase(_user!.id);
+        ChatService.prefetchChats(_user!.id); // Auto-fetch chats background
       }
       _isLoading = false;
       notifyListeners();
@@ -122,6 +125,7 @@ class AuthProvider extends ChangeNotifier {
       _user = await AuthService.signInWithGoogle();
       if (_user != null) {
         await PushService.saveTokenToSupabase(_user!.id);
+        ChatService.prefetchChats(_user!.id); // Auto-fetch chats background
       }
       _isLoading = false;
       notifyListeners();

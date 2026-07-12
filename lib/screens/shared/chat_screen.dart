@@ -29,6 +29,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import '../../services/local_database_service.dart';
 import '../runner/task_detail_screen.dart';
+import '../../services/push_service.dart';
 
 // ============================================================
 // Ngam App — Skrin Chat
@@ -579,7 +580,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   }
   
   List<MessageModel> get _filteredMessages {
-    if (_linkedGig == null) return _messages;
+    if (_linkedGig == null) {
+      return _messages.where((msg) => !msg.content.startsWith('__SYSTEM__')).toList();
+    }
     
     List<MessageModel> result = [];
     String? currentContextId;
@@ -656,6 +659,9 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
       },
     );
 
+    // Listen supaya bila user reply dari notification, chat auto-refresh
+    lastNotificationReplyConversationId.addListener(_onNotificationReply);
+
     // Dah buang markMessagesAsRead global dari initState
     // Sekarang dia handle waktu _loadGigDetails dengan onPageChanged je
   }
@@ -724,7 +730,18 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     _controller.dispose();
     _pageController.dispose();
     _scrollController.dispose();
+    lastNotificationReplyConversationId.removeListener(_onNotificationReply);
     super.dispose();
+  }
+
+  void _onNotificationReply() {
+    final convId = lastNotificationReplyConversationId.value;
+    if (convId == widget.conversation.id && mounted) {
+      // Reset hasMore dan reload mesej dari awal supaya mesej baru muncul
+      _hasMore = true;
+      _messages.clear();
+      _loadMessages();
+    }
   }
 
   Future<void> _loadOtherUserProfile() async {

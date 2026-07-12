@@ -104,6 +104,46 @@ class ChatService {
         });
   }
 
+  /// Prefetch recent chats and messages in the background
+  static Future<void> prefetchChats(String currentUserId) async {
+    try {
+      final response = await _supabase
+          .from('conversations')
+          .select()
+          .or('user1_id.eq.$currentUserId,user2_id.eq.$currentUserId')
+          .order('updated_at', ascending: false)
+          .limit(20);
+      
+      final localDb = LocalDatabaseService.instance;
+      List<ConversationModel> conversations = [];
+      
+      for (var e in response) {
+         conversations.add(ConversationModel.fromJson(e, currentUserId));
+      }
+      
+      if (conversations.isNotEmpty) {
+        await localDb.insertConversations(conversations);
+        
+        // Fetch recent messages for these conversations
+        for (var conv in conversations) {
+          final msgs = await _supabase
+              .from('messages')
+              .select()
+              .eq('conversation_id', conv.id)
+              .order('created_at', ascending: false)
+              .limit(50);
+              
+          final networkMessages = msgs.map((e) => MessageModel.fromJson(e)).toList();
+          if (networkMessages.isNotEmpty) {
+            await localDb.insertMessages(networkMessages);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Prefetch failed: $e');
+    }
+  }
+
   /// Get paginated historical messages
   static Future<List<MessageModel>> getMessages(String conversationId, {int limit = 50, int offset = 0}) async {
     final localDb = LocalDatabaseService.instance;

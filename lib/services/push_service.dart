@@ -8,6 +8,12 @@ import '../main.dart';
 import '../screens/shared/chat_screen.dart';
 import 'supabase_service.dart';
 
+/// Flag supaya app lock tahu reply sedang aktif dan tak perlu lock
+final ValueNotifier<bool> isReplyingFromNotification = ValueNotifier(false);
+
+/// Notifier supaya chat screen boleh refresh bila ada reply dari notification
+final ValueNotifier<String?> lastNotificationReplyConversationId = ValueNotifier(null);
+
 int getConsistentNotificationId(String string) {
   int hash = 0;
   for (int i = 0; i < string.length; i++) {
@@ -51,9 +57,31 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
             'last_message_is_read': false,
             'updated_at': now,
           }).eq('id', conversationId);
+
+          // Notify chat screen supaya auto-refresh
+          lastNotificationReplyConversationId.value = conversationId;
           
-          // Batal notification tu supaya spinner loading inline reply hilang
-          await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
+          // Tunjuk confirmation notification dan batal yang lama
+          final plugin = FlutterLocalNotificationsPlugin();
+          await plugin.cancel(id: notificationId);
+          
+          // Papar notification ringkas "Message sent" supaya user yakin dah hantar
+          await plugin.show(
+            id: notificationId,
+            title: 'Ngam',
+            body: 'You: $inputMessage',
+            notificationDetails: const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'ngam_high_importance_channel',
+                'High Importance Notifications',
+                channelDescription: 'This channel is used for important notifications.',
+                importance: Importance.min,
+                priority: Priority.low,
+                showWhen: true,
+                autoCancel: true,
+              ),
+            ),
+          );
         } else {
           await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
         }
@@ -65,6 +93,46 @@ void notificationTapBackground(NotificationResponse notificationResponse) async 
       } else if (notificationResponse.id != null) {
         await FlutterLocalNotificationsPlugin().cancel(id: notificationResponse.id!);
       }
+    }
+  }
+}
+
+/// Handle reply dari notification bila app dalam foreground
+void _handleForegroundNotificationResponse(NotificationResponse notificationResponse) async {
+  if (notificationResponse.actionId == 'reply_action' && notificationResponse.input != null) {
+    isReplyingFromNotification.value = true;
+    try {
+      final String inputMessage = notificationResponse.input!;
+      final conversationId = notificationResponse.payload;
+      
+      if (conversationId != null && conversationId.isNotEmpty) {
+        final notificationId = getConsistentNotificationId(conversationId);
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          final now = DateTime.now().toUtc().toIso8601String();
+          await Supabase.instance.client.from('messages').insert({
+            'conversation_id': conversationId,
+            'sender_id': userId,
+            'content': inputMessage,
+            'created_at': now,
+          });
+          
+          await Supabase.instance.client.from('conversations').update({
+            'last_message': inputMessage,
+            'last_message_sender_id': userId,
+            'last_message_is_read': false,
+            'updated_at': now,
+          }).eq('id', conversationId);
+          
+          // Notify chat screen supaya auto-refresh
+          lastNotificationReplyConversationId.value = conversationId;
+        }
+        await FlutterLocalNotificationsPlugin().cancel(id: notificationId);
+      }
+    } catch (e) {
+      debugPrint('Foreground reply error: $e');
+    } finally {
+      isReplyingFromNotification.value = false;
     }
   }
 }
@@ -94,6 +162,7 @@ class PushService {
 
       await _localNotifications.initialize(
         settings: initializationSettings,
+        onDidReceiveNotificationResponse: _handleForegroundNotificationResponse,
         onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
 

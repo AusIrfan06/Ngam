@@ -583,11 +583,28 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.gig.title,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, height: 1.2),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    widget.gig.title,
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, height: 1.2),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  widget.gig.formattedBounty,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 6),
                             if (widget.gig.location.isNotEmpty) ...[
@@ -635,15 +652,6 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                               ],
                             ),
                           ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.gig.formattedBounty,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ],

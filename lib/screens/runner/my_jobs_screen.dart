@@ -762,38 +762,72 @@ class _GlassTaskCardState extends State<_GlassTaskCard>
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSystemGlass(
-                        borderRadius: 16,
-                        blur: 10,
-                        customColor: widget.isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.white.withValues(alpha: 0.4),
-                        child: SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: Icon(
-                            _getCategoryIcon(),
-                            size: 28,
-                            color: widget.isDark
-                                ? Colors.white
-                                : Colors.black87,
+                      Column(
+                        children: [
+                          _buildSystemGlass(
+                            borderRadius: 16,
+                            blur: 10,
+                            customColor: widget.isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.white.withValues(alpha: 0.4),
+                            child: SizedBox(
+                              width: 56,
+                              height: 56,
+                              child: Icon(
+                                _getCategoryIcon(),
+                                size: 28,
+                                color: widget.isDark
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                            ),
                           ),
-                        ),
+                          if (widget.gig.status == 'SERVICE' ||
+                              widget.gig.status == 'DISABLED') ...[
+                            const SizedBox(height: 12),
+                            HugeIcon(
+                              icon: _isExpanded
+                                  ? HugeIcons.strokeRoundedArrowUp01
+                                  : HugeIcons.strokeRoundedArrowDown01,
+                              color: widget.isDark
+                                  ? Colors.white54
+                                  : Colors.black54,
+                              size: 20,
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.gig.title,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                height: 1.2,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    widget.gig.title,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.2,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  widget.gig.formattedBounty,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 6),
                             if (widget.gig.location.isNotEmpty) ...[
@@ -863,32 +897,6 @@ class _GlassTaskCardState extends State<_GlassTaskCard>
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            widget.gig.formattedBounty,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (widget.gig.status == 'SERVICE' ||
-                              widget.gig.status == 'DISABLED')
-                            HugeIcon(
-                              icon: _isExpanded
-                                  ? HugeIcons.strokeRoundedArrowUp01
-                                  : HugeIcons.strokeRoundedArrowDown01,
-                              color: widget.isDark
-                                  ? Colors.white54
-                                  : Colors.black54,
-                              size: 20,
-                            ),
-                        ],
                       ),
                     ],
                   ),

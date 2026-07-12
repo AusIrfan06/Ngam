@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:local_auth/local_auth.dart';
 import '../screens/shared/privacy_security_screen.dart';
+import '../services/push_service.dart';
 
 class AppLockWrapper extends StatefulWidget {
   final Widget child;
@@ -35,6 +36,8 @@ class _AppLockWrapperState extends State<AppLockWrapper> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!SecurityData.appLockEnabled.value) return;
     if (_isAuthenticating) return;
+    // Bypass app lock bila user sedang reply dari notification
+    if (isReplyingFromNotification.value) return;
 
     if (state == AppLifecycleState.paused) {
       _pausedTime = DateTime.now();
