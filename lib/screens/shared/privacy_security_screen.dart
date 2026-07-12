@@ -339,7 +339,6 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                     isDark,
                     HugeIcons.strokeRoundedDelete02,
                     "privacy.clear_cache".tr(),
-                    subtitle: "privacy.free_storage".tr(),
                     trailing: Text(_cacheSize, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold)),
                     onTap: () => _showClearCacheConfirmation(context),
                   ),
