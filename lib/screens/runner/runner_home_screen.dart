@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -2047,11 +2048,39 @@ RULES:
                                     onTap: () async {
                                       final currentUser = context.read<AuthProvider>().user;
                                       if (currentUser == null) return;
+                                      
+                                      final bool? confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          backgroundColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                          title: Text("Accept Job?", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                                          content: Text("Are you sure you want to accept this job?", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context, false),
+                                              child: Text("Cancel", style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
+                                            ),
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.blue,
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                              ),
+                                              onPressed: () => Navigator.pop(context, true),
+                                              child: const Text("Accept", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (confirm != true) return;
+
+                                      if (!context.mounted) return;
                                       final provider = context.read<GigProvider>();
                                       final success = await provider.acceptGig(gig.id, currentUser.id);
                                       if (success && context.mounted) {
                                           _searchFocus.unfocus();
-                                          Navigator.pop(context);
+                                          Navigator.pop(context); // Close bottom sheet
                                           Navigator.pushNamed(context, '/active-job', arguments: gig);
                                       }
                                     },

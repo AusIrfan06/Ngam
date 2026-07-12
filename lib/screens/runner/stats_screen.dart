@@ -51,7 +51,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
   late Animation<double> _fadeAnimation;
 
   String get _selectedTimeframe {
-    const map = ['Today', 'This Week', 'This Month', 'Custom Range'];
+    final map = ['Today'.tr(), 'This Week'.tr(), 'This Month'.tr(), 'Custom Range'.tr()];
     return map[_selectedTimeframeIndex];
   }
 
@@ -381,12 +381,12 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00E676).withValues(alpha: 0.15),
+                        color: const Color(0xFF2196F3).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const HugeIcon(
                         icon: HugeIcons.strokeRoundedMoneyBag02,
-                        color: Color(0xFF00E676),
+                        color: Color(0xFF2196F3),
                         size: 22,
                       ),
                     ),
@@ -407,20 +407,20 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00E676).withValues(alpha: 0.1),
+                        color: const Color(0xFF2196F3).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.trending_up_rounded, color: Color(0xFF00E676), size: 14),
+                          const Icon(Icons.trending_up_rounded, color: Color(0xFF2196F3), size: 14),
                           const SizedBox(width: 4),
                           Text(
                             '$_completedTasks done',
                             style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF00E676),
+                              color: const Color(0xFF2196F3),
                             ),
                           ),
                         ],
@@ -455,7 +455,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                       icon: HugeIcons.strokeRoundedTaskDone01,
                       label: 'Completed',
                       value: _completedTasks.toString(),
-                      color: const Color(0xFF00E676),
+                      color: const Color(0xFF2196F3),
                       isDark: isDark,
                     ),
                     const SizedBox(width: 12),
@@ -539,12 +539,12 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00E676).withValues(alpha: 0.1),
+                  color: const Color(0xFF2196F3).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const HugeIcon(
                   icon: HugeIcons.strokeRoundedChart,
-                  color: Color(0xFF00E676),
+                  color: Color(0xFF2196F3),
                   size: 18,
                 ),
               ),
@@ -687,7 +687,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
             ),
             isCurved: false,
             gradient: const LinearGradient(
-              colors: [Color(0xFF00E676), Color(0xFF00BCD4)],
+              colors: [Color(0xFF2196F3), Color(0xFF42A5F5)],
             ),
             barWidth: 3,
             isStrokeCapRound: true,
@@ -696,8 +696,8 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF00E676).withValues(alpha: 0.2),
-                  const Color(0xFF00E676).withValues(alpha: 0.0),
+                  const Color(0xFF2196F3).withValues(alpha: 0.2),
+                  const Color(0xFF2196F3).withValues(alpha: 0.0),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -787,7 +787,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                       sections: [
                         if (completed > 0)
                           PieChartSectionData(
-                            color: const Color(0xFF00E676),
+                            color: const Color(0xFF2196F3),
                             value: completed.toDouble(),
                             title: '',
                             radius: 22,
@@ -825,7 +825,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildLegendItem('Completed', completed, const Color(0xFF00E676), isDark),
+                      _buildLegendItem('Completed', completed, const Color(0xFF2196F3), isDark),
                       const SizedBox(height: 12),
                       _buildLegendItem('Active', inProgress, const Color(0xFF42A5F5), isDark),
                       const SizedBox(height: 12),
@@ -1049,7 +1049,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                           height: 44,
                           decoration: BoxDecoration(
                             color: isCompleted
-                                ? const Color(0xFF00E676).withValues(alpha: 0.12)
+                                ? const Color(0xFF2196F3).withValues(alpha: 0.12)
                                 : const Color(0xFFEF5350).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -1059,7 +1059,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                                   ? HugeIcons.strokeRoundedTaskDone01
                                   : HugeIcons.strokeRoundedCancel01,
                               color: isCompleted
-                                  ? const Color(0xFF00E676)
+                                  ? const Color(0xFF2196F3)
                                   : const Color(0xFFEF5350),
                               size: 20,
                             ),
@@ -1101,7 +1101,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                             fontWeight: FontWeight.w800,
                             fontSize: 16,
                             color: isCompleted
-                                ? const Color(0xFF00E676)
+                                ? const Color(0xFF2196F3)
                                 : (isDark ? Colors.white38 : Colors.black38),
                           ),
                         ),
@@ -1228,7 +1228,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              const Color(0xFF00E676).withValues(alpha: isDark ? 0.08 : 0.05),
+                              const Color(0xFF2196F3).withValues(alpha: isDark ? 0.08 : 0.05),
                               Colors.transparent,
                             ],
                           ),
