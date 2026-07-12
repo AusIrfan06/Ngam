@@ -134,6 +134,21 @@ void _handleForegroundNotificationResponse(NotificationResponse notificationResp
     } finally {
       isReplyingFromNotification.value = false;
     }
+  } else {
+    // Kalau user tap notification tu sendiri (bukan reply button)
+    _navigateToChatWithRetry();
+  }
+}
+
+Future<void> _navigateToChatWithRetry() async {
+  for (int i = 0; i < 20; i++) { // Retry sampai navigator ready
+    if (navigatorKey.currentState != null && navigatorKey.currentContext != null) {
+      navigatorKey.currentState!.push(
+        MaterialPageRoute(builder: (_) => const ChatScreen()),
+      );
+      return;
+    }
+    await Future.delayed(const Duration(milliseconds: 100));
   }
 }
 

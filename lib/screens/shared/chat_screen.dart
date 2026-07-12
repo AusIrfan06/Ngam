@@ -274,6 +274,18 @@ class _ChatScreenState extends State<ChatScreen> {
                       
                       final groupedList = groupedConversations.values.toList();
                       
+                      if (_searchQuery.isNotEmpty) {
+                        groupedList.sort((aList, bList) {
+                          final aName = (aList.first.otherUser?.name ?? '').toLowerCase();
+                          final bName = (bList.first.otherUser?.name ?? '').toLowerCase();
+                          final aMatchName = aName.contains(_searchQuery);
+                          final bMatchName = bName.contains(_searchQuery);
+                          
+                          if (aMatchName && !bMatchName) return -1;
+                          if (!aMatchName && bMatchName) return 1;
+                          return 0; // Kekalkan turutan masa (latest message) kalau dua-dua sama level
+                        });
+                      }
                       if (groupedList.isEmpty) {
                          return Center(child: Text("chat.no_matching_conversations".tr()));
                       }
