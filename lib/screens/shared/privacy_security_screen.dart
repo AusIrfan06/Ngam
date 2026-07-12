@@ -280,13 +280,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             const SizedBox(height: 16),
 
             // 2. Secondary Settings Container
-            // Inside your build method, in the second Container:
-            Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-              ),
+            _buildSystemGlass(
+              isDark: isDark,
+              borderRadius: 20,
               child: Column(
                 children: [
                   // 1. Hide in App Switcher
@@ -326,12 +322,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             // --- 🟢 DATA & PRIVACY SECTION ---
             _buildSectionHeader("privacy.data_privacy".tr()),
             const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-              ),
+            _buildSystemGlass(
+              isDark: isDark,
+              borderRadius: 20,
               child: Column(
                 children: [
                   _buildSettingsTile(
@@ -359,12 +352,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             // --- 🟢 SESSIONS SECTION ---
             _buildSectionHeader("privacy.active_sessions".tr()),
             const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-              ),
+            _buildSystemGlass(
+              isDark: isDark,
+              borderRadius: 20,
               child: Column(
                 children: [
                   // 🟢 Reactive Device Tile: Syncs with GPS Refresh from Profile
@@ -434,12 +424,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
             String currentTimeoutText = timeoutValue == 0 ? "Immediately" : "After $timeoutValue min";
             if (timeoutValue == 60) currentTimeoutText = "After 1 hour";
 
-            return Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-              ),
+            return _buildSystemGlass(
+              isDark: isDark,
+              borderRadius: 20,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -985,4 +972,29 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       ),
     );
   }
+
+  Widget _buildSystemGlass({
+    required Widget child,
+    required double borderRadius,
+    required bool isDark,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.25),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.4),
+              width: 1.0,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
 }
+

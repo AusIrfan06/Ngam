@@ -73,11 +73,16 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              '/runner-home',
-              (route) => false,
-            );
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              final isRunner = context.read<AuthProvider>().isRunner;
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                isRunner ? '/runner-home' : '/customer-home',
+                (route) => false,
+              );
+            }
           },
         ),
       ),
@@ -463,9 +468,10 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                                         width: double.infinity,
                                         child: ElevatedButton(
                                           onPressed: () {
+                                            final isRunner = ctx.read<AuthProvider>().isRunner;
                                             Navigator.pushNamedAndRemoveUntil(
                                               ctx,
-                                              '/runner-home',
+                                              isRunner ? '/runner-home' : '/customer-home',
                                               (route) => false,
                                             );
                                           },

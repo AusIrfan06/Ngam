@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -250,7 +251,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     stream: _conversationsStream,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-                         return const Center(child: CircularProgressIndicator());
+                         return _buildChatShimmer(isDark);
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                          return Center(child: Text("chat.no_conversations".tr()));
@@ -303,6 +304,67 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
         );
+  }
+
+  Widget _buildChatShimmer(bool isDark) {
+    final baseColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05);
+    final highlightColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.15);
+
+    Widget buildSkeletonBox(double height, [double? width, double borderRadius = 8]) {
+      return Container(
+        height: height,
+        width: width ?? double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+      );
+    }
+
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+        physics: const BouncingScrollPhysics(),
+        itemCount: 6,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (_, __) => Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              buildSkeletonBox(44, 44, 22),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildSkeletonBox(18, 120),
+                    const SizedBox(height: 8),
+                    buildSkeletonBox(14),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  buildSkeletonBox(12, 40),
+                  const SizedBox(height: 8),
+                  buildSkeletonBox(24, 24, 12),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _openChat(BuildContext context, ConversationModel c, bool isDark, String? initialGigId) {

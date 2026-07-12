@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -214,7 +215,7 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
 
                 Expanded(
                   child: gigProvider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? _buildTaskCardShimmer(isDark)
                       : gigProvider.myGigs.isEmpty
                           ? Center(
                               child: _buildSystemGlass(
@@ -375,6 +376,81 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTaskCardShimmer(bool isDark) {
+    final baseColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05);
+    final highlightColor = isDark ? Colors.white.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.15);
+
+    Widget buildSkeletonBox(double height, [double? width, double borderRadius = 8]) {
+      return Container(
+        height: height,
+        width: width ?? double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+      );
+    }
+
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 100),
+        itemCount: 5,
+        itemBuilder: (_, __) => Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    buildSkeletonBox(56, 56, 16),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          buildSkeletonBox(20),
+                          const SizedBox(height: 8),
+                          buildSkeletonBox(14, 150),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              buildSkeletonBox(24, 70, 12),
+                              const SizedBox(width: 8),
+                              buildSkeletonBox(24, 90, 12),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: buildSkeletonBox(40, null, 12)),
+                    const SizedBox(width: 12),
+                    Expanded(child: buildSkeletonBox(40, null, 12)),
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
