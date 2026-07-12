@@ -116,11 +116,6 @@ flutter:
   #       - asset: fonts/TrajanPro.ttf
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
-
-
 
 flutter_launcher_icons:
   android: true
@@ -129,4 +124,10 @@ flutter_launcher_icons:
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/app.png"
 
-
+flutter_native_splash:
+  color: "#ffffff"
+  color_dark: "#0b0b0b"
+  image: "assets/splash.png"
+  image_dark: "assets/splash.png"
+  android: true
+  ios: true
