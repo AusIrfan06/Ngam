@@ -198,7 +198,7 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                           children: [
                             TileLayer(
                               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.rezrv.ngam',
+                              userAgentPackageName: 'com.ngam',
                             ),
                             MarkerLayer(
                               markers: [

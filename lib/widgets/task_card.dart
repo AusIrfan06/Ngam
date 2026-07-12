@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/gig_model.dart';
 import 'category_chip.dart';
 
-// ============================================================
-// Ngam App — Task Card Widget (Rezrv Inspired)
-// Displays a gig/task in a premium vertical card format
-// ============================================================
-
 class TaskCard extends StatefulWidget {
   final GigModel gig;
   final VoidCallback? onTap;

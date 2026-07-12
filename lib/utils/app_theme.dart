@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ============================================================
-// Ngam App — Theme Configuration
-// Premium dark & light themes with custom color palette
-// ============================================================
-
 class AppTheme {
   // ─── Brand Colors ──────────────────────────────────────────
-  static const Color primary = Color(0xFF2196F3);       // Colors.blue from Rezrv
-  static const Color primaryDark = Color(0xFF1976D2);   // Rezrv Dark Blue
-  static const Color secondary = Color(0xFF1E293B);     // Deep Slate/Navy
-  static const Color accent = Color(0xFF42A5F5);         // Rezrv Light Blue
+  static const Color primary = Color(0xFF2196F3);     
+  static const Color primaryDark = Color(0xFF1976D2);   
+  static const Color secondary = Color(0xFF1E293B);     
+  static const Color accent = Color(0xFF42A5F5);         
   static const Color success = Color(0xFF2ECC71);
   static const Color warning = Color(0xFFF39C12);
   static const Color error = Color(0xFFE74C3C);
