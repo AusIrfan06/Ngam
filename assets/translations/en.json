@@ -1,5 +1,6 @@
 {
   "auth": {
+    "logout": "Log Out",
     "welcome_back": "Welcome Back!",
     "welcome_subtitle": "Sign in to continue using Ngam",
     "email": "Email Address",
@@ -298,6 +299,7 @@
     "ip_address": "IP Address"
   },
   "support": {
+    "done": "Done",
     "help_center": "Help Center",
     "greeting": "Hi 👋\nHow can we help?",
     "search_hint": "Search questions...",

@@ -1,5 +1,6 @@
 {
   "auth": {
+    "logout": "Log Keluar",
     "welcome_back": "Selamat Kembali!",
     "welcome_subtitle": "Log masuk untuk meneruskan",
     "email": "Alamat E-mel",
@@ -298,6 +299,7 @@
     "ip_address": "Alamat IP"
   },
   "support": {
+    "done": "Selesai",
     "help_center": "Pusat Bantuan",
     "greeting": "Hi 👋\nBagaimana kami boleh bantu?",
     "search_hint": "Cari soalan...",

@@ -15,6 +15,7 @@ import 'task_detail_screen.dart';
 import 'active_job_screen.dart';
 import '../customer/post_task_screen.dart';
 import '../../services/chat_service.dart';
+import '../shared/chat_screen.dart';
 
 // ============================================================
 // Ngam App — My Jobs Screen (Runner)
@@ -837,12 +838,15 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                                         if (currentUser == null || booking.customerId == null) return;
                                         final conversation = await ChatService.createOrGetConversation(currentUser.id, booking.customerId!);
                                         if (context.mounted) {
-                                          Navigator.pushNamed(context, '/chat', arguments: {
-                                            'conversation': conversation,
-                                            'otherUserId': booking.customerId,
-                                            'otherUserName': booking.customerName,
-                                            'contextGig': widget.gig, 
-                                          });
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ChatThreadScreen(
+                                                conversation: conversation,
+                                                initialGigId: widget.gig.id,
+                                              ),
+                                            ),
+                                          );
                                         }
                                       },
                                       borderRadius: BorderRadius.circular(12),

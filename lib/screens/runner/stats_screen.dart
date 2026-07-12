@@ -392,16 +392,18 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      '$_selectedTimeframe Earnings',
-                      style: GoogleFonts.outfit(
-                        fontSize: 15,
-                        color: isDark ? Colors.white60 : Colors.black54,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
+                    Expanded(
+                      child: Text(
+                        '$_selectedTimeframe Earnings',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
                     // Trend indicator
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

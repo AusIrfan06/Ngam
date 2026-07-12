@@ -170,17 +170,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () async {
                               final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=${gig.latitude},${gig.longitude}');
-                              if (await canLaunchUrl(url)) {
+                              try {
                                 await launchUrl(url, mode: LaunchMode.externalApplication);
+                              } catch (e) {
+                                debugPrint("Could not launch maps: $e");
                               }
                             },
-                            icon: HugeIcon(icon: HugeIcons.strokeRoundedNavigation01),
-                            label: Text('task_detail.navigate'.tr()),
+                            icon: const HugeIcon(icon: HugeIcons.strokeRoundedNavigation01, color: AppTheme.primary, size: 20),
+                            label: Text('task_detail.navigate'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(color: AppTheme.primary),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: const BorderSide(color: AppTheme.primary, width: 1.5),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
                           ),
