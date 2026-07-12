@@ -7,7 +7,7 @@ import '../screens/shared/privacy_security_screen.dart';
 class AppLockWrapper extends StatefulWidget {
   final Widget child;
 
-  const AppLockWrapper({Key? key, required this.child}) : super(key: key);
+  const AppLockWrapper({super.key, required this.child});
 
   @override
   State<AppLockWrapper> createState() => _AppLockWrapperState();

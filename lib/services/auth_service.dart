@@ -86,9 +86,6 @@ class AuthService {
     );
 
     final googleUser = await g_sign_in.GoogleSignIn.instance.authenticate();
-    if (googleUser == null) {
-      throw Exception('Google Sign In canceled');
-    }
 
     final googleAuth = googleUser.authentication;
     final idToken = googleAuth.idToken;

@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/user_model.dart';
 import '../../models/chat_model.dart';
 import '../../models/gig_model.dart';
-import '../../services/chat_service.dart';
 import '../../services/gig_service.dart';
 import '../../utils/app_theme.dart';
 import 'conversation_sub_tile.dart';
@@ -152,8 +151,9 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
     if (_sharedGigs != null) {
       for (var gig in _sharedGigs!) {
         final status = gig.status.toUpperCase();
-        if (status == 'OPEN') openCount++;
-        else if (status == 'IN-PROGRESS') inProgressCount++;
+        if (status == 'OPEN') {
+          openCount++;
+        } else if (status == 'IN-PROGRESS') inProgressCount++;
         else if (status == 'COMPLETED') completedCount++;
         else if (status == 'LOCKED') lockedCount++;
       }

@@ -11,14 +11,12 @@ import 'package:provider/provider.dart';
 import '../../utils/app_theme.dart';
 import '../../services/chat_service.dart';
 import '../../widgets/chat/user_group_conversation_card.dart';
-import '../../widgets/chat/conversation_sub_tile.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../models/chat_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/gig_model.dart';
 import '../../services/gig_service.dart';
 import '../../widgets/typing_indicator.dart';
-import '../../services/auth_service.dart';
 import '../../services/review_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:file_picker/file_picker.dart';
@@ -2360,7 +2358,6 @@ class _MessageBubble extends StatefulWidget {
   final String? otherName;
 
   const _MessageBubble({
-    super.key,
     required this.message, 
     required this.isDark, 
     required this.isMe,

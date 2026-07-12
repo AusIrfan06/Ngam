@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/gig_model.dart';

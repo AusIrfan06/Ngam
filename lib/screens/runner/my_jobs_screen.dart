@@ -7,13 +7,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/gig_provider.dart';
-import '../../utils/constants.dart';
 import '../../models/gig_model.dart';
 import '../../widgets/category_chip.dart';
 import '../../services/gig_service.dart';
 import 'task_detail_screen.dart';
 import 'active_job_screen.dart';
-import '../customer/post_task_screen.dart';
 import '../../services/chat_service.dart';
 import '../shared/chat_screen.dart';
 
@@ -763,14 +761,14 @@ class _GlassTaskCardState extends State<_GlassTaskCard> with SingleTickerProvide
                                      children: _bookings!.map((booking) => InkWell(
                                       onTap: () async {
                                         final currentUser = context.read<AuthProvider>().user;
-                                        if (currentUser == null || booking.customerId == null) return;
+                                        if (currentUser == null) return;
                                         
                                         if (booking.status == 'PENDING') {
                                           _showPendingOptions(context, booking, currentUser.id, widget.isDark);
                                           return;
                                         }
                                         
-                                        final conversation = await ChatService.createOrGetConversation(currentUser.id, booking.customerId!);
+                                        final conversation = await ChatService.createOrGetConversation(currentUser.id, booking.customerId);
                                         if (context.mounted) {
                                           Navigator.push(
                                             context,

@@ -8,7 +8,6 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_theme.dart';
@@ -414,8 +413,9 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
 
   Widget _buildCreditCardDesign(bool isDark, Map<String, dynamic> method, double cardHeight, bool isFront) {
     List<Color> cardColors;
-    if (method["name"] == "MASTERCARD") cardColors = [const Color(0xFF141E30), const Color(0xFF243B55)];
-    else if (method["name"] == "AMEX") cardColors = [const Color(0xFF004D40), const Color(0xFF00838F)];
+    if (method["name"] == "MASTERCARD") {
+      cardColors = [const Color(0xFF141E30), const Color(0xFF243B55)];
+    } else if (method["name"] == "AMEX") cardColors = [const Color(0xFF004D40), const Color(0xFF00838F)];
     else cardColors = [const Color(0xFF1A1F3B), const Color(0xFF2B3A67)]; // Visa Default
 
     return Container(

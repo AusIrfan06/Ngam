@@ -75,7 +75,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     _trackingChannel!.onBroadcast(
       event: 'location_update',
       callback: (payload) {
-        if (mounted && payload != null) {
+        if (mounted) {
           final lat = payload['lat'];
           final lng = payload['lng'];
           if (lat != null && lng != null) {

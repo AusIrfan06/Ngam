@@ -120,12 +120,12 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
   List<GigModel> _nearbyGigs = [];
   List<GigModel> _displayedGigs = [];
   String? _activeSearchQuery;
-  Set<String> _expandedCategories = {};
+  final Set<String> _expandedCategories = {};
   List<Map<String, dynamic>> _searchMatchedCategories = [];
   List<Map<String, dynamic>> _searchMatchedGigs = [];
   // AI panel state
   bool _isAIPanelOpen = false;
-  List<Map<String, dynamic>> _aiChatHistory = [];
+  final List<Map<String, dynamic>> _aiChatHistory = [];
   bool _aiIsTyping = false;
   bool _aiShouldReopenMic = true;
   FlutterTts? _flutterTts;
@@ -977,8 +977,11 @@ RULES:
                       _clearSearch();
                     },
                     onPositionChanged: (pos, hasGesture) {
-                      if (hasGesture) _onMapInteractionStart();
-                      else _startSnapBackTimer();
+                      if (hasGesture) {
+                        _onMapInteractionStart();
+                      } else {
+                        _startSnapBackTimer();
+                      }
                     },
                   ),
                   children: [
@@ -1680,7 +1683,7 @@ RULES:
                                 _hideKeyboardOnly();
                                 _executeCategorySearch(sub['id'], sub['label'], isGroup: false);
                               }
-                          )).toList(),
+                          )),
                         ]
                     ),
                   ),
@@ -2361,12 +2364,12 @@ RULES:
   void _showVoiceSearchPopup(BuildContext context, TextEditingController targetController, {Function(String)? onResult}) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isMalay = context.locale.languageCode == 'ms';
-    String _recognizedWords = "";
-    bool _isListening = false;
-    bool _autoStarted = false;
-    bool _resultHandled = false;
+    String recognizedWords = "";
+    bool isListening = false;
+    bool autoStarted = false;
+    bool resultHandled = false;
     // Force ms_MY locale because many Malaysians set their phone to English but speak Malay/Manglish
-    final String _selectedLocaleId = 'ms_MY';
+    final String selectedLocaleId = 'ms_MY';
 
     showModalBottomSheet(
       context: context,
@@ -2375,27 +2378,27 @@ RULES:
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            void _startListening() async {
+            void startListening() async {
               bool ready = _speechEnabled;
               if (!ready) {
                 ready = await _speechToText.initialize();
               }
               if (ready) {
                 if (!context.mounted) return;
-                setState(() => _isListening = true);
+                setState(() => isListening = true);
                 await _speechToText.listen(
                   onResult: (result) {
                     if (!context.mounted) return;
-                    setState(() => _recognizedWords = result.recognizedWords);
-                    if (result.finalResult && !_resultHandled) {
-                      _resultHandled = true;
-                      setState(() => _isListening = false);
-                      targetController.text = _recognizedWords;
+                    setState(() => recognizedWords = result.recognizedWords);
+                    if (result.finalResult && !resultHandled) {
+                      resultHandled = true;
+                      setState(() => isListening = false);
+                      targetController.text = recognizedWords;
                       Future.delayed(const Duration(milliseconds: 500), () {
                         if (context.mounted && Navigator.canPop(context)) {
                           Navigator.pop(context);
-                          if (onResult != null && _recognizedWords.isNotEmpty) {
-                            onResult(_recognizedWords);
+                          if (onResult != null && recognizedWords.isNotEmpty) {
+                            onResult(recognizedWords);
                           }
                         }
                       });
@@ -2409,26 +2412,26 @@ RULES:
                 );
               }
             }
-            void _stopListening() async {
+            void stopListening() async {
               await _speechToText.stop();
               if (!context.mounted) return;
-              setState(() => _isListening = false);
-              if (_recognizedWords.isNotEmpty && !_resultHandled) {
-                _resultHandled = true;
-                targetController.text = _recognizedWords;
+              setState(() => isListening = false);
+              if (recognizedWords.isNotEmpty && !resultHandled) {
+                resultHandled = true;
+                targetController.text = recognizedWords;
                 Future.delayed(const Duration(milliseconds: 300), () {
                   if (context.mounted && Navigator.canPop(context)) {
                     Navigator.pop(context);
-                    if (onResult != null) onResult(_recognizedWords);
+                    if (onResult != null) onResult(recognizedWords);
                   }
                 });
               }
             }
 
-            if (!_autoStarted) {
-              _autoStarted = true;
+            if (!autoStarted) {
+              autoStarted = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                _startListening();
+                startListening();
               });
             }
 
@@ -2459,7 +2462,7 @@ RULES:
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _isListening 
+                            isListening 
                                 ? (isMalay ? 'Mendengar...' : 'Listening...') 
                                 : (isMalay ? 'Tekan mikrofon untuk bercakap' : 'Tap the mic to speak'),
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : _lightModeGray),
@@ -2470,7 +2473,7 @@ RULES:
                             alignment: Alignment.center,
                             child: SingleChildScrollView(
                               child: Text(
-                                _recognizedWords.isNotEmpty ? _recognizedWords : (isMalay ? 'Sebutkan apa sahaja yang anda cari...' : 'Say whatever you are looking for...'),
+                                recognizedWords.isNotEmpty ? recognizedWords : (isMalay ? 'Sebutkan apa sahaja yang anda cari...' : 'Say whatever you are looking for...'),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 16, color: isDark ? Colors.white70 : _lightModeGray.withValues(alpha: 0.7)),
                               ),
@@ -2478,24 +2481,24 @@ RULES:
                           ),
                           const SizedBox(height: 32),
                           GestureDetector(
-                            onTap: _isListening ? _stopListening : _startListening,
+                            onTap: isListening ? stopListening : startListening,
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
-                              width: _isListening ? 90 : 80,
-                              height: _isListening ? 90 : 80,
+                              width: isListening ? 90 : 80,
+                              height: isListening ? 90 : 80,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: _isListening ? Colors.redAccent.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
-                                border: Border.all(color: _isListening ? Colors.red : Colors.blue, width: 2),
+                                color: isListening ? Colors.redAccent.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
+                                border: Border.all(color: isListening ? Colors.red : Colors.blue, width: 2),
                                 boxShadow: [
-                                  if (_isListening) BoxShadow(color: Colors.redAccent.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 5)
+                                  if (isListening) BoxShadow(color: Colors.redAccent.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 5)
                                 ],
                               ),
                               child: Center(
                                 child: Icon(
-                                  _isListening ? Icons.mic : Icons.mic_none,
+                                  isListening ? Icons.mic : Icons.mic_none,
                                   size: 40,
-                                  color: _isListening ? Colors.red : Colors.blue,
+                                  color: isListening ? Colors.red : Colors.blue,
                                 ),
                               ),
                             ),
@@ -2512,10 +2515,10 @@ RULES:
       },
     ).then((_) {
       _speechToText.stop();
-      if (!_resultHandled && _recognizedWords.isNotEmpty) {
-        _resultHandled = true;
-        targetController.text = _recognizedWords;
-        if (onResult != null) onResult(_recognizedWords);
+      if (!resultHandled && recognizedWords.isNotEmpty) {
+        resultHandled = true;
+        targetController.text = recognizedWords;
+        if (onResult != null) onResult(recognizedWords);
       }
     });
   }

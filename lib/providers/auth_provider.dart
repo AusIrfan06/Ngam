@@ -198,7 +198,7 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _error = 'Failed to verify runner';
       notifyListeners();
-      throw e;
+      rethrow;
     }
   }
 

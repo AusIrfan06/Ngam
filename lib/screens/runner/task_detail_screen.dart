@@ -34,9 +34,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_gig == null) {
-      _gig = ModalRoute.of(context)?.settings.arguments as GigModel?;
-    }
+    _gig ??= ModalRoute.of(context)?.settings.arguments as GigModel?;
   }
 
   @override
