@@ -17,10 +17,12 @@ import '../../models/gig_model.dart';
 import '../../providers/gig_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/app_theme.dart';
 import 'my_tasks_screen.dart';
 
 import '../shared/profile_screen.dart';
 import '../shared/chat_screen.dart';
+import '../shared/wallet_screen.dart';
 import '../../widgets/bottom_nav_customer.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -116,7 +118,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
   bool _isSearching = false;
   bool _isProfileOpen = false;
   GigModel? _selectedGig;
-  int _currentCarouselIndex = 0;
+
   List<GigModel> _nearbyGigs = [];
   List<GigModel> _displayedGigs = [];
   String? _activeSearchQuery;
@@ -215,7 +217,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
   
   void _filterGigsByRadius() {
     if (!mounted) return;
-    final currentUser = context.read<AuthProvider>().user;
+
     final gigProvider = context.read<GigProvider>();
     final available = gigProvider.services.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
     
@@ -328,7 +330,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     if (_isMapLocked) return;
     if (_pageController.page?.round() == index) {
       setState(() {
-        _currentCarouselIndex = index;
+
         _selectedGig = _displayedGigs[index];
         _followUser = false;
       });
@@ -350,7 +352,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     _isMapLocked = true;
     setState(() {
       _selectedGig = gig;
-      _currentCarouselIndex = index;
+
       _followUser = false;
       _isProfileOpen = true;
     });
@@ -404,7 +406,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
       _searchMatchedGigs = [];
       _isSearching = false;
       _selectedGig = results.isNotEmpty ? results[targetIndex] : null;
-      _currentCarouselIndex = targetIndex;
+
     });
     if (results.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -535,7 +537,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
     final q = keyword?.trim().toLowerCase() ?? '';
 
     final gigProvider = context.read<GigProvider>();
-    final currentUser = context.read<AuthProvider>().user;
+
     final allOpenGigs = gigProvider.services.where((g) => g.status != 'completed').toList();
     List<GigModel> results = [];
 
@@ -692,7 +694,7 @@ class _CustomerHomeFeedState extends State<_CustomerHomeFeed> with TickerProvide
 
       // Bina context task live untuk bagi kat AI
       final gigProvider = context.read<GigProvider>();
-      final currentUser = context.read<AuthProvider>().user;
+  
       final allGigs = gigProvider.services.where((g) => g.status != 'completed').toList();
       final currentLoc = _currentLocation;
       
@@ -1614,7 +1616,7 @@ RULES:
                     _activeSearchQuery = gig.title;
                     _isSearching = false;
                     _selectedGig = gig;
-                    _currentCarouselIndex = 0;
+
                   });
                   if (gig.latitude != null) {
                     LatLng offsetLocation = _getDynamicCenterOffset(gig, 15.0);
@@ -1916,7 +1918,7 @@ RULES:
   void _showGigProfile(BuildContext context, GigModel gig) {
     setState(() => _isProfileOpen = true);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final double topSafeArea = MediaQuery.of(context).padding.top;
+
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
     final double screenHeight = MediaQuery.of(context).size.height;
     bool localIsDescExpanded = false;
@@ -2067,6 +2069,128 @@ RULES:
                                       final provider = context.read<GigProvider>();
                                       
                                       if (gig.status == 'SERVICE') {
+                                        final balance = currentUser.balance;
+                                        final amount = gig.bountyAmount;
+
+                                        if (balance < amount) {
+                                          if (!context.mounted) return;
+                                          final topUp = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) {
+                                              return Dialog(
+                                                backgroundColor: Colors.transparent,
+                                                elevation: 0,
+                                                child: GlassContainer(
+                                                  useOwnLayer: true,
+                                                  quality: GlassQuality.standard,
+                                                  shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                                                  settings: LiquidGlassSettings(
+                                                    blur: 16.0,
+                                                    lightIntensity: isDark ? 0.1 : 0.2,
+                                                  ),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(24),
+                                                    decoration: BoxDecoration(
+                                                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.1),
+                                                      borderRadius: BorderRadius.circular(24.0),
+                                                    ),
+                                                    child: Column(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        const HugeIcon(icon: HugeIcons.strokeRoundedWallet02, size: 48, color: Colors.orange),
+                                                        const SizedBox(height: 16),
+                                                        const Text('Baki Tidak Mencukupi', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                                        const SizedBox(height: 8),
+                                                        Text(
+                                                          'Baki dompet anda (RM ${balance.toStringAsFixed(2)}) tidak mencukupi untuk bayar servis ini (RM ${amount.toStringAsFixed(2)}).',
+                                                          textAlign: TextAlign.center,
+                                                        ),
+                                                        const SizedBox(height: 24),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                          children: [
+                                                            TextButton(
+                                                              onPressed: () => Navigator.pop(context, false),
+                                                              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                                                            ),
+                                                            ElevatedButton(
+                                                              onPressed: () => Navigator.pop(context, true),
+                                                              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+                                                              child: const Text('Tambah Nilai'),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+
+                                          if (topUp == true && context.mounted) {
+                                            Navigator.push(context, MaterialPageRoute(builder: (_) => WalletScreen(requiredAmountForPendingTask: amount)));
+                                          }
+                                          return;
+                                        }
+
+                                        if (!context.mounted) return;
+                                        final confirmed = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) {
+                                            return Dialog(
+                                              backgroundColor: Colors.transparent,
+                                              elevation: 0,
+                                              child: GlassContainer(
+                                                useOwnLayer: true,
+                                                quality: GlassQuality.standard,
+                                                shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                                                settings: LiquidGlassSettings(
+                                                  blur: 16.0,
+                                                  lightIntensity: isDark ? 0.1 : 0.2,
+                                                ),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(24),
+                                                  decoration: BoxDecoration(
+                                                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.1),
+                                                    borderRadius: BorderRadius.circular(24.0),
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle, size: 48, color: Colors.blueAccent),
+                                                      const SizedBox(height: 16),
+                                                      const Text('Sahkan Pembayaran', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                                      const SizedBox(height: 8),
+                                                      Text(
+                                                        'RM ${amount.toStringAsFixed(2)} akan ditolak daripada baki dompet anda. Teruskan?',
+                                                        textAlign: TextAlign.center,
+                                                      ),
+                                                      const SizedBox(height: 24),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                        children: [
+                                                          TextButton(
+                                                            onPressed: () => Navigator.pop(context, false),
+                                                            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                                                          ),
+                                                          ElevatedButton(
+                                                            onPressed: () => Navigator.pop(context, true),
+                                                            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+                                                            child: const Text('Bayar & Book'),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+
+                                        if (confirmed != true) return;
+
                                         final success = await provider.orderService(
                                           customerId: currentUser.id,
                                           customerName: currentUser.name,
@@ -2308,7 +2432,7 @@ RULES:
                   setState(() {
                     _searchRadiusKm = tempRadius;
                     // Filter gig balik ikut radius baru
-                    final currentUser = context.read<AuthProvider>().user;
+                
                     final gigProvider = context.read<GigProvider>();
                     final available = gigProvider.services.where((g) => g.latitude != null && g.longitude != null && g.status != 'completed').toList();
                     final withinRadius = available.where((g) {

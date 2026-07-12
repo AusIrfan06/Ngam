@@ -155,14 +155,14 @@ class _MyJobsScreenState extends State<MyJobsScreen>
         SafeArea(
           child: DefaultTabController(
             length: 2,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  // Header ala glassmorphism
-                  _buildSystemGlass(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                // Header ala glassmorphism
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildSystemGlass(
                     borderRadius: 24,
                     isDark: isDark,
                     child: Padding(
@@ -261,8 +261,11 @@ class _MyJobsScreenState extends State<MyJobsScreen>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Container(
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
                     height: 48,
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -308,51 +311,51 @@ class _MyJobsScreenState extends State<MyJobsScreen>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: gigProvider.isLoading
-                        ? _buildTaskCardShimmer(isDark)
-                        : TabBarView(
-                            children: [
-                              // Tab 1: Customer Tasks (Tasks assigned to me, customerId != currentUserId)
-                              _buildJobList(
-                                gigs: gigProvider.myGigs
-                                    .where(
-                                      (g) =>
-                                          g.customerId !=
-                                          context.read<AuthProvider>().user?.id,
-                                    )
-                                    .toList(),
-                                emptyMessage: 'runner.no_jobs_yet'.tr(),
-                                emptySubMessage: 'runner.accept_first_gig'.tr(),
-                                isDark: isDark,
-                                gigProvider: gigProvider,
-                              ),
-                              // Tab 2: My Services (Services posted by me, customerId == currentUserId AND status is SERVICE/DISABLED)
-                              _buildJobList(
-                                gigs: gigProvider.myGigs
-                                    .where(
-                                      (g) =>
-                                          g.customerId ==
-                                              context
-                                                  .read<AuthProvider>()
-                                                  .user
-                                                  ?.id &&
-                                          (g.status == 'SERVICE' ||
-                                              g.status == 'DISABLED'),
-                                    )
-                                    .toList(),
-                                emptyMessage: "No services posted",
-                                emptySubMessage:
-                                    "Tap + Post Job to post your first service.",
-                                isDark: isDark,
-                                gigProvider: gigProvider,
-                              ),
-                            ],
-                          ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: gigProvider.isLoading
+                      ? _buildTaskCardShimmer(isDark)
+                      : TabBarView(
+                          children: [
+                            // Tab 1: Customer Tasks (Tasks assigned to me, customerId != currentUserId)
+                            _buildJobList(
+                              gigs: gigProvider.myGigs
+                                  .where(
+                                    (g) =>
+                                        g.customerId !=
+                                        context.read<AuthProvider>().user?.id,
+                                  )
+                                  .toList(),
+                              emptyMessage: 'runner.no_jobs_yet'.tr(),
+                              emptySubMessage: 'runner.accept_first_gig'.tr(),
+                              isDark: isDark,
+                              gigProvider: gigProvider,
+                            ),
+                            // Tab 2: My Services (Services posted by me, customerId == currentUserId AND status is SERVICE/DISABLED)
+                            _buildJobList(
+                              gigs: gigProvider.myGigs
+                                  .where(
+                                    (g) =>
+                                        g.customerId ==
+                                            context
+                                                .read<AuthProvider>()
+                                                .user
+                                                ?.id &&
+                                        (g.status == 'SERVICE' ||
+                                            g.status == 'DISABLED'),
+                                  )
+                                  .toList(),
+                              emptyMessage: "No services posted",
+                              emptySubMessage:
+                                  "Tap + Post Job to post your first service.",
+                              isDark: isDark,
+                              gigProvider: gigProvider,
+                            ),
+                          ],
+                        ),
+                ),
+              ],
             ),
           ),
         ),
@@ -452,39 +455,42 @@ class _MyJobsScreenState extends State<MyJobsScreen>
   }) {
     if (gigs.isEmpty) {
       return Center(
-        child: _buildSystemGlass(
-          borderRadius: 32,
-          isDark: isDark,
-          child: Padding(
-            padding: const EdgeInsets.all(40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedWorkHistory,
-                  size: 64,
-                  color: isDark ? Colors.white54 : Colors.black45,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  emptyMessage,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : Colors.black87,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: _buildSystemGlass(
+            borderRadius: 32,
+            isDark: isDark,
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    icon: HugeIcons.strokeRoundedWorkHistory,
+                    size: 64,
+                    color: isDark ? Colors.white54 : Colors.black45,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  emptySubMessage,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.white54 : Colors.black54,
+                  const SizedBox(height: 16),
+                  Text(
+                    emptyMessage,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    emptySubMessage,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white54 : Colors.black54,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -510,26 +516,29 @@ class _MyJobsScreenState extends State<MyJobsScreen>
         itemCount: sortedGigs.length,
         itemBuilder: (context, index) {
           final gig = sortedGigs[index];
-          return _GlassTaskCard(
-            gig: gig,
-            isDark: isDark,
-            onTap: () {
-              final currentUserId = context.read<AuthProvider>().user?.id;
-              if (gig.status.contains('SERVICE')) {
-                Navigator.pushNamed(context, '/task-detail', arguments: gig);
-                return;
-              }
-              if (gig.customerId == currentUserId) {
-                Navigator.pushNamed(context, '/order-status', arguments: gig);
-              } else {
-                if (gig.isActive) {
-                  Navigator.pushNamed(context, '/active-job', arguments: gig);
-                } else {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _GlassTaskCard(
+              gig: gig,
+              isDark: isDark,
+              onTap: () {
+                final currentUserId = context.read<AuthProvider>().user?.id;
+                if (gig.status.contains('SERVICE')) {
                   Navigator.pushNamed(context, '/task-detail', arguments: gig);
+                  return;
                 }
-              }
-            },
-            actionWidget: null,
+                if (gig.customerId == currentUserId) {
+                  Navigator.pushNamed(context, '/order-status', arguments: gig);
+                } else {
+                  if (gig.isActive) {
+                    Navigator.pushNamed(context, '/active-job', arguments: gig);
+                  } else {
+                    Navigator.pushNamed(context, '/task-detail', arguments: gig);
+                  }
+                }
+              },
+              actionWidget: null,
+            ),
           );
         },
       ),
@@ -576,8 +585,9 @@ class _GlassTaskCardState extends State<_GlassTaskCard>
   }
 
   Future<void> _fetchBookings() async {
-    if (widget.gig.status != 'SERVICE' && widget.gig.status != 'DISABLED')
+    if (widget.gig.status != 'SERVICE' && widget.gig.status != 'DISABLED') {
       return;
+    }
     if (_bookings != null) return;
 
     setState(() => _isLoadingBookings = true);

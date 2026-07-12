@@ -42,8 +42,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     final currentUserId = context.read<AuthProvider>().user?.id;
     final gig = _gig;
 
-    if (gig == null)
+    if (gig == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       body: CustomScrollView(

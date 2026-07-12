@@ -99,15 +99,15 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
     List<GigModel> filteredGigs = _allGigs;
 
     final today = DateTime(now.year, now.month, now.day);
-    if (_selectedTimeframe == 'Today') {
+    if (_selectedTimeframeIndex == 0) {
       filteredGigs = _allGigs.where((g) => g.createdAt.isAfter(today)).toList();
-    } else if (_selectedTimeframe == 'This Week') {
+    } else if (_selectedTimeframeIndex == 1) {
       final startOfWeek = today.subtract(const Duration(days: 6));
       filteredGigs = _allGigs.where((g) => g.createdAt.isAfter(startOfWeek)).toList();
-    } else if (_selectedTimeframe == 'This Month') {
+    } else if (_selectedTimeframeIndex == 2) {
       final startOfMonth = today.subtract(const Duration(days: 29));
       filteredGigs = _allGigs.where((g) => g.createdAt.isAfter(startOfMonth)).toList();
-    } else if (_selectedTimeframe == 'Custom Range') {
+    } else if (_selectedTimeframeIndex == 3) {
       if (_customStartDate != null && _customEndDate != null) {
         filteredGigs = _allGigs.where((g) => 
           g.createdAt.isAfter(_customStartDate!.subtract(const Duration(milliseconds: 1))) && 
@@ -144,14 +144,14 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
 
     // Data chart yang dynamic
     List<double> chartData = [];
-    if (_selectedTimeframe == 'Today') {
+    if (_selectedTimeframeIndex == 0) {
       chartData = List.filled(24, 0.0);
       for (var gig in completedGigs) {
         if (gig.createdAt.isAfter(today)) {
           chartData[gig.createdAt.hour] += gig.bountyAmount;
         }
       }
-    } else if (_selectedTimeframe == 'This Week') {
+    } else if (_selectedTimeframeIndex == 1) {
       chartData = List.filled(7, 0.0);
       for (var gig in completedGigs) {
         final diffDays = today.difference(DateTime(gig.createdAt.year, gig.createdAt.month, gig.createdAt.day)).inDays;
@@ -159,7 +159,7 @@ class _StatsScreenState extends State<StatsScreen> with TickerProviderStateMixin
           chartData[6 - diffDays] += gig.bountyAmount;
         }
       }
-    } else if (_selectedTimeframe == 'This Month') {
+    } else if (_selectedTimeframeIndex == 2) {
       chartData = List.filled(30, 0.0);
       for (var gig in completedGigs) {
         final diffDays = today.difference(DateTime(gig.createdAt.year, gig.createdAt.month, gig.createdAt.day)).inDays;

@@ -115,7 +115,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   bool _isSearching = false;
   bool _isProfileOpen = false;
   GigModel? _selectedGig;
-  int _currentCarouselIndex = 0;
+
   List<GigModel> _nearbyGigs = [];
   List<GigModel> _displayedGigs = [];
   String? _activeSearchQuery;
@@ -210,7 +210,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
   
   void _filterGigsByRadius() {
     if (!mounted) return;
-    final currentUser = context.read<AuthProvider>().user;
+
     final gigProvider = context.read<GigProvider>();
     final available = gigProvider.filteredGigs.where((g) => g.latitude != null && g.longitude != null).toList();
     
@@ -323,7 +323,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     if (_isMapLocked) return;
     if (_pageController.page?.round() == index) {
       setState(() {
-        _currentCarouselIndex = index;
+
         _selectedGig = _displayedGigs[index];
         _followUser = false;
       });
@@ -345,7 +345,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     _isMapLocked = true;
     setState(() {
       _selectedGig = gig;
-      _currentCarouselIndex = index;
+
       _followUser = false;
       _isProfileOpen = true;
     });
@@ -399,7 +399,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
       _searchMatchedGigs = [];
       _isSearching = false;
       _selectedGig = results.isNotEmpty ? results[targetIndex] : null;
-      _currentCarouselIndex = targetIndex;
+
     });
     if (results.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -530,7 +530,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
     final q = keyword?.trim().toLowerCase() ?? '';
 
     final gigProvider = context.read<GigProvider>();
-    final currentUser = context.read<AuthProvider>().user;
+
     final allOpenGigs = gigProvider.openGigs.toList();
     List<GigModel> results = [];
 
@@ -687,7 +687,7 @@ class _RunnerExploreFeedState extends State<_RunnerExploreFeed> with TickerProvi
 
       // Bina context task live untuk bagi kat AI
       final gigProvider = context.read<GigProvider>();
-      final currentUser = context.read<AuthProvider>().user;
+  
       final allGigs = gigProvider.openGigs.toList();
       final currentLoc = _currentLocation;
       
@@ -1610,7 +1610,7 @@ RULES:
                     _activeSearchQuery = gig.title;
                     _isSearching = false;
                     _selectedGig = gig;
-                    _currentCarouselIndex = 0;
+
                   });
                   if (gig.latitude != null) {
                     LatLng offsetLocation = _getDynamicCenterOffset(gig, 15.0);
@@ -1912,7 +1912,7 @@ RULES:
   void _showGigProfile(BuildContext context, GigModel gig) {
     setState(() => _isProfileOpen = true);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final double topSafeArea = MediaQuery.of(context).padding.top;
+
     final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
     final double screenHeight = MediaQuery.of(context).size.height;
     bool localIsDescExpanded = false;

@@ -130,14 +130,14 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
         ),
         
         SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                // Header ala glassmorphism
-                _buildSystemGlass(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              // Header ala glassmorphism
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildSystemGlass(
                   borderRadius: 24,
                   isDark: isDark,
                   child: Padding(
@@ -211,13 +211,16 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 20),
 
-                Expanded(
-                  child: gigProvider.isLoading
-                      ? _buildTaskCardShimmer(isDark)
-                      : gigProvider.myGigs.isEmpty
-                          ? Center(
+              Expanded(
+                child: gigProvider.isLoading
+                    ? _buildTaskCardShimmer(isDark)
+                    : gigProvider.myGigs.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
                               child: _buildSystemGlass(
                                 borderRadius: 32,
                                 isDark: isDark,
@@ -254,28 +257,31 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                   ),
                                 ),
                               ),
-                            )
-                          : RefreshIndicator(
-                              onRefresh: () async {
-                                final userId = context.read<AuthProvider>().user?.id;
-                                if (userId != null) {
-                                  await gigProvider.loadCustomerGigs(userId);
-                                }
-                              },
-                            child: Builder(
-                              builder: (context) {
-                                final sortedGigs = List<GigModel>.from(gigProvider.myGigs);
-                                sortedGigs.sort((a, b) {
-                                  return _isSortNewest
-                                      ? b.createdAt.compareTo(a.createdAt)
-                                      : a.createdAt.compareTo(b.createdAt);
-                                });
-                                return ListView.builder(
-                                  padding: const EdgeInsets.only(bottom: 100), // padding untuk bottom nav
-                                  itemCount: sortedGigs.length,
-                                  itemBuilder: (context, index) {
-                                    final gig = sortedGigs[index];
-                                    return _GlassTaskCard(
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: () async {
+                              final userId = context.read<AuthProvider>().user?.id;
+                              if (userId != null) {
+                                await gigProvider.loadCustomerGigs(userId);
+                              }
+                            },
+                          child: Builder(
+                            builder: (context) {
+                              final sortedGigs = List<GigModel>.from(gigProvider.myGigs);
+                              sortedGigs.sort((a, b) {
+                                return _isSortNewest
+                                    ? b.createdAt.compareTo(a.createdAt)
+                                    : a.createdAt.compareTo(b.createdAt);
+                              });
+                              return ListView.builder(
+                                padding: const EdgeInsets.only(bottom: 100), // padding untuk bottom nav
+                                itemCount: sortedGigs.length,
+                                itemBuilder: (context, index) {
+                                  final gig = sortedGigs[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: _GlassTaskCard(
                                     gig: gig,
                                     isDark: isDark,
                                     onTap: () {
@@ -293,15 +299,15 @@ class _MyTasksScreenState extends State<MyTasksScreen> with SingleTickerProvider
                                       }
                                     },
                                     actionWidget: null,
-                                  );
-                                },
-                              );
-                            },
-                          ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         ),
-                ),
-              ],
-            ),
+                      ),
+              ),
+            ],
           ),
         ),
       ],
