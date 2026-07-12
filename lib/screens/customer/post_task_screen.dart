@@ -9,10 +9,11 @@ import '../../utils/app_theme.dart';
 import '../../utils/bounty_calculator.dart';
 import '../../utils/constants.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../../widgets/map_picker.dart';
 import '../shared/wallet_screen.dart';
+import '../../services/supabase_service.dart';
 
 // ============================================================
 // Ngam App — Post Task Screen
@@ -42,16 +43,14 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   }
 
   Future<void> _loadSavedLocation() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedAddress = prefs.getString('cached_post_address');
-    final savedLat = prefs.getDouble('cached_post_lat');
-    final savedLng = prefs.getDouble('cached_post_lng');
+    final user = context.read<AuthProvider>().user;
+    if (user == null) return;
     
-    if (savedAddress != null && savedLat != null && savedLng != null) {
+    if (user.address != null && user.addressLat != null && user.addressLng != null) {
       if (mounted) {
         setState(() {
-          _locationController.text = savedAddress;
-          _selectedLocation = LatLng(savedLat, savedLng);
+          _locationController.text = user.address!;
+          _selectedLocation = LatLng(user.addressLat!, user.addressLng!);
         });
       }
     }
@@ -86,21 +85,67 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
 
     if (!authProvider.isRunner && balance < amount) {
       if (mounted) {
-        showDialog(
+        final topUp = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Baki Tidak Mencukupi'),
-            content: Text(
-              'Baki dompet anda (RM ${balance.toStringAsFixed(2)}) tidak mencukupi untuk membayar tugasan ini (RM ${amount.toStringAsFixed(2)}). Sila tambah nilai.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+          builder: (context) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: GlassContainer(
+                useOwnLayer: true,
+                quality: GlassQuality.standard,
+                shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                settings: LiquidGlassSettings(
+                  blur: 16.0,
+                  lightIntensity: isDark ? 0.1 : 0.2,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(24.0),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedWallet02, size: 48, color: Colors.orange),
+                      const SizedBox(height: 16),
+                      const Text('Baki Tidak Mencukupi', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Baki dompet anda (RM ${balance.toStringAsFixed(2)}) tidak mencukupi untuk membayar tugasan ini (RM ${amount.toStringAsFixed(2)}).',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+                            child: const Text('Tambah Nilai'),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
               ),
-            ],
-          ),
+            );
+          },
         );
+
+        if (topUp == true && mounted) {
+          final proceed = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => WalletScreen(requiredAmountForPendingTask: amount)));
+          if (proceed == true && mounted) {
+            _handleSubmit();
+          }
+        }
       }
       return;
     }
@@ -108,22 +153,57 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     if (!authProvider.isRunner) {
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Sahkan Pembayaran'),
-          content: Text(
-            'RM ${amount.toStringAsFixed(2)} akan ditolak daripada baki dompet anda. Teruskan?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Batal'),
+        builder: (context) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: GlassContainer(
+              useOwnLayer: true,
+              quality: GlassQuality.standard,
+              shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+              settings: LiquidGlassSettings(
+                blur: 16.0,
+                lightIntensity: isDark ? 0.1 : 0.2,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(24.0),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle, size: 48, color: Colors.blueAccent),
+                    const SizedBox(height: 16),
+                    const Text('Sahkan Pembayaran', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text(
+                      'RM ${amount.toStringAsFixed(2)} akan ditolak daripada baki dompet anda. Teruskan?',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+                          child: const Text('Bayar & Hantar'),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
             ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Bayar & Hantar'),
-            ),
-          ],
-        ),
+          );
+        },
       );
       if (confirmed != true) return;
     }
@@ -161,12 +241,20 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     }
 
     if (gig != null && mounted) {
-      // Save the used location for next time
-      SharedPreferences.getInstance().then((prefs) {
-        prefs.setString('cached_post_address', _locationController.text.trim());
-        prefs.setDouble('cached_post_lat', _selectedLocation!.latitude);
-        prefs.setDouble('cached_post_lng', _selectedLocation!.longitude);
-      });
+      // Save the used location to user profile
+      final userId = authProvider.user?.id;
+      if (userId != null) {
+        await SupabaseService.updateProfile(
+          userId: userId,
+          address: _locationController.text.trim(),
+          addressLat: _selectedLocation!.latitude,
+          addressLng: _selectedLocation!.longitude,
+        );
+        // Refresh auth provider to get updated address
+        await authProvider.initialize();
+      }
+
+      if (!mounted) return;
 
       if (authProvider.isRunner) {
         Navigator.pop(context);

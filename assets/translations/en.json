@@ -274,7 +274,7 @@
     "system_permissions": "System Permissions",
     "manage_permissions": "Manage Camera, Gallery, and GPS",
     "clear_cache": "Clear App Cache?",
-    "free_storage": "This will remove temporary files used by Ngam to speed up loading. Your personal data and account settings will not be affected.",
+    "free_storage": "Clear temporary files to free up space. Your data is safe.",
     "active_sessions": "ACTIVE SESSIONS",
     "this_device": "THIS DEVICE",
     "active_now": "Active Now",

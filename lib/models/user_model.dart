@@ -14,6 +14,8 @@ class UserModel {
   final String? gender;
   final DateTime? birthDate;
   final String? address;
+  final double? addressLat;
+  final double? addressLng;
   final DateTime createdAt;
   final double balance;
 
@@ -29,6 +31,8 @@ class UserModel {
     this.gender,
     this.birthDate,
     this.address,
+    this.addressLat,
+    this.addressLng,
     required this.createdAt,
     this.balance = 0.0,
   });
@@ -47,6 +51,8 @@ class UserModel {
       gender: json['gender'] as String?,
       birthDate: json['birth_date'] != null ? DateTime.parse(json['birth_date'] as String) : null,
       address: json['address'] as String?,
+      addressLat: json['address_lat'] != null ? (json['address_lat'] as num).toDouble() : null,
+      addressLng: json['address_lng'] != null ? (json['address_lng'] as num).toDouble() : null,
       createdAt: DateTime.parse(json['created_at'] as String),
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
     );

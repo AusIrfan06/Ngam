@@ -16,7 +16,8 @@ import '../../services/supabase_service.dart';
 
 
 class WalletScreen extends StatefulWidget {
-  const WalletScreen({super.key});
+  final double? requiredAmountForPendingTask;
+  const WalletScreen({super.key, this.requiredAmountForPendingTask});
 
   @override
   State<WalletScreen> createState() => _WalletScreenState();
@@ -781,6 +782,64 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('RM ${amount.toStringAsFixed(2)} added to your wallet!')),
                       );
+                      
+                      if (widget.requiredAmountForPendingTask != null && authProvider.user!.balance >= widget.requiredAmountForPendingTask!) {
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        final proceed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) {
+                            return Dialog(
+                              backgroundColor: Colors.transparent,
+                              elevation: 0,
+                              child: GlassContainer(
+                                useOwnLayer: true,
+                                quality: GlassQuality.standard,
+                                shape: LiquidRoundedSuperellipse(borderRadius: 24.0),
+                                settings: LiquidGlassSettings(
+                                  blur: 16.0,
+                                  lightIntensity: isDark ? 0.1 : 0.2,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(24.0),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.check_circle_rounded, size: 48, color: Colors.green),
+                                      const SizedBox(height: 16),
+                                      const Text('Baki Dah Cukup!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 8),
+                                      const Text('Ingin teruskan pesanan yang tadi?', textAlign: TextAlign.center),
+                                      const SizedBox(height: 24),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context, false),
+                                            child: const Text('Nanti Dulu', style: TextStyle(color: Colors.grey)),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () => Navigator.pop(context, true),
+                                            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+                                            child: const Text('Teruskan'),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+
+                        if (proceed == true && mounted) {
+                          Navigator.pop(context, true);
+                        }
+                      }
                     }
                   } catch (e) {
                     if (context.mounted) {

@@ -42,6 +42,8 @@ class SupabaseService {
     String? gender,
     DateTime? birthDate,
     String? address,
+    double? addressLat,
+    double? addressLng,
     String? fcmToken,
   }) async {
     try {
@@ -53,6 +55,8 @@ class SupabaseService {
       if (gender != null) updates['gender'] = gender;
       if (birthDate != null) updates['birth_date'] = "${birthDate.year}-${birthDate.month.toString().padLeft(2, '0')}-${birthDate.day.toString().padLeft(2, '0')}";
       if (address != null) updates['address'] = address;
+      if (addressLat != null) updates['address_lat'] = addressLat;
+      if (addressLng != null) updates['address_lng'] = addressLng;
       if (fcmToken != null) updates['fcm_token'] = fcmToken;
       if (updates.isEmpty) return null;
 

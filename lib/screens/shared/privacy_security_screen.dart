@@ -47,7 +47,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   Future<void> _clearCache() async {
     setState(() => _cacheSize = "0.0 MB");
     HapticFeedback.mediumImpact();
-    showGlassToast(context, "Cache cleared successfully");
+    showGlassToast(context, "privacy.cache_cleared".tr());
   }
 
   static const _securityChannel = MethodChannel('com.example.ngam/security');

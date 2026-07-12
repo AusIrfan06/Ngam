@@ -91,6 +91,11 @@ class GigService {
         .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
         .eq('status', GigStatus.open);
 
+    final currentUserId = _client.auth.currentUser?.id;
+    if (currentUserId != null) {
+      query = query.neq('customer_id', currentUserId);
+    }
+
     if (category != null && category.isNotEmpty && category != 'All') {
       query = query.eq('category', category);
     }
