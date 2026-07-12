@@ -1175,7 +1175,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                                 "holder": nameController.text,
                                 "last4": rawDigits.substring(rawDigits.length - 4),
                                 "expiry": expiryController.text,
-                                "isPrimary": false,
+                                "isPrimary": _savedMethods.value.where((m) => m['type'] == 'card').isEmpty,
                                 "color": 0,
                               });
                               await _loadMethods();
@@ -1281,7 +1281,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                                       "name": selectedBank,
                                       "holder": nameController.text,
                                       "accountNumber": masked,
-                                      "isPrimary": false,
+                                      "isPrimary": _savedMethods.value.where((m) => m['type'] == 'bank').isEmpty,
                                       "color": 0,
                                     });
                                     await _loadMethods();
@@ -1437,7 +1437,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                                 "id": DateTime.now().millisecondsSinceEpoch.toString(),
                                 "type": "duitnow_qr",
                                 "qrPath": pickedQr!.path,
-                                "isPrimary": false,
+                                "isPrimary": _savedMethods.value.where((m) => m['type'] == 'duitnow_qr').isEmpty,
                                 "color": 0,
                               });
                               await _loadMethods();

@@ -117,7 +117,11 @@ stateDiagram-v2
 ### 4.1 Managing Tasks (My Tasks)
 You can monitor all your tasks in the **My Tasks** section.
 - **Sort Function**: Use the arrow button next to the "My Tasks" title to sort the task list from **Newest** to **Oldest**.
-- **Locked Stage Action**: If a task is `LOCKED`, you must review the Runner's profile and approve them. Only then will the task become `IN_PROGRESS`.
+  - **Task Settings**: To access task settings, tap on any task in your list and click the **Settings icon** at the top. From there, you can:
+    - **Adjust Bounty**: Increase or adjust the task's bounty if it is still OPEN to attract more runners.
+    - **Pause Task**: Temporarily disable/pause your task if you no longer need immediate help, hiding it from the public map.
+    - **Cancel Task & Refund**: Delete an OPEN task and have the bounty amount instantly refunded back to your wallet.
+  - **Locked Stage Action**: If a task is `LOCKED`, you must review the Runner's profile and approve them. Only then will the task become `IN_PROGRESS`.
 - **Completion Action**: Once the task is `DELIVERED`, you must tap "Confirm" to change it to `COMPLETED` so the Runner gets paid.
 
 ---

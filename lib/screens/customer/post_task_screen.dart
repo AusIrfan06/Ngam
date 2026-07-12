@@ -9,7 +9,10 @@ import '../../utils/app_theme.dart';
 import '../../utils/bounty_calculator.dart';
 import '../../utils/constants.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../widgets/map_picker.dart';
+import '../shared/wallet_screen.dart';
 
 // ============================================================
 // Ngam App — Post Task Screen
@@ -33,6 +36,28 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   LatLng? _selectedLocation;
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedLocation();
+  }
+
+  Future<void> _loadSavedLocation() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedAddress = prefs.getString('cached_post_address');
+    final savedLat = prefs.getDouble('cached_post_lat');
+    final savedLng = prefs.getDouble('cached_post_lng');
+    
+    if (savedAddress != null && savedLat != null && savedLng != null) {
+      if (mounted) {
+        setState(() {
+          _locationController.text = savedAddress;
+          _selectedLocation = LatLng(savedLat, savedLng);
+        });
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
@@ -42,6 +67,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   }
 
   Future<void> _handleSubmit() async {
+    FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
     if (_selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -135,6 +161,13 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     }
 
     if (gig != null && mounted) {
+      // Save the used location for next time
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setString('cached_post_address', _locationController.text.trim());
+        prefs.setDouble('cached_post_lat', _selectedLocation!.latitude);
+        prefs.setDouble('cached_post_lng', _selectedLocation!.longitude);
+      });
+
       if (authProvider.isRunner) {
         Navigator.pop(context);
       } else {

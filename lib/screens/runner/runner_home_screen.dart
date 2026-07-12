@@ -1732,8 +1732,17 @@ RULES:
                 Transform.translate(
                   offset: const Offset(0, -8),
                   child: _AnimatedPressable(
-                      onTap: () {
-                        setState(() => _followUser = true);
+                      onTap: () async {
+                        setState(() { _followUser = true; });
+                        try {
+                          Position pos = await Geolocator.getCurrentPosition(
+                            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 4))
+                          );
+                          if (mounted) {
+                            setState(() => _currentLocation = LatLng(pos.latitude, pos.longitude));
+                            _filterGigsByRadius();
+                          }
+                        } catch (_) {}
                         double zoom = 14.0;
                         try { zoom = _mapController.camera.zoom; } catch (_) {}
                         double adaptiveOffset = _baseLatitudeOffset * pow(2, 14.0 - zoom);

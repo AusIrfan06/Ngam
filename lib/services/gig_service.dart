@@ -6,7 +6,7 @@ import 'supabase_service.dart';
 
 // ============================================================
 // Ngam App — Gig Service
-// CRUD operations for gigs + Real-Time Task-State Locker
+// Tempat uruskan semua data gig (tambah, baca, update, buang) + sistem lock status secara live
 // ============================================================
 
 class GigService {
@@ -15,7 +15,7 @@ class GigService {
 
   // ─── CREATE ────────────────────────────────────────────────
 
-  /// Create a new gig task (Customer posts a task)
+  /// Buat task baru (Bila customer nak post gig)
   static Future<GigModel> createGig({
     required String customerId,
     required String title,
@@ -29,6 +29,7 @@ class GigService {
     double? longitude,
     String? gigWorkerId,
     String? status,
+    String? serviceId,
   }) async {
     final gigId = _uuid.v4();
     final now = DateTime.now();
@@ -45,6 +46,7 @@ class GigService {
       'location': location,
       'latitude': latitude,
       'longitude': longitude,
+      'service_id': serviceId,
       'created_at': now.toIso8601String(),
     };
 
@@ -55,7 +57,7 @@ class GigService {
     };
 
     if (status != GigStatus.service) {
-      // Use RPC for payment deduction when a customer creates a gig
+      // Guna RPC supaya payment terus kena tolak bila customer create gig
       final response = await _client.rpc('create_gig_with_payment', params: {
         'p_id': gigId,
         'p_customer_id': customerId,
@@ -68,10 +70,11 @@ class GigService {
         'p_location': location,
         'p_latitude': latitude,
         'p_longitude': longitude,
+        'p_service_id': serviceId,
       });
-      // Assuming response['success'] == true, otherwise it would throw
+      // Kita assume response['success'] == true, kalau tak dia automatik throw error
     } else {
-      // Runner posting a service (free)
+      // Bila runner post service (takde kena bayar apa-apa)
       await _client.from(DbTable.gigs).insert(dbPayload);
       await _logStatus(gigId, status ?? GigStatus.open);
     }
@@ -81,7 +84,7 @@ class GigService {
 
   // ─── READ ──────────────────────────────────────────────────
 
-  /// Fetch all open gigs (for runner discovery feed)
+  /// Ambil senarai gig yang masih open (untuk runner cari job)
   static Future<List<GigModel>> fetchOpenGigs({String? category}) async {
     var query = _client
         .from(DbTable.gigs)
@@ -99,7 +102,7 @@ class GigService {
         .toList();
   }
 
-  /// Fetch all runner service postings
+  /// Ambil senarai service yang runner dah post
   static Future<List<GigModel>> fetchServices({String? category}) async {
     var query = _client
         .from(DbTable.gigs)
@@ -117,7 +120,7 @@ class GigService {
         .toList();
   }
 
-  /// Fetch gigs posted by a specific customer
+  /// Ambil senarai gig yang customer ni post
   static Future<List<GigModel>> fetchCustomerGigs(String customerId) async {
     final response = await _client
         .from(DbTable.gigs)
@@ -139,11 +142,11 @@ class GigService {
 
     return (response as List)
         .map((json) => GigModel.fromJson(json))
-        .where((gig) => gig.serviceId == null) // Filter out bookings here if they shouldn't show as top-level tasks
+        .where((gig) => gig.serviceId == null) // Filter booking servis sebab taknak tunjuk sekali dengan task biasa
         .toList();
   }
 
-  /// Fetch bookings for a specific service advertisement
+  /// Ambil senarai orang booking untuk servis ni
   static Future<List<GigModel>> fetchBookingsForService(String serviceId) async {
     final response = await _client
         .from(DbTable.gigs)
@@ -156,7 +159,7 @@ class GigService {
         .toList();
   }
 
-  /// Customer books a service advertisement
+  /// Bila customer nak booking servis
   static Future<GigModel> bookService({
     required String serviceId,
     required String customerId,
@@ -185,7 +188,7 @@ class GigService {
       createdAt: DateTime.now(),
     );
 
-    // Use RPC to deduct balance from customer when booking
+    // Pakai RPC untuk potong balance customer masa booking
     await _client.rpc('create_gig_with_payment', params: {
         'p_id': gig.id,
         'p_customer_id': customerId,
@@ -204,7 +207,7 @@ class GigService {
     return gig;
   }
 
-  /// Fetch a single gig by ID
+  /// Cari satu gig pakai ID dia
   static Future<GigModel> fetchGigById(String gigId) async {
     final response = await _client
         .from(DbTable.gigs)
@@ -216,7 +219,7 @@ class GigService {
     return GigModel.fromJson(response);
   }
 
-  /// Fetch gigs shared between two users (e.g. for unified chat task switcher)
+  /// Ambil gig yang ada kaitan antara dua user ni (contoh: untuk tunjuk dalam chat)
   static Future<List<GigModel>> fetchSharedGigs(String userA, String userB) async {
     final response = await _client
         .from(DbTable.gigs)
@@ -229,7 +232,7 @@ class GigService {
         .toList();
   }
 
-  /// Fetch the active (locked/in-progress) job for a runner
+  /// Cari gig yang tengah jalan (locked/in-progress) untuk runner ni
   static Future<GigModel?> fetchActiveJob(String runnerId) async {
     try {
       final response = await _client
@@ -246,12 +249,12 @@ class GigService {
     }
   }
 
-  // ─── STATE MUTATIONS (Task-State Locker) ───────────────────
+  // ─── TUKAR STATUS (Sistem Lock Task) ───────────────────────
 
-  /// Runner accepts a gig — triggers the "State Locker"
-  /// Sets status to LOCKED and assigns the runner
+  /// Bila runner accept gig — terus trigger "Sistem Lock"
+  /// Tukar status jadi LOCKED dan assign kat runner ni
   static Future<void> acceptGig(String gigId, String runnerId) async {
-    // Atomically update the gig status
+    // Update status gig serentak
     await _client
         .from(DbTable.gigs)
         .update({
@@ -259,14 +262,14 @@ class GigService {
           'status': GigStatus.locked,
         })
         .eq('id', gigId)
-        .eq('status', GigStatus.open) // Only lock if still OPEN
+        .eq('status', GigStatus.open) // Boleh lock kalau status dia memang still OPEN je
         .select()
         .single();
 
     await _logStatus(gigId, GigStatus.locked);
   }
 
-  /// Runner accepts a pending service order
+  /// Runner terima booking servis dari customer
   static Future<void> acceptPendingGig(String gigId, String runnerId) async {
     await _client
         .from(DbTable.gigs)
@@ -275,14 +278,14 @@ class GigService {
         })
         .eq('id', gigId)
         .eq('status', GigStatus.pending)
-        .eq('gig_worker_id', runnerId) // Security check
+        .eq('gig_worker_id', runnerId) // Check betul ke tak runner ni
         .select()
         .single();
 
     await _logStatus(gigId, GigStatus.locked);
   }
 
-  /// Runner rejects a pending service order
+  /// Runner reject booking servis
   static Future<void> rejectPendingGig(String gigId, String runnerId) async {
     await _client
         .from(DbTable.gigs)
@@ -291,14 +294,14 @@ class GigService {
         })
         .eq('id', gigId)
         .eq('status', GigStatus.pending)
-        .eq('gig_worker_id', runnerId) // Security check
+        .eq('gig_worker_id', runnerId) // Check betul ke tak runner ni
         .select()
         .single();
 
     await _logStatus(gigId, GigStatus.cancelled);
   }
 
-  /// Runner starts working on the gig
+  /// Runner dah mula buat kerja
   static Future<void> startGig(String gigId) async {
     await _client
         .from(DbTable.gigs)
@@ -308,7 +311,7 @@ class GigService {
     await _logStatus(gigId, GigStatus.inProgress);
   }
 
-  /// Runner marks the gig as delivered (awaiting confirmation)
+  /// Runner dah siap (tunggu customer confirm)
   static Future<void> deliverGig(String gigId) async {
     await _client
         .from(DbTable.gigs)
@@ -318,7 +321,7 @@ class GigService {
     await _logStatus(gigId, GigStatus.delivered);
   }
 
-  /// Customer confirms completion (also credits runner balance)
+  /// Customer confirm dah siap (runner pun dapat duit)
   static Future<void> completeGig(String gigId, String runnerId) async {
     await _client.rpc('complete_gig_and_pay', params: {
       'p_gig_id': gigId,
@@ -326,7 +329,7 @@ class GigService {
     });
   }
 
-  /// Cancel a gig (by customer) - Refunds customer
+  /// Cancel gig (customer yang buat) - Duit akan refund balik
   static Future<void> cancelGigAndRefund(String gigId, String customerId) async {
     await _client.rpc('cancel_gig_and_refund', params: {
       'p_gig_id': gigId,
@@ -334,7 +337,7 @@ class GigService {
     });
   }
 
-  /// Cancel a gig (no refund, e.g. runner taking down service)
+  /// Cancel gig (takde refund, contoh runner nak buang servis dia)
   static Future<void> cancelGig(String gigId) async {
     await _client
         .from(DbTable.gigs)
@@ -349,7 +352,7 @@ class GigService {
 
   // ─── TASK MANAGEMENT ─────────────────────────────────────────
 
-  /// Update the bounty amount of a gig
+  /// Ubah harga upah gig ni
   static Future<void> updateBounty(String gigId, double newAmount) async {
     await _client
         .from(DbTable.gigs)
@@ -357,12 +360,12 @@ class GigService {
         .eq('id', gigId);
   }
 
-  /// Delete a gig permanently
+  /// Padam gig ni terus
   static Future<void> deleteGig(String gigId) async {
     await _client.from(DbTable.gigs).delete().eq('id', gigId);
   }
 
-  /// Toggle a gig between active and disabled
+  /// Tukar-tukar status gig sama ada on atau off
   static Future<String> toggleGigStatus(String gigId, String currentStatus) async {
     String newStatus;
     if (currentStatus == GigStatus.open) {
@@ -388,7 +391,7 @@ class GigService {
 
   // ─── REAL-TIME STREAMS ─────────────────────────────────────
 
-  /// Subscribe to real-time changes for a specific gig
+  /// Langgan perubahan live untuk satu gig ni je
   static Stream<GigModel> subscribeToGig(String gigId) {
     return _client
         .from(DbTable.gigs)
@@ -397,7 +400,7 @@ class GigService {
         .map((list) => GigModel.fromJson(list.first));
   }
 
-  /// Subscribe to all open gigs (live feed for runners)
+  /// Langgan semua gig open (untuk feed runner yang sentiasa update)
   static Stream<List<GigModel>> subscribeToOpenGigs() {
     return _client
         .from(DbTable.gigs)
@@ -409,7 +412,7 @@ class GigService {
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
   }
 
-  /// Subscribe to all runner services (live feed for customers)
+  /// Langgan semua servis runner (untuk feed customer)
   static Stream<List<GigModel>> subscribeToServices() {
     return _client
         .from(DbTable.gigs)
@@ -430,7 +433,7 @@ class GigService {
 
   // ─── STATE LOGGING ───────────────────────────────────────────
 
-  /// Fetch status logs for a gig (audit trail)
+  /// Tengok rekod perubahan status gig (untuk trace balik)
   static Future<List<StatusLogModel>> fetchStatusLogs(String gigId) async {
     final response = await _client
         .from(DbTable.statusLogs)
@@ -443,7 +446,7 @@ class GigService {
         .toList();
   }
 
-  /// Internal: log a status change
+  /// Fungsi dalaman: simpan rekod bila status berubah
   static Future<void> _logStatus(String gigId, String status) async {
     await _client.from(DbTable.statusLogs).insert({
       'id': _uuid.v4(),
@@ -455,7 +458,7 @@ class GigService {
 
   // ─── STATS ─────────────────────────────────────────────────
 
-  /// Get count of completed tasks for a user (as runner)
+  /// Kira berapa task runner ni dah siapkan
   static Future<int> getCompletedCount(String runnerId) async {
     final response = await _client
         .from(DbTable.gigs)
@@ -466,7 +469,7 @@ class GigService {
     return (response as List).length;
   }
 
-  /// Get real-time stream of completed tasks count for a user (as runner)
+  /// Dapat jumlah task runner yang siap secara live
   static Stream<int> streamCompletedCount(String runnerId) {
     return _client
         .from(DbTable.gigs)
@@ -474,7 +477,7 @@ class GigService {
         .map((list) => list.where((gig) => gig['gig_worker_id'] == runnerId && gig['status'] == GigStatus.completed).length);
   }
 
-  /// Get count of posted tasks for a user (as customer)
+  /// Kira berapa task customer ni dah pernah post
   static Future<int> getPostedCount(String customerId) async {
     final response = await _client
         .from(DbTable.gigs)

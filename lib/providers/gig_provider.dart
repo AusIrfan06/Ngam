@@ -145,6 +145,7 @@ class GigProvider extends ChangeNotifier {
     required String location,
     double? latitude,
     double? longitude,
+    String? serviceId,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -160,6 +161,7 @@ class GigProvider extends ChangeNotifier {
         location: location,
         latitude: latitude,
         longitude: longitude,
+        serviceId: serviceId,
       );
       _isLoading = false;
       notifyListeners();

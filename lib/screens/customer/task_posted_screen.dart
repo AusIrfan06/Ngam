@@ -47,6 +47,7 @@ class _TaskPostedScreenState extends State<TaskPostedScreen>
     final gig = ModalRoute.of(context)?.settings.arguments as GigModel?;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(28),
