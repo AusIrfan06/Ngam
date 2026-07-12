@@ -340,23 +340,55 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                     const SizedBox(height: 40),
 
                     // ─── Accept Button ───────────────────────
-                    if (gig.customerId != currentUserId)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: _buildGlassButton(
-                          isDark: Theme.of(context).brightness == Brightness.dark,
-                          icon: HugeIcons.strokeRoundedCheckmarkBadge01,
-                          label: 'runner.accept_task'.tr(),
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/confirm-acceptance',
-                              arguments: gig,
-                            );
-                          },
+                    if (gig.customerId != currentUserId) ...[
+                      if (gig.status == 'OPEN')
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: _buildGlassButton(
+                            isDark: Theme.of(context).brightness == Brightness.dark,
+                            icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                            label: 'runner.accept_task'.tr(),
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/confirm-acceptance',
+                                arguments: gig,
+                              );
+                            },
+                          ),
+                        )
+                      else if (gig.runnerId == currentUserId)
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: _buildGlassButton(
+                            isDark: Theme.of(context).brightness == Brightness.dark,
+                            icon: HugeIcons.strokeRoundedBriefcase01,
+                            label: 'View Active Job',
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ActiveJobScreen(),
+                                  settings: RouteSettings(arguments: gig),
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      else
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: _buildGlassButton(
+                            isDark: Theme.of(context).brightness == Brightness.dark,
+                            icon: HugeIcons.strokeRoundedLockKey,
+                            label: 'Job Unavailable',
+                            onTap: null,
+                          ),
                         ),
-                      )
+                    ]
                     else
                       SizedBox(
                         width: double.infinity,
