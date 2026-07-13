@@ -31,6 +31,7 @@ class GigService {
     String? gigWorkerId,
     String? status,
     String? serviceId,
+    String paymentMethod = 'wallet',
   }) async {
     final gigId = _uuid.v4();
     final now = DateTime.now();
@@ -49,6 +50,7 @@ class GigService {
       'longitude': longitude,
       'service_id': serviceId,
       'created_at': now.toIso8601String(),
+      'payment_method': paymentMethod,
     };
 
     final gigDataForModel = {
@@ -58,22 +60,27 @@ class GigService {
     };
 
     if (status != GigStatus.service) {
-      // Pakai RPC supaya duit customer terus kena tolak sebaik je gig dibuat
-      await _client.rpc('create_gig_with_payment', params: {
-        'p_id': gigId,
-        'p_customer_id': customerId,
-        'p_gig_worker_id': gigWorkerId,
-        'p_title': title,
-        'p_description': description,
-        'p_category': category,
-        'p_bounty_amount': bountyAmount,
-        'p_status': status ?? GigStatus.open,
-        'p_location': location,
-        'p_latitude': latitude,
-        'p_longitude': longitude,
-        'p_service_id': serviceId,
-      });
-      // Kita assume response['success'] == true, kalau tak dia automatik throw error
+      if (paymentMethod == 'wallet') {
+        // Pakai RPC supaya duit customer terus kena tolak sebaik je gig dibuat
+        await _client.rpc('create_gig_with_payment', params: {
+          'p_id': gigId,
+          'p_customer_id': customerId,
+          'p_gig_worker_id': gigWorkerId,
+          'p_title': title,
+          'p_description': description,
+          'p_category': category,
+          'p_bounty_amount': bountyAmount,
+          'p_status': status ?? GigStatus.open,
+          'p_location': location,
+          'p_latitude': latitude,
+          'p_longitude': longitude,
+          'p_service_id': serviceId,
+        });
+      } else {
+        // Pembayaran QR, tak tolak wallet
+        await _client.from(DbTable.gigs).insert(dbPayload);
+        await _logStatus(gigId, status ?? GigStatus.open);
+      }
     } else {
       // Bila runner up servis dia (tak payah bayar apa-apa pun)
       await _client.from(DbTable.gigs).insert(dbPayload);
@@ -89,7 +96,7 @@ class GigService {
   static Future<List<GigModel>> fetchOpenGigs({String? category}) async {
     var query = _client
         .from(DbTable.gigs)
-        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name, qr_code_url)')
         .eq('status', GigStatus.open);
 
     final currentUserId = _client.auth.currentUser?.id;
@@ -112,7 +119,7 @@ class GigService {
   static Future<List<GigModel>> fetchServices({String? category}) async {
     var query = _client
         .from(DbTable.gigs)
-        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name, qr_code_url)')
         .eq('status', GigStatus.service);
 
     final currentUserId = _client.auth.currentUser?.id;
@@ -135,7 +142,7 @@ class GigService {
   static Future<List<GigModel>> fetchCustomerGigs(String customerId) async {
     final response = await _client
         .from(DbTable.gigs)
-        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name, qr_code_url)')
         .eq('customer_id', customerId)
         .order('created_at', ascending: false);
 
@@ -147,7 +154,7 @@ class GigService {
   static Future<List<GigModel>> fetchRunnerGigs(String runnerId) async {
     final response = await _client
         .from(DbTable.gigs)
-        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name, qr_code_url)')
         .or('gig_worker_id.eq.$runnerId,customer_id.eq.$runnerId')
         .order('created_at', ascending: false);
 
@@ -161,7 +168,7 @@ class GigService {
   static Future<List<GigModel>> fetchBookingsForService(String serviceId) async {
     final response = await _client
         .from(DbTable.gigs)
-        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name)')
+        .select('*, customer:users!customer_id(name), runner:users!gig_worker_id(name, qr_code_url)')
         .eq('service_id', serviceId)
         .order('created_at', ascending: false);
 
@@ -374,6 +381,33 @@ class GigService {
       'p_gig_id': gigId,
       'p_runner_id': runnerId,
     });
+  }
+
+  /// Customer click "I have paid via QR"
+  static Future<void> customerConfirmQrPayment(String gigId) async {
+    await _client
+        .from(DbTable.gigs)
+        .update({'status': 'PENDING_PAYMENT_CONFIRMATION'})
+        .eq('id', gigId);
+    await _logStatus(gigId, 'PENDING_PAYMENT_CONFIRMATION');
+  }
+
+  /// Runner terima pembayaran direct QR
+  static Future<void> runnerAcceptQrPayment(String gigId) async {
+    await _client
+        .from(DbTable.gigs)
+        .update({'status': GigStatus.completed})
+        .eq('id', gigId);
+    await _logStatus(gigId, GigStatus.completed);
+  }
+
+  /// Runner tolak pembayaran direct QR (tak terima duit)
+  static Future<void> runnerDeclineQrPayment(String gigId) async {
+    await _client
+        .from(DbTable.gigs)
+        .update({'status': GigStatus.delivered})
+        .eq('id', gigId);
+    await _logStatus(gigId, GigStatus.delivered);
   }
 
   /// Batal gig (customer yang buat) - Duit akan refund balik

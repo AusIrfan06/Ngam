@@ -45,6 +45,7 @@ class SupabaseService {
     double? addressLat,
     double? addressLng,
     String? fcmToken,
+    String? qrCodeUrl,
   }) async {
     try {
       final updates = <String, dynamic>{};
@@ -58,6 +59,7 @@ class SupabaseService {
       if (addressLat != null) updates['address_lat'] = addressLat;
       if (addressLng != null) updates['address_lng'] = addressLng;
       if (fcmToken != null) updates['fcm_token'] = fcmToken;
+      if (qrCodeUrl != null) updates['qr_code_url'] = qrCodeUrl;
       if (updates.isEmpty) return null;
 
       await client.from('users').update(updates).eq('id', userId);

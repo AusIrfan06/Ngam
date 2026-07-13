@@ -25,6 +25,8 @@ class GigModel {
   final String? customerName;
   final String? runnerName;
   final double? runnerRating;
+  final String? paymentMethod;
+  final String? runnerQrCodeUrl;
 
   GigModel({
     required this.id,
@@ -46,6 +48,8 @@ class GigModel {
     this.customerName,
     this.runnerName,
     this.runnerRating,
+    this.paymentMethod,
+    this.runnerQrCodeUrl,
   });
 
   /// Create from Supabase JSON row
@@ -75,6 +79,10 @@ class GigModel {
       runnerName:
           json['runner_name'] as String? ??
           (json['runner'] != null ? json['runner']['name'] as String? : null),
+      runnerQrCodeUrl: 
+          json['runner_qr_code_url'] as String? ??
+          (json['runner'] != null ? json['runner']['qr_code_url'] as String? : null),
+      paymentMethod: json['payment_method'] as String? ?? 'wallet',
     );
   }
 
@@ -105,6 +113,7 @@ class GigModel {
       if (runnerLatitude != null) 'runner_latitude': runnerLatitude,
       if (runnerLongitude != null) 'runner_longitude': runnerLongitude,
       'created_at': createdAt.toIso8601String(),
+      if (paymentMethod != null) 'payment_method': paymentMethod,
     };
   }
 
@@ -128,6 +137,8 @@ class GigModel {
     String? customerName,
     String? runnerName,
     double? runnerRating,
+    String? paymentMethod,
+    String? runnerQrCodeUrl,
   }) {
     return GigModel(
       id: id ?? this.id,
@@ -148,6 +159,8 @@ class GigModel {
       customerName: customerName ?? this.customerName,
       runnerName: runnerName ?? this.runnerName,
       runnerRating: runnerRating ?? this.runnerRating,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      runnerQrCodeUrl: runnerQrCodeUrl ?? this.runnerQrCodeUrl,
     );
   }
 

@@ -18,6 +18,7 @@ class UserModel {
   final double? addressLng;
   final DateTime createdAt;
   final double balance;
+  final String? qrCodeUrl;
 
   UserModel({
     required this.id,
@@ -35,6 +36,7 @@ class UserModel {
     this.addressLng,
     required this.createdAt,
     this.balance = 0.0,
+    this.qrCodeUrl,
   });
 
   /// Create from Supabase JSON row
@@ -55,6 +57,7 @@ class UserModel {
       addressLng: json['address_lng'] != null ? (json['address_lng'] as num).toDouble() : null,
       createdAt: DateTime.parse(json['created_at'] as String),
       balance: (json['balance'] as num?)?.toDouble() ?? 0.0,
+      qrCodeUrl: json['qr_code_url'] as String?,
     );
   }
 
@@ -74,6 +77,7 @@ class UserModel {
       if (address != null) 'address': address,
       'created_at': createdAt.toIso8601String(),
       'balance': balance,
+      if (qrCodeUrl != null) 'qr_code_url': qrCodeUrl,
     };
   }
 
@@ -92,6 +96,7 @@ class UserModel {
     String? address,
     DateTime? createdAt,
     double? balance,
+    String? qrCodeUrl,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -107,6 +112,7 @@ class UserModel {
       address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
       balance: balance ?? this.balance,
+      qrCodeUrl: qrCodeUrl ?? this.qrCodeUrl,
     );
   }
 }

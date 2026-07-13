@@ -35,6 +35,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
   final _bountyController = TextEditingController();
   String _selectedCategory = TaskCategory.food;
   LatLng? _selectedLocation;
+  String _selectedPaymentMethod = 'wallet';
 
   @override
   void initState() {
@@ -83,7 +84,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
     final balance = authProvider.user!.balance;
     final amount = double.parse(_bountyController.text);
 
-    if (!authProvider.isRunner && balance < amount) {
+    if (!authProvider.isRunner && _selectedPaymentMethod == 'wallet' && balance < amount) {
       if (mounted) {
         final topUp = await showDialog<bool>(
           context: context,
@@ -150,7 +151,7 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
       return;
     }
 
-    if (!authProvider.isRunner) {
+    if (!authProvider.isRunner && _selectedPaymentMethod == 'wallet') {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) {
@@ -232,11 +233,12 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
         location: _locationController.text.trim(),
         latitude: _selectedLocation!.latitude,
         longitude: _selectedLocation!.longitude,
+        paymentMethod: _selectedPaymentMethod,
       );
     }
 
     // Refresh wallet balance lepas bayar
-    if (!authProvider.isRunner && mounted) {
+    if (!authProvider.isRunner && _selectedPaymentMethod == 'wallet' && mounted) {
       authProvider.refreshBalance();
     }
 
@@ -521,7 +523,48 @@ class _PostTaskScreenState extends State<PostTaskScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
+
+                      // ─── Payment Method ──────────────────────
+                      if (!isRunner) ...[
+                        DropdownButtonFormField<String>(
+                          value: _selectedPaymentMethod,
+                          decoration: InputDecoration(
+                            labelText: 'Payment Method',
+                            prefixIcon: const Icon(Icons.payment_outlined),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'wallet',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.account_balance_wallet_outlined, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Pay from Wallet (Escrow)'),
+                                ],
+                              ),
+                            ),
+                            DropdownMenuItem(
+                              value: 'qr',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.qr_code_2_outlined, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Pay via QR directly to Runner'),
+                                ],
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _selectedPaymentMethod = value;
+                              });
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 32),
+                      ],
 
                       // ─── Butang Submit ───────────────────────
                       Consumer<GigProvider>(

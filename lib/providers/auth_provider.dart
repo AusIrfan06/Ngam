@@ -274,6 +274,34 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Upload runner QR Code
+  Future<String?> uploadQrCode(File imageFile) async {
+    if (_user == null) return 'User not logged in';
+    try {
+      final String path = '${_user!.id}/qrcode_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      await Supabase.instance.client.storage
+          .from('avatars') // Or create a new bucket 'qrcodes' if preferred, using 'avatars' for simplicity
+          .upload(path, imageFile, fileOptions: const FileOptions(cacheControl: '3600', upsert: true));
+
+      final String publicUrl = Supabase.instance.client.storage
+          .from('avatars')
+          .getPublicUrl(path);
+
+      final error = await SupabaseService.updateProfile(
+        userId: _user!.id,
+        qrCodeUrl: publicUrl,
+      );
+
+      if (error == null) {
+        _user = _user!.copyWith(qrCodeUrl: publicUrl);
+        notifyListeners();
+      }
+      return error;
+    } catch (e) {
+      return e.toString().replaceAll('Exception: ', '');
+    }
+  }
+
   /// Refresh user balance
   Future<void> refreshBalance() async {
     if (_user == null) return;

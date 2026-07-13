@@ -426,6 +426,112 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
             // ─── Butang Tanda Delivered ──────────────
             Consumer<GigProvider>(
               builder: (context, gigProvider, _) {
+                if (gig.status == 'PENDING_PAYMENT_CONFIRMATION') {
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        HugeIcon(icon: HugeIcons.strokeRoundedBank, color: AppTheme.warning, size: 32),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sahkan Pembayaran QR',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.warning,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Pelanggan mendakwa telah membuat bayaran ke akaun anda melalui QR Code. Sila semak bank anda dan sahkan.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.warning.withValues(alpha: 0.8),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: gigProvider.isLoading
+                                    ? null
+                                    : () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (c) => AlertDialog(
+                                            title: const Text('Tolak Pembayaran?'),
+                                            content: const Text(
+                                              'Anda pasti ingin menolak pembayaran ini? Status akan dikembalikan kepada DELIVERED.',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(c, false),
+                                                child: const Text('Batal'),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                                onPressed: () => Navigator.pop(c, true),
+                                                child: const Text(
+                                                  'Ya, Tolak',
+                                                  style: TextStyle(color: Colors.white),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm == true && context.mounted) {
+                                          final success = await gigProvider.runnerDeclineQrPayment(gig.id);
+                                          if (success && context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Pembayaran ditolak.')),
+                                            );
+                                          }
+                                        }
+                                      },
+                                style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                                child: const Text('Tolak'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: gigProvider.isLoading
+                                    ? null
+                                    : () async {
+                                        final success = await gigProvider.runnerAcceptQrPayment(gig.id);
+                                        if (success && context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Pembayaran disahkan berjaya!')),
+                                          );
+                                          final isRunner = context.read<AuthProvider>().isRunner;
+                                          Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            isRunner ? '/runner-home' : '/customer-home',
+                                            (route) => false,
+                                          );
+                                        }
+                                      },
+                                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success, foregroundColor: Colors.white),
+                                child: const Text('Terima'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 if (gig.status == 'DELIVERED') {
                   return Container(
                     width: double.infinity,
@@ -448,7 +554,9 @@ class _ActiveJobScreenState extends State<ActiveJobScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'You will receive the payment once the customer confirms.',
+                          gig.paymentMethod == 'qr'
+                              ? 'You will be notified once the customer pays via QR.'
+                              : 'You will receive the payment once the customer confirms.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 13,

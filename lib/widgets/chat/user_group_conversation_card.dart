@@ -359,14 +359,14 @@ class _UserGroupConversationCardState extends State<UserGroupConversationCard> {
                       ),
                     )
                   else ...[
-                    // Tunjuk General Chat kalau ada perbualan tanpa gigId (sembang biasa)
-                    if (widget.conversations.any((c) => c.gigId == null))
+                    // Tunjuk General Chat kalau tak ada task spesifik
+                    if (_sharedGigs!.isEmpty)
                       ConversationSubTile(
-                        conversation: widget.conversations.firstWhere((c) => c.gigId == null),
+                        conversation: widget.conversations.first,
                         currentUserId: widget.currentUserId,
                         isDark: widget.isDark,
-                        onTap: () => widget.onTap(widget.conversations.firstWhere((c) => c.gigId == null), null),
-                        onLongPress: () => widget.onLongPress(widget.conversations.firstWhere((c) => c.gigId == null)),
+                        onTap: () => widget.onTap(widget.conversations.first, null),
+                        onLongPress: () => widget.onLongPress(widget.conversations.first),
                       ),
                     // Gig / Task Tertentu
                     ..._sharedGigs!.map((gig) {

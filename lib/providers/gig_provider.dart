@@ -146,6 +146,7 @@ class GigProvider extends ChangeNotifier {
     double? latitude,
     double? longitude,
     String? serviceId,
+    String paymentMethod = 'wallet',
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -162,6 +163,7 @@ class GigProvider extends ChangeNotifier {
         latitude: latitude,
         longitude: longitude,
         serviceId: serviceId,
+        paymentMethod: paymentMethod,
       );
       _isLoading = false;
       notifyListeners();
@@ -272,6 +274,55 @@ class GigProvider extends ChangeNotifier {
     } catch (e) {
       _error = 'Failed to update bounty';
       notifyListeners();
+      return false;
+    }
+  }
+
+
+
+  /// Customer click "I have paid via QR"
+  Future<bool> customerConfirmQrPayment(String gigId) async {
+    try {
+      await GigService.customerConfirmQrPayment(gigId);
+      
+      final index = _myGigs.indexWhere((g) => g.id == gigId);
+      if (index >= 0) {
+        _myGigs[index] = _myGigs[index].copyWith(status: 'PENDING_PAYMENT_CONFIRMATION');
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Error confirm qr payment: $e');
+      return false;
+    }
+  }
+
+  /// Runner accept direct QR payment
+  Future<bool> runnerAcceptQrPayment(String gigId) async {
+    try {
+      await GigService.runnerAcceptQrPayment(gigId);
+      if (_activeJob?.id == gigId) {
+        _activeJob = _activeJob!.copyWith(status: GigStatus.completed);
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Error accept qr payment: $e');
+      return false;
+    }
+  }
+
+  /// Runner decline direct QR payment
+  Future<bool> runnerDeclineQrPayment(String gigId) async {
+    try {
+      await GigService.runnerDeclineQrPayment(gigId);
+      if (_activeJob?.id == gigId) {
+        _activeJob = _activeJob!.copyWith(status: GigStatus.delivered);
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      debugPrint('Error decline qr payment: $e');
       return false;
     }
   }

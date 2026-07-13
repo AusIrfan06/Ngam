@@ -32,6 +32,7 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
   bool _obscureCurrentPass = true;
   bool _obscureNewPass = true;
   bool _isUploadingAvatar = false;
+  bool _isUploadingQrCode = false;
 
   @override
   void initState() {
@@ -157,6 +158,29 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
           showGlassToast(context, error, isError: true);
         } else {
           showGlassToast(context, "Profile picture updated!");
+        }
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadQrCode() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 80,
+    );
+
+    if (pickedFile != null && mounted) {
+      setState(() => _isUploadingQrCode = true);
+      final error = await context.read<AuthProvider>().uploadQrCode(File(pickedFile.path));
+      if (mounted) {
+        setState(() => _isUploadingQrCode = false);
+        if (error != null) {
+          showGlassToast(context, error, isError: true);
+        } else {
+          showGlassToast(context, "QR Code updated!");
         }
       }
     }
@@ -321,6 +345,89 @@ class _AccountDetailsScreenState extends State<AccountDetailsScreen> {
                     ),
 
                     const SizedBox(height: 32),
+                    if (context.watch<AuthProvider>().isRunner) ...[
+                      Text("RUNNER QR CODE", style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                      const SizedBox(height: 12),
+                      GlassContainer(
+                        useOwnLayer: true, quality: GlassQuality.standard, shape: LiquidRoundedSuperellipse(borderRadius: 24.0), settings: _getGlassSettings(isDark),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(24.0), border: Border.all(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.6), width: 1.0)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Upload your DuitNow / Bank QR Code so customers can pay you directly.", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 13)),
+                              const SizedBox(height: 16),
+                              Center(
+                                child: GestureDetector(
+                                  onTap: _isUploadingQrCode ? null : _pickAndUploadQrCode,
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        width: 140,
+                                        height: 140,
+                                        decoration: BoxDecoration(
+                                          color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(alpha: isDark ? 0.2 : 0.6),
+                                            width: 2,
+                                          ),
+                                          image: context.watch<AuthProvider>().user?.qrCodeUrl != null
+                                              ? DecorationImage(
+                                                  image: NetworkImage(context.watch<AuthProvider>().user!.qrCodeUrl!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : null,
+                                        ),
+                                        child: context.watch<AuthProvider>().user?.qrCodeUrl == null
+                                            ? HugeIcon(
+                                                icon: HugeIcons.strokeRoundedQrCode01,
+                                                color: isDark ? Colors.white54 : Colors.black54,
+                                                size: 50,
+                                              )
+                                            : null,
+                                      ),
+                                      if (_isUploadingQrCode)
+                                        Positioned.fill(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16),
+                                              color: Colors.black54,
+                                            ),
+                                            child: const Center(
+                                              child: CircularProgressIndicator(color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).primaryColor,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2),
+                                          ),
+                                          child: const HugeIcon(
+                                            icon: HugeIcons.strokeRoundedCamera01,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+
                     Text("account.security".tr(), style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     const SizedBox(height: 12),
 

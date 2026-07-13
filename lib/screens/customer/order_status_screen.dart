@@ -444,7 +444,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'The runner has marked this task as delivered. Please confirm to release the payment.',
+                      gig.paymentMethod == 'qr'
+                          ? 'The runner has marked this task as delivered. Please pay via QR code below and confirm.'
+                          : 'The runner has marked this task as delivered. Please confirm to release the payment.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -473,68 +475,205 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (c) => AlertDialog(
-                              title: const Text('Confirm Completion?'),
-                              content: const Text(
-                                'Are you sure the task is completed satisfactorily? The payment will be released to the runner immediately.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(c, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.success,
-                                  ),
-                                  onPressed: () => Navigator.pop(c, true),
-                                  child: const Text(
-                                    'Confirm & Pay',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
 
-                          if (confirm == true && context.mounted) {
-                            showDialog(
+                    if (gig.paymentMethod == 'qr') ...[
+                      if (gig.runnerQrCodeUrl != null) ...[
+                        Text(
+                          'Sila imbas QR Code di bawah untuk membayar runner',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              gig.runnerQrCodeUrl!,
+                              width: 200,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ] else ...[
+                        Text(
+                          'Runner tidak mempunyai QR code, sila hubungi runner untuk bayaran manual.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
                               context: context,
-                              barrierDismissible: false,
-                              builder: (_) => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                            final success = await context
-                                .read<GigProvider>()
-                                .completeGig(gig.id, gig.gigWorkerId!);
-                            if (context.mounted) {
-                              Navigator.pop(context); // tutup loader
-                              if (success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Payment released successfully!',
+                              builder: (c) => AlertDialog(
+                                title: const Text('Confirm Payment?'),
+                                content: const Text(
+                                  'Are you sure you have paid the runner via QR code?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.success,
+                                    ),
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text(
+                                      'Yes, I Have Paid',
+                                      style: TextStyle(color: Colors.white),
                                     ),
                                   ),
-                                );
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true && context.mounted) {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                              final success = await context
+                                  .read<GigProvider>()
+                                  .customerConfirmQrPayment(gig.id);
+                              if (context.mounted) {
+                                Navigator.pop(context); // tutup loader
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Payment marked as done! Waiting for runner confirmation.',
+                                      ),
+                                    ),
+                                  );
+                                }
                               }
                             }
-                          }
-                        },
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: const Text('Confirm & Release Payment'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.success,
-                          foregroundColor: Colors.white,
+                          },
+                          icon: const Icon(Icons.qr_code_2),
+                          label: const Text('I Have Paid via QR'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
+                      ),
+                    ] else ...[
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                title: const Text('Confirm Completion?'),
+                                content: const Text(
+                                  'Are you sure the task is completed satisfactorily? The payment will be released to the runner immediately.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.success,
+                                    ),
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text(
+                                      'Confirm & Pay',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true && context.mounted) {
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                              final success = await context
+                                  .read<GigProvider>()
+                                  .completeGig(gig.id, gig.gigWorkerId!);
+                              if (context.mounted) {
+                                Navigator.pop(context); // tutup loader
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Payment released successfully!',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: const Text('Confirm & Release Payment'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.success,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            if (gig.status == 'PENDING_PAYMENT_CONFIRMATION') ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppTheme.warning.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Menunggu Pengesahan Runner',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.warning,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Sila tunggu runner semak dan sahkan pembayaran yang telah dibuat.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   ],

@@ -448,60 +448,6 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 
-// ─── Butang Icon Glass ────────────────────────────────────────
-class _GlassIconButton extends StatelessWidget {
-  final bool isDark;
-  final dynamic icon;
-  final VoidCallback onTap;
-
-  const _GlassIconButton({
-    required this.isDark,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: GlassContainer(
-        useOwnLayer: true,
-        quality: GlassQuality.standard,
-        shape: LiquidRoundedSuperellipse(borderRadius: 16.0),
-        settings: LiquidGlassSettings(
-          thickness: 0.1,
-          blur: 15,
-          refractiveIndex: 1.0,
-          glassColor: Colors.transparent,
-          lightAngle: 45.0,
-          lightIntensity: isDark ? 0.1 : 0.2,
-          ambientStrength: 1.0,
-          saturation: 1.0,
-          chromaticAberration: 0.0,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white.withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.7),
-              width: 1.0,
-            ),
-          ),
-          child: HugeIcon(
-            icon: icon,
-            color: isDark ? Colors.white : Colors.black87,
-            size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 // ─── Skrin Thread Chat (Dalam Chat) ───────────────────────────
 class ChatThreadScreen extends StatefulWidget {
@@ -517,7 +463,6 @@ class ChatThreadScreen extends StatefulWidget {
 class _ChatThreadScreenState extends State<ChatThreadScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final PageController _pageController = PageController(viewportFraction: 0.65);
   final ImagePicker _picker = ImagePicker();
   
   bool _isUploadingImage = false;
@@ -714,11 +659,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
             final idx = _sharedGigs.indexWhere((g) => g.id == targetGigId);
             if (idx != -1) {
               _linkedGig = _sharedGigs[idx];
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_pageController.hasClients) {
-                  _pageController.jumpToPage(idx);
-                }
-              });
             } else {
               // Fallback kalau tak terjumpa dalam shared cache
               GigService.fetchGigById(targetGigId).then((g) {
@@ -740,7 +680,6 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     _typingTimer?.cancel();
     _subscription?.unsubscribe();
     _controller.dispose();
-    _pageController.dispose();
     _scrollController.dispose();
     lastNotificationReplyConversationId.removeListener(_onNotificationReply);
     super.dispose();
@@ -1249,10 +1188,10 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     if (isAttachMode) {
                       _sendTaskCard(gig);
                     } else {
-                      final pageIndex = _sharedGigs.indexWhere((g) => g.id == gig.id);
-                      if (pageIndex != -1) {
-                        _pageController.animateToPage(pageIndex, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                      }
+                      setState(() {
+                        _linkedGig = gig;
+                      });
+                      ChatService.markMessagesAsRead(widget.conversation.id, otherUserId, gigId: gig.id);
                     }
                   },
                 );
@@ -1691,7 +1630,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                 return ListView.builder(
                   reverse: true,
                   controller: _scrollController,
-                  padding: EdgeInsets.fromLTRB(16, _sharedGigs.isNotEmpty ? 170 : 80, 16, 160), // Bagi padding extra kat atas untuk top bar & carousel, bawah untuk type chat
+                  padding: EdgeInsets.fromLTRB(16, _linkedGig != null ? 170 : 80, 16, 160), // Bagi padding extra kat atas untuk top bar & card, bawah untuk type chat
                   physics: const BouncingScrollPhysics(),
                   itemCount: displayMessages.length + (_isLoading ? 1 : 0) + (_isOtherTyping ? 1 : 0),
                   itemBuilder: (context, index) {
@@ -2290,147 +2229,99 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
               ),
             ),
           ),
-          if (_sharedGigs.isNotEmpty)
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final screenWidth = MediaQuery.of(context).size.width;
-                final defaultLeftPadding = (screenWidth * (1 - 0.65)) / 2;
-
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: AnimatedBuilder(
-                    animation: _pageController,
-                    builder: (context, child) {
-                      double page = 0.0;
-                      if (_pageController.hasClients && _pageController.position.hasContentDimensions) {
-                        page = _pageController.page ?? 0.0;
-                      }
-                      final shiftLeft = defaultLeftPadding - 16.0;
-                      final factor = (1.0 - page).clamp(0.0, 1.0);
-                      final currentShift = shiftLeft * factor;
-
-                      return Transform.translate(
-                        offset: Offset(-currentShift, 0),
-                        child: child,
-                      );
-                    },
-                    child: SizedBox(
-                      height: 70,
-                      child: PageView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      clipBehavior: Clip.none,
-                      padEnds: true,
-                      controller: _pageController,
-                      onPageChanged: (index) {
-                        setState(() { _linkedGig = _sharedGigs[index]; });
-                        ChatService.markMessagesAsRead(widget.conversation.id, otherUserId, gigId: _linkedGig?.id);
-                      },
-                      itemCount: _sharedGigs.length,
-                      itemBuilder: (context, index) {
-                        final gig = _sharedGigs[index];
-                        final isActive = _linkedGig?.id == gig.id;
-                        Widget card = GestureDetector(
-                          onTap: () {
-                            if (isActive) {
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => const TaskDetailScreen(),
-                                settings: RouteSettings(arguments: gig),
-                              ));
-                            } else {
-                              _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                            }
-                          },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                      child: GlassContainer(
-                        useOwnLayer: true,
-                        quality: GlassQuality.standard,
-                        shape: LiquidRoundedSuperellipse(borderRadius: 16.0),
-                        settings: LiquidGlassSettings(
-                          thickness: 0.1,
-                          blur: isActive ? 15.0 : 8.0,
-                          refractiveIndex: 1.0,
-                          glassColor: Colors.transparent,
-                          lightAngle: 45.0,
-                          lightIntensity: isDark ? 0.1 : 0.2,
-                          ambientStrength: 1.0,
-                          saturation: 1.0,
-                          chromaticAberration: 0.0,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isActive 
-                                ? (isDark ? AppTheme.primary.withValues(alpha: 0.25) : AppTheme.primary.withValues(alpha: 0.15))
-                                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.5)),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isActive 
-                                  ? AppTheme.primary.withValues(alpha: 0.6) 
-                                  : Colors.white.withValues(alpha: isDark ? 0.15 : 0.4), 
-                              width: isActive ? 1.5 : 1.0
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: _getColorForStatus(gig.status, isDark, isActive).withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: HugeIcon(
-                                  icon: _getIconForStatus(gig.status), 
-                                  color: _getColorForStatus(gig.status, isDark, isActive), 
-                                  size: 16
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      gig.title,
-                                      style: TextStyle(
-                                        fontWeight: isActive ? FontWeight.bold : FontWeight.w600, 
-                                        fontSize: 13,
-                                        color: isDark ? Colors.white : Colors.black87,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      '${gig.formattedBounty} • ${gig.status}',
-                                      style: TextStyle(
-                                        color: isDark ? Colors.white70 : Colors.black54, 
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+          if (_linkedGig != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: SizedBox(
+                height: 70,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const TaskDetailScreen(),
+                      settings: RouteSettings(arguments: _linkedGig),
+                    ));
+                  },
+                  child: GlassContainer(
+                    useOwnLayer: true,
+                    quality: GlassQuality.standard,
+                    shape: LiquidRoundedSuperellipse(borderRadius: 16.0),
+                    settings: LiquidGlassSettings(
+                      thickness: 0.1,
+                      blur: 15.0,
+                      refractiveIndex: 1.0,
+                      glassColor: Colors.transparent,
+                      lightAngle: 45.0,
+                      lightIntensity: isDark ? 0.1 : 0.2,
+                      ambientStrength: 1.0,
+                      saturation: 1.0,
+                      chromaticAberration: 0.0,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.primary.withValues(alpha: 0.25) : AppTheme.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.6), 
+                          width: 1.5
                         ),
                       ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: _getColorForStatus(_linkedGig!.status, isDark, true).withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: HugeIcon(
+                              icon: _getIconForStatus(_linkedGig!.status), 
+                              color: _getColorForStatus(_linkedGig!.status, isDark, true), 
+                              size: 18
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _linkedGig!.title,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 14,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${_linkedGig!.formattedBounty} • ${_linkedGig!.status}',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white70 : Colors.black54, 
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: isDark ? Colors.white54 : Colors.black45,
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-
-                  return card;
-                },
+                  ),
+                ),
               ),
             ),
-          ),
-          );
-        },
+        ],
       ),
-    ],
+    ),
   ),
-),
-),
 ],
 ),
 );
