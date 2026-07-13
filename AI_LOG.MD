@@ -1,7 +1,7 @@
 # AI Usage & Disclosure Log
 
 **Project Component:** Real-Time WebSockets, Concurrency, Voice AI, and Biometric Security (Ngam App)
-**AI Tool Used:** Antigravity IDE (Gemini)
+**AI Tool Used:** Android Studio (Gemini)
 
 ---
 
